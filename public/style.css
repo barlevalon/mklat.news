@@ -38,6 +38,14 @@ header h1 {
     color: #4ade80;
 }
 
+.status-warning {
+    color: #fbbf24;
+}
+
+.status-error {
+    color: #f87171;
+}
+
 .status-disconnected {
     color: #f87171;
 }

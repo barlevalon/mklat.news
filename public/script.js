@@ -10,6 +10,169 @@ let wsReconnectAttempts = 0;
 let maxReconnectAttempts = 5;
 let fallbackPolling = null;
 
+// Real-time updates with WebSocket and fallback polling
+function initializeRealTimeUpdates() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}`;
+    
+    console.log('Attempting to connect to WebSocket:', wsUrl);
+    connectWebSocket(wsUrl);
+}
+
+function connectWebSocket(wsUrl) {
+    try {
+        ws = new WebSocket(wsUrl);
+        
+        // Expose for testing
+        if (typeof window !== 'undefined') {
+            window.ws = ws;
+            window.wsReconnectAttempts = wsReconnectAttempts;
+        }
+        
+        ws.onopen = function() {
+            console.log('WebSocket connected - real-time updates active');
+            wsReconnectAttempts = 0;
+            
+            // Stop fallback polling if it's running
+            if (fallbackPolling) {
+                clearInterval(fallbackPolling);
+                fallbackPolling = null;
+            }
+            
+            // Update connection status
+            updateWebSocketStatus('connected');
+        };
+        
+        ws.onmessage = function(event) {
+            try {
+                const message = JSON.parse(event.data);
+                handleWebSocketMessage(message);
+            } catch (error) {
+                console.error('Error parsing WebSocket message:', error);
+            }
+        };
+        
+        ws.onclose = function() {
+            console.log('WebSocket connection closed');
+            updateWebSocketStatus('disconnected');
+            handleWebSocketReconnect(wsUrl);
+        };
+        
+        ws.onerror = function(error) {
+            console.error('WebSocket error:', error);
+            updateWebSocketStatus('error');
+        };
+        
+    } catch (error) {
+        console.error('Failed to create WebSocket connection:', error);
+        startFallbackPolling();
+    }
+}
+
+function handleWebSocketMessage(message) {
+    switch (message.type) {
+        case 'initial':
+            // Handle initial data load
+            if (message.data.ynet) {
+                newsData = message.data.ynet;
+                renderNews(newsData);
+                animateUpdate('news-panel');
+            }
+            if (message.data.alerts) {
+                alertsData = message.data.alerts;
+                renderAlerts(alertsData);
+                animateUpdate('alerts-panel');
+            }
+            if (message.data.locations) {
+                availableLocations = message.data.locations;
+                renderLocationList();
+            }
+            break;
+            
+        case 'ynet':
+            newsData = message.data;
+            renderNews(newsData);
+            animateUpdate('news-panel');
+            break;
+            
+        case 'alerts':
+            alertsData = message.data;
+            renderAlerts(alertsData);
+            animateUpdate('alerts-panel');
+            break;
+            
+        default:
+            console.log('Unknown WebSocket message type:', message.type);
+    }
+}
+
+function handleWebSocketReconnect(wsUrl) {
+    if (wsReconnectAttempts < maxReconnectAttempts) {
+        wsReconnectAttempts++;
+        
+        // Update global for testing
+        if (typeof window !== 'undefined') {
+            window.wsReconnectAttempts = wsReconnectAttempts;
+        }
+        
+        const delay = Math.min(1000 * Math.pow(2, wsReconnectAttempts), 30000); // Exponential backoff, max 30s
+        
+        console.log(`Attempting to reconnect WebSocket in ${delay}ms (attempt ${wsReconnectAttempts}/${maxReconnectAttempts})`);
+        
+        setTimeout(() => {
+            connectWebSocket(wsUrl);
+        }, delay);
+    } else {
+        console.log('Max WebSocket reconnect attempts reached, falling back to polling');
+        startFallbackPolling();
+    }
+}
+
+function startFallbackPolling() {
+    if (fallbackPolling) return; // Already polling
+    
+    console.log('Starting fallback polling every 3 seconds');
+    updateWebSocketStatus('polling');
+    
+    // Initial data fetch
+    fetchAllData();
+    
+    // Poll every 3 seconds as fallback
+    fallbackPolling = setInterval(fetchAllData, 3000);
+}
+
+function updateWebSocketStatus(status) {
+    // Use existing connection-status element
+    const statusElement = document.getElementById('connection-status');
+    
+    if (statusElement) {
+        switch (status) {
+            case 'connected':
+                statusElement.textContent = '● Real-time';
+                statusElement.className = 'status-connected';
+                break;
+            case 'polling':
+                statusElement.textContent = '◐ Polling';
+                statusElement.className = 'status-warning';
+                break;
+            case 'disconnected':
+            case 'error':
+                statusElement.textContent = '○ Offline';
+                statusElement.className = 'status-error';
+                break;
+        }
+    }
+}
+
+// Expose WebSocket for testing
+if (typeof window !== 'undefined') {
+    window.ws = null;
+    window.wsReconnectAttempts = 0;
+    window.handleWebSocketMessage = handleWebSocketMessage;
+    window.initializeRealTimeUpdates = initializeRealTimeUpdates;
+    window.handleWebSocketReconnect = handleWebSocketReconnect;
+}
+
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     console.log('War Room initialized');
@@ -424,155 +587,3 @@ function setupLocationButton() {
 
 // Service worker removed to avoid 404 errors
 // Can be added later for offline functionality if needed
-
-// Real-time updates with WebSocket and fallback polling
-function initializeRealTimeUpdates() {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}`;
-    
-    console.log('Attempting to connect to WebSocket:', wsUrl);
-    connectWebSocket(wsUrl);
-}
-
-function connectWebSocket(wsUrl) {
-    try {
-        ws = new WebSocket(wsUrl);
-        
-        ws.onopen = function() {
-            console.log('WebSocket connected - real-time updates active');
-            wsReconnectAttempts = 0;
-            
-            // Stop fallback polling if it's running
-            if (fallbackPolling) {
-                clearInterval(fallbackPolling);
-                fallbackPolling = null;
-            }
-            
-            // Update connection status
-            updateWebSocketStatus('connected');
-        };
-        
-        ws.onmessage = function(event) {
-            try {
-                const message = JSON.parse(event.data);
-                handleWebSocketMessage(message);
-            } catch (error) {
-                console.error('Error parsing WebSocket message:', error);
-            }
-        };
-        
-        ws.onclose = function() {
-            console.log('WebSocket connection closed');
-            updateWebSocketStatus('disconnected');
-            handleWebSocketReconnect(wsUrl);
-        };
-        
-        ws.onerror = function(error) {
-            console.error('WebSocket error:', error);
-            updateWebSocketStatus('error');
-        };
-        
-    } catch (error) {
-        console.error('Failed to create WebSocket connection:', error);
-        startFallbackPolling();
-    }
-}
-
-function handleWebSocketMessage(message) {
-    switch (message.type) {
-        case 'initial':
-            // Handle initial data load
-            if (message.data.ynet) {
-                newsData = message.data.ynet;
-                renderNews(newsData);
-                animateUpdate('news-panel');
-            }
-            if (message.data.alerts) {
-                alertsData = message.data.alerts;
-                renderAlerts(alertsData);
-                animateUpdate('alerts-panel');
-            }
-            if (message.data.locations) {
-                availableLocations = message.data.locations;
-                populateLocationDropdown();
-            }
-            break;
-            
-        case 'ynet':
-            newsData = message.data;
-            renderNews(newsData);
-            animateUpdate('news-panel');
-            break;
-            
-        case 'alerts':
-            alertsData = message.data;
-            renderAlerts(alertsData);
-            animateUpdate('alerts-panel');
-            break;
-            
-        default:
-            console.log('Unknown WebSocket message type:', message.type);
-    }
-}
-
-function handleWebSocketReconnect(wsUrl) {
-    if (wsReconnectAttempts < maxReconnectAttempts) {
-        wsReconnectAttempts++;
-        const delay = Math.min(1000 * Math.pow(2, wsReconnectAttempts), 30000); // Exponential backoff, max 30s
-        
-        console.log(`Attempting to reconnect WebSocket in ${delay}ms (attempt ${wsReconnectAttempts}/${maxReconnectAttempts})`);
-        
-        setTimeout(() => {
-            connectWebSocket(wsUrl);
-        }, delay);
-    } else {
-        console.log('Max WebSocket reconnect attempts reached, falling back to polling');
-        startFallbackPolling();
-    }
-}
-
-function startFallbackPolling() {
-    if (fallbackPolling) return; // Already polling
-    
-    console.log('Starting fallback polling every 3 seconds');
-    updateWebSocketStatus('polling');
-    
-    // Initial data fetch
-    fetchAllData();
-    
-    // Poll every 3 seconds as fallback
-    fallbackPolling = setInterval(fetchAllData, 3000);
-}
-
-function updateWebSocketStatus(status) {
-    const statusElement = document.getElementById('connectionStatus');
-    if (!statusElement) {
-        // Create status indicator if it doesn't exist
-        const header = document.querySelector('.header');
-        if (header) {
-            const statusDiv = document.createElement('div');
-            statusDiv.id = 'connectionStatus';
-            statusDiv.style.cssText = 'position: absolute; top: 10px; right: 10px; padding: 5px 10px; border-radius: 5px; font-size: 12px; color: white;';
-            header.appendChild(statusDiv);
-        }
-    }
-    
-    const statusElement2 = document.getElementById('connectionStatus');
-    if (statusElement2) {
-        switch (status) {
-            case 'connected':
-                statusElement2.textContent = '● Real-time';
-                statusElement2.style.backgroundColor = '#4CAF50';
-                break;
-            case 'polling':
-                statusElement2.textContent = '◐ Polling';
-                statusElement2.style.backgroundColor = '#FF9800';
-                break;
-            case 'disconnected':
-            case 'error':
-                statusElement2.textContent = '○ Offline';
-                statusElement2.style.backgroundColor = '#F44336';
-                break;
-        }
-    }
-}

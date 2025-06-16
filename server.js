@@ -293,13 +293,35 @@ async function fetchAlertAreas() {
   const cached = cache.get('alert-areas');
   if (cached) return cached;
   
-  const response = await axios.get('https://alerts-history.oref.org.il//Shared/Ajax/GetDistricts.aspx?lang=he', {
-    timeout: 10000
-  });
-  
-  const areas = response.data || [];
-  cache.set('alert-areas', areas);
-  return areas;
+  try {
+    const response = await axios.get('https://alerts-history.oref.org.il//Shared/Ajax/GetDistricts.aspx?lang=he', {
+      timeout: 10000
+    });
+    
+    const data = response.data || [];
+    const alertAreas = [...new Set(
+      data
+        .filter(district => district && district.label && district.label.trim())
+        .map(district => district.label.trim())
+    )].sort();
+    
+    cache.set('alert-areas', alertAreas, 3600);
+    return alertAreas;
+  } catch (error) {
+    console.error('Error in fetchAlertAreas:', error.message);
+    
+    // Fallback to essential cities
+    const fallbackAreas = [
+      'תל אביב', 'ירושלים', 'חיפה', 'באר שבע', 'אשדוד', 'אשקלון', 'נתניה',
+      'פתח תקווה', 'ראשון לציון', 'רחובות', 'חולון', 'בת ים', 'בני ברק', 
+      'רמת גן', 'הרצליה', 'כפר סבא', 'רעננה', 'הוד השרון', 'נס ציונה',
+      'מודיעין', 'לוד', 'רמלה', 'קרית גת', 'קרית מלאכי', 'יבנה', 'גדרה',
+      'אלוני הבשן', 'מטולה', 'קרית שמונה', 'שדרות', 'עומר', 'אילת'
+    ].sort();
+    
+    cache.set('alert-areas', fallbackAreas, 3600);
+    return fallbackAreas;
+  }
 }
 
 // Background polling system

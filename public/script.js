@@ -252,51 +252,89 @@ function renderNews(news) {
     newsContent.innerHTML = newsHtml;
 }
 
-function renderAlerts(alerts) {
+function renderAlerts(alertsData) {
     const alertsContent = document.getElementById('alerts-content');
     
-    if (!alerts || alerts.length === 0) {
-        alertsContent.innerHTML = '<div class="no-alerts">✅ אין אזעקות פעילות</div>';
-        return;
-    }
+    // Handle new structure with active and historical alerts
+    const activeAlerts = alertsData?.active || [];
+    const historicalAlerts = alertsData?.history || [];
     
-    // Handle different alert data structures
-    let processedAlerts = [];
-    
-    if (Array.isArray(alerts)) {
-        // Check if it's the oref.org.il format
-        if (alerts.length > 0 && typeof alerts[0] === 'string') {
-            processedAlerts = alerts.map(alert => ({
+    // Process active alerts (from current API)
+    let processedActiveAlerts = [];
+    if (Array.isArray(activeAlerts)) {
+        if (activeAlerts.length > 0 && typeof activeAlerts[0] === 'string') {
+            processedActiveAlerts = activeAlerts.map(alert => ({
                 area: alert,
                 time: new Date().toISOString(),
-                isRecent: true
+                isRecent: true,
+                isActive: true,
+                description: 'אזעקה פעילה'
             }));
         } else {
-            // Handle tzevaadom format or other structures
-            processedAlerts = alerts.map(alert => ({
+            processedActiveAlerts = activeAlerts.map(alert => ({
                 area: alert.data || alert.area || alert.title || alert,
                 time: alert.alertDate || alert.time || new Date().toISOString(),
-                isRecent: isRecentAlert(alert.alertDate || alert.time)
+                isRecent: isRecentAlert(alert.alertDate || alert.time),
+                isActive: true,
+                description: alert.description || 'אזעקה פעילה'
             }));
         }
     }
     
-    // Filter alerts based on selected locations
-    const filteredAlerts = filterAlertsByLocation(processedAlerts);
+    // Process historical alerts (already in correct format)
+    const processedHistoricalAlerts = historicalAlerts || [];
     
-    if (filteredAlerts.length === 0 && selectedLocations.size > 0) {
-        alertsContent.innerHTML = '<div class="no-alerts">✅ אין אזעקות באזורים הנבחרים</div>';
-        return;
+    // Filter active alerts by location
+    const filteredActiveAlerts = filterAlertsByLocation(processedActiveAlerts);
+    
+    // Always show active alerts status at the top
+    let html = '';
+    if (filteredActiveAlerts.length === 0) {
+        if (selectedLocations.size > 0 && processedActiveAlerts.length > 0) {
+            html += '<div class="no-alerts">✅ אין אזעקות פעילות באזורים הנבחרים</div>';
+        } else {
+            html += '<div class="no-alerts">✅ אין אזעקות פעילות</div>';
+        }
+    } else {
+        html += `<div class="active-alerts-status">🚨 ${filteredActiveAlerts.length} אזעקות פעילות</div>`;
     }
     
-    const alertsHtml = filteredAlerts.map(alert => `
-        <div class="alert-item ${alert.isRecent ? 'recent' : ''}">
-            <h3>🚨 ${escapeHtml(alert.area)}</h3>
-            <div class="time">${formatDate(alert.time)}</div>
-        </div>
-    `).join('');
+    // Show historical alerts if available
+    if (processedHistoricalAlerts.length > 0) {
+        // Combine and sort all alerts  
+        const allAlerts = [...processedActiveAlerts, ...processedHistoricalAlerts];
+        allAlerts.sort((a, b) => new Date(b.time) - new Date(a.time));
+        
+        // Filter all alerts based on selected locations
+        const filteredAllAlerts = filterAlertsByLocation(allAlerts);
+        
+        if (filteredAllAlerts.length > 0) {
+            html += '<div class="alerts-history-header">היסטוריית אזעקות:</div>';
+            
+            const alertsHtml = filteredAllAlerts.map(alert => `
+                <div class="alert-item ${alert.isRecent ? 'recent' : ''} ${alert.isActive ? 'active' : 'historical'}">
+                    <h3>${alert.isActive ? '🚨' : '📍'} ${escapeHtml(alert.area)}</h3>
+                    <div class="alert-description">${escapeHtml(alert.description || 'אזעקה')}</div>
+                    <div class="time">${formatDate(alert.time)}</div>
+                </div>
+            `).join('');
+            
+            html += alertsHtml;
+        }
+    } else if (filteredActiveAlerts.length > 0) {
+        // Only show active alerts if no historical data
+        const alertsHtml = filteredActiveAlerts.map(alert => `
+            <div class="alert-item ${alert.isRecent ? 'recent' : ''} ${alert.isActive ? 'active' : 'historical'}">
+                <h3>${alert.isActive ? '🚨' : '📍'} ${escapeHtml(alert.area)}</h3>
+                <div class="alert-description">${escapeHtml(alert.description || 'אזעקה')}</div>
+                <div class="time">${formatDate(alert.time)}</div>
+            </div>
+        `).join('');
+        
+        html += alertsHtml;
+    }
     
-    alertsContent.innerHTML = alertsHtml;
+    alertsContent.innerHTML = html;
 }
 
 function renderError(elementId, message) {
@@ -460,6 +498,18 @@ function clearAllLocations() {
     renderAlerts(alertsData);
 }
 
+function applyLocationSelection() {
+    // Close the location selector
+    toggleLocationSelector();
+    
+    // Save preferences and update display
+    saveUserPreferences();
+    updateSelectedLocationsDisplay();
+    
+    // Re-render alerts with new filter
+    renderAlerts(alertsData);
+}
+
 function updateSelectedLocationsDisplay() {
     const selectedElement = document.getElementById('selected-locations');
     const countElement = document.getElementById('selected-count');
@@ -564,6 +614,7 @@ function setupLocationButton() {
 window.toggleLocation = toggleLocation;
 window.selectAllLocations = selectAllLocations;
 window.clearAllLocations = clearAllLocations;
+window.applyLocationSelection = applyLocationSelection;
 window.fetchNews = fetchNews;
 window.fetchAlerts = fetchAlerts;
 

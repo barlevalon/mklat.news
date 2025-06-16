@@ -17,7 +17,7 @@
     <main class="container">
         <div class="panel" id="alerts-panel">
             <div class="panel-header">
-                <h2>🔴 אזעקות פיקוד העורף</h2>
+                <h2>🔴 אזעקות פיקוד העורף - פעילות והיסטוריה</h2>
                 <div class="header-controls">
                     <div class="location-filter">📍</div>
                     <div class="refresh-btn" onclick="fetchAlerts()">🔄</div>
@@ -35,6 +35,9 @@
                     <button onclick="selectAllLocations()">בחר הכל</button>
                     <button onclick="clearAllLocations()">נקה הכל</button>
                     <span id="selected-count">0 נבחרו</span>
+                </div>
+                <div class="location-actions">
+                    <button class="ok-btn" onclick="applyLocationSelection()">✓ אישור</button>
                 </div>
                 <div class="location-list" id="location-list">
                     <div class="loading">טוען רשימת אזורים...</div>

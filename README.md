@@ -1,10 +1,10 @@
 # War Room - News & Alerts Aggregator
 
-A near real-time web application that aggregates Ynet breaking news and Israeli Homefront Command alerts in a clean, two-column layout (updates every 5 seconds).
+A real-time web application that aggregates Ynet breaking news and Israeli Homefront Command alerts in a clean, two-column layout with instant WebSocket updates.
 
 ## Features
 
-- **Near Real-time Updates**: Automatically refreshes every 5 seconds
+- **Real-time Updates**: WebSocket connections with instant push updates (2-second server polling)
 - **Dual Data Sources**:
   - Ynet breaking news RSS feed
   - Israeli Homefront Command alerts
@@ -46,13 +46,20 @@ npm run dev
 ## Architecture
 
 ```
-├── server.js          # Express server with API endpoints
+├── server.js          # Express + WebSocket server with real-time data polling
 ├── public/
 │   ├── index.html     # Main HTML page
 │   ├── style.css      # Styles with RTL support
-│   └── script.js      # Frontend JavaScript
+│   └── script.js      # Frontend with WebSocket client + fallback polling
 └── package.json       # Dependencies and scripts
 ```
+
+## Real-time Architecture
+
+- **Backend**: Polls OREF/Ynet APIs every 2 seconds, broadcasts changes via WebSocket
+- **Frontend**: Receives instant WebSocket updates with automatic fallback to 3-second polling
+- **Connection Status**: Visual indicator shows real-time/polling/offline status
+- **Resilience**: Automatic reconnection with exponential backoff
 
 ## Data Sources
 
@@ -69,7 +76,7 @@ All data comes directly from official Israeli government sources.
 - ✅ Responsive design
 - ✅ Hebrew RTL support
 - ✅ Error handling
-- ✅ Caching (5 seconds)
+- ✅ Real-time WebSocket updates with 3-second fallback polling
 - ✅ Visual alerts for recent threats
 - ✅ Auto-refresh on tab focus
 - ✅ Keyboard shortcuts (Ctrl+R to refresh)

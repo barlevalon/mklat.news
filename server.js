@@ -267,7 +267,7 @@ async function fetchAlertsData() {
   if (cached) return cached;
   
   try {
-    const response = await axios.get('https://www.oref.org.il//warningMessages/alert/Alerts.json', {
+    const response = await axios.get('https://www.oref.org.il/warningMessages/alert/Alerts.json', {
       timeout: 5000,
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
@@ -275,7 +275,28 @@ async function fetchAlertsData() {
       }
     });
     
-    const alerts = response.data || [];
+    let alerts = response.data || [];
+    console.log('OREF API response:', JSON.stringify(alerts).substring(0, 200));
+    
+    // Handle different response formats from OREF API
+    if (typeof alerts === 'string') {
+      alerts = alerts.trim();
+      if (alerts === '' || alerts === '\r\n' || alerts === '\n') {
+        alerts = []; // No alerts
+      } else {
+        try {
+          alerts = JSON.parse(alerts);
+        } catch (e) {
+          console.log('Failed to parse alerts string, treating as empty:', alerts);
+          alerts = [];
+        }
+      }
+    }
+    
+    if (!Array.isArray(alerts)) {
+      alerts = [];
+    }
+    
     cache.set('alerts', alerts);
     return alerts;
   } catch (error) {
@@ -294,7 +315,7 @@ async function fetchAlertAreas() {
   if (cached) return cached;
   
   try {
-    const response = await axios.get('https://alerts-history.oref.org.il//Shared/Ajax/GetDistricts.aspx?lang=he', {
+    const response = await axios.get('https://alerts-history.oref.org.il/Shared/Ajax/GetDistricts.aspx?lang=he', {
       timeout: 10000
     });
     

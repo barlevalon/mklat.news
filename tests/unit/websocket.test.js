@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
 const http = require('http');
-const axios = require('axios');
+// const axios = require('axios'); // Unused for now
 
 describe('WebSocket Integration Tests', () => {
     let server;
@@ -124,8 +124,8 @@ describe('WebSocket Integration Tests', () => {
 });
 
 describe('Background Polling Logic Tests', () => {
-    let mockYnetData = [{ title: 'News 1' }];
-    let mockAlertsData = ['Alert 1'];
+    // let mockYnetData = [{ title: 'News 1' }]; // Unused for now
+    // let mockAlertsData = ['Alert 1']; // Unused for now
     
     beforeEach(() => {
         jest.clearAllMocks();

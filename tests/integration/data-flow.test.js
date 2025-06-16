@@ -1,10 +1,10 @@
 const axios = require('axios');
 const xml2js = require('xml2js');
-const NodeCache = require('node-cache');
 
 // Mock external dependencies
 jest.mock('axios');
 jest.mock('xml2js');
+jest.mock('node-cache');
 
 const mockAxios = axios;
 
@@ -16,12 +16,11 @@ describe('Data Flow Integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
-    // Mock NodeCache
+    // Create mock cache instance
     mockCache = {
       get: jest.fn(),
       set: jest.fn()
     };
-    NodeCache.mockImplementation(() => mockCache);
 
     // Simulate the data fetching functions from server.js
     fetchYnetData = async () => {

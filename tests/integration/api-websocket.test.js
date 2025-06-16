@@ -1,14 +1,7 @@
 const WebSocket = require('ws');
 const http = require('http');
 const express = require('express');
-const axios = require('axios');
-
-// Mock dependencies
-jest.mock('axios');
-jest.mock('xml2js');
-jest.mock('node-cache');
-
-const mockAxios = axios;
+const request = require('supertest');
 
 describe('API + WebSocket Integration', () => {
   let app;
@@ -44,8 +37,8 @@ describe('API + WebSocket Integration', () => {
 
   test('should establish WebSocket connection and receive health check', async () => {
     // Test HTTP API works
-    const response = await axios.get(`http://localhost:${port}/api/health`);
-    expect(response.status).toBe(200);
+    const response = await request(app).get('/api/health').expect(200);
+    expect(response.body.status).toBe('ok');
 
     // Test WebSocket connection works
     const ws = new WebSocket(`ws://localhost:${port}`);
@@ -64,7 +57,7 @@ describe('API + WebSocket Integration', () => {
 
     // Multiple HTTP requests
     for (let i = 0; i < 5; i++) {
-      promises.push(axios.get(`http://localhost:${port}/api/health`));
+      promises.push(request(app).get('/api/health').expect(200));
     }
 
     // Multiple WebSocket connections

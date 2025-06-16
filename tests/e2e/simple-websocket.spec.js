@@ -15,7 +15,7 @@ test.describe('Critical User Journey (E2E)', () => {
         const statusElement = page.locator('#connection-status');
         await expect(statusElement).toBeVisible();
         const statusText = await statusElement.textContent();
-        expect(['● Real-time', '◐ Polling']).toContain(statusText);
+        expect(['● בזמן אמת', '◐ בדיקה']).toContain(statusText);
         
         // STEP 5: Verify news content loads
         const newsContent = page.locator('#news-content');

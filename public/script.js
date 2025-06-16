@@ -1,4 +1,4 @@
-let lastUpdate = null;
+
 let newsData = [];
 let alertsData = [];
 let availableLocations = [];
@@ -148,16 +148,16 @@ function updateWebSocketStatus(status) {
     if (statusElement) {
         switch (status) {
             case 'connected':
-                statusElement.textContent = '● Real-time';
+                statusElement.textContent = '● בזמן אמת';
                 statusElement.className = 'status-connected';
                 break;
             case 'polling':
-                statusElement.textContent = '◐ Polling';
+                statusElement.textContent = '◐ בדיקה';
                 statusElement.className = 'status-warning';
                 break;
             case 'disconnected':
             case 'error':
-                statusElement.textContent = '○ Offline';
+                statusElement.textContent = '○ לא מחובר';
                 statusElement.className = 'status-error';
                 break;
         }
@@ -182,9 +182,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize WebSocket connection with fallback
     initializeRealTimeUpdates();
     
-    // Update time display every second
-    setInterval(updateTimeDisplay, 1000);
-    
     // Setup location search
     setupLocationSearch();
     
@@ -194,14 +191,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function fetchAllData() {
     await Promise.all([fetchNews(), fetchAlerts()]);
-    lastUpdate = new Date();
     updateConnectionStatus(true);
 }
 
 async function fetchNews() {
     try {
-        const newsPanel = document.getElementById('news-content');
-        
         const response = await fetch('/api/ynet');
         if (!response.ok) throw new Error('Network response was not ok');
         
@@ -316,13 +310,7 @@ function updateConnectionStatus(isConnected) {
     statusElement.className = isConnected ? 'status-connected' : 'status-disconnected';
 }
 
-function updateTimeDisplay() {
-    const updateElement = document.getElementById('last-update');
-    if (lastUpdate) {
-        const timeAgo = formatTimeAgo(lastUpdate);
-        updateElement.textContent = `עדכון אחרון: ${timeAgo}`;
-    }
-}
+
 
 function animateUpdate(panelId) {
     const panel = document.getElementById(panelId);
@@ -355,20 +343,7 @@ function formatDate(dateString) {
     }
 }
 
-function formatTimeAgo(date) {
-    const now = new Date();
-    const diffMs = now - date;
-    const diffSecs = Math.floor(diffMs / 1000);
-    const diffMins = Math.floor(diffMs / 60000);
-    
-    if (diffSecs < 60) return `לפני ${diffSecs} שניות`;
-    if (diffMins < 60) return `לפני ${diffMins} דקות`;
-    
-    return date.toLocaleTimeString('he-IL', {
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-}
+
 
 function isRecentAlert(dateString) {
     if (!dateString) return true; // Assume recent if no date
@@ -584,6 +559,13 @@ function setupLocationButton() {
         });
     }
 }
+
+// Global functions for HTML onclick handlers
+window.toggleLocation = toggleLocation;
+window.selectAllLocations = selectAllLocations;
+window.clearAllLocations = clearAllLocations;
+window.fetchNews = fetchNews;
+window.fetchAlerts = fetchAlerts;
 
 // Service worker removed to avoid 404 errors
 // Can be added later for offline functionality if needed

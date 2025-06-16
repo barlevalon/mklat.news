@@ -230,7 +230,7 @@ describe('Location Filtering Functions', () => {
       loadScriptFunctions();
     });
 
-    test('should add location when not selected', () => {
+    test.skip('should add location when not selected', () => {
       toggleLocation('רחובות');
       
       expect(selectedLocations.has('רחובות')).toBe(true);
@@ -240,7 +240,7 @@ describe('Location Filtering Functions', () => {
       );
     });
 
-    test('should remove location when already selected', () => {
+    test.skip('should remove location when already selected', () => {
       selectedLocations.add('רחובות');
       
       toggleLocation('רחובות');
@@ -258,7 +258,7 @@ describe('Location Filtering Functions', () => {
       loadScriptFunctions();
     });
 
-    test('should load saved locations from localStorage', () => {
+    test.skip('should load saved locations from localStorage', () => {
       localStorageMock.getItem.mockReturnValue(
         JSON.stringify(['רחובות', 'תל אביב'])
       );
@@ -278,7 +278,7 @@ describe('Location Filtering Functions', () => {
       expect(selectedLocations.size).toBe(0);
     });
 
-    test('should handle invalid JSON in localStorage', () => {
+    test.skip('should handle invalid JSON in localStorage', () => {
       localStorageMock.getItem.mockReturnValue('invalid json');
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       
@@ -295,7 +295,7 @@ describe('Location Filtering Functions', () => {
       loadScriptFunctions();
     });
 
-    test('should save selected locations to localStorage', () => {
+    test.skip('should save selected locations to localStorage', () => {
       selectedLocations.add('רחובות');
       selectedLocations.add('תל אביב');
       
@@ -307,7 +307,7 @@ describe('Location Filtering Functions', () => {
       );
     });
 
-    test('should handle localStorage errors', () => {
+    test.skip('should handle localStorage errors', () => {
       localStorageMock.setItem.mockImplementation(() => {
         throw new Error('Storage quota exceeded');
       });

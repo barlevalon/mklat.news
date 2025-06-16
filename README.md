@@ -1,7 +1,6 @@
 # War Room - News & Alerts Aggregator
 
 [![CI/CD Pipeline](https://github.com/barlevalon/war-room/actions/workflows/ci.yml/badge.svg)](https://github.com/barlevalon/war-room/actions/workflows/ci.yml)
-[![Coverage Status](https://codecov.io/gh/barlevalon/war-room/branch/main/graph/badge.svg)](https://codecov.io/gh/barlevalon/war-room)
 
 A real-time web application that aggregates Ynet breaking news and Israeli Homefront Command alerts in a clean, two-column layout with instant WebSocket updates.
 

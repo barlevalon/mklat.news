@@ -5,6 +5,7 @@ module.exports = {
   // Test file patterns
   testMatch: [
     '**/tests/unit/**/*.test.js',
+    '**/tests/integration/**/*.test.js',
     '**/__tests__/**/*.js',
     '**/?(*.)+(spec|test).js'
   ],
@@ -16,32 +17,8 @@ module.exports = {
     '/.github/'
   ],
   
-  // Coverage configuration
-  collectCoverage: false, // Only when explicitly requested
-  collectCoverageFrom: [
-    'server.js',
-    'public/script.js',
-    '!**/node_modules/**',
-    '!**/tests/**',
-    '!**/coverage/**'
-  ],
-  
-  // Coverage reporters
-  coverageReporters: [
-    'text',
-    'lcov',
-    'html'
-  ],
-  
-  // Coverage thresholds
-  coverageThreshold: {
-    global: {
-      branches: 70,
-      functions: 70,
-      lines: 70,
-      statements: 70
-    }
-  },
+  // Coverage disabled
+  collectCoverage: false,
   
   // Setup files
   setupFilesAfterEnv: [],

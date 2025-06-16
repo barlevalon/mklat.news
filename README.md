@@ -2,6 +2,8 @@
 
 A real-time web application that aggregates Ynet breaking news and Israeli Homefront Command alerts in a clean, two-column layout with instant WebSocket updates.
 
+![War Room Screenshot](war-room-screenshot.png)
+
 ## Features
 
 - **Real-time Updates**: WebSocket connections with instant push updates (2-second server polling)

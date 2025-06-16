@@ -8,8 +8,8 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Cache for 30 seconds
-const cache = new NodeCache({ stdTTL: 30 });
+// Cache for 5 seconds (OREF updates every 4s, Ynet every 2.5min)
+const cache = new NodeCache({ stdTTL: 5 });
 
 app.use(cors());
 app.use(express.static('public'));

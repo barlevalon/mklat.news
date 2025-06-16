@@ -11,8 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchLocations();
     fetchAllData();
     
-    // Auto-refresh every 30 seconds
-    setInterval(fetchAllData, 30000);
+    // Auto-refresh every 5 seconds
+    setInterval(fetchAllData, 5000);
     
     // Update time display every second
     setInterval(updateTimeDisplay, 1000);

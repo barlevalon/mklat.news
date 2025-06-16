@@ -1,10 +1,10 @@
 # War Room - News & Alerts Aggregator
 
-A real-time web application that aggregates Ynet breaking news and Israeli Homefront Command alerts in a clean, two-column layout.
+A near real-time web application that aggregates Ynet breaking news and Israeli Homefront Command alerts in a clean, two-column layout (updates every 5 seconds).
 
 ## Features
 
-- **Real-time Updates**: Automatically refreshes every 30 seconds
+- **Near Real-time Updates**: Automatically refreshes every 5 seconds
 - **Dual Data Sources**:
   - Ynet breaking news RSS feed
   - Israeli Homefront Command alerts
@@ -69,7 +69,7 @@ All data comes directly from official Israeli government sources.
 - ✅ Responsive design
 - ✅ Hebrew RTL support
 - ✅ Error handling
-- ✅ Caching (30 seconds)
+- ✅ Caching (5 seconds)
 - ✅ Visual alerts for recent threats
 - ✅ Auto-refresh on tab focus
 - ✅ Keyboard shortcuts (Ctrl+R to refresh)

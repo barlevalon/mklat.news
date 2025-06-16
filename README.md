@@ -2,6 +2,10 @@
 
 [![CI/CD Pipeline](https://github.com/barlevalon/war-room/actions/workflows/ci.yml/badge.svg)](https://github.com/barlevalon/war-room/actions/workflows/ci.yml)
 
+> **⚠️ IMPORTANT DISCLAIMER**  
+> **This project is for educational and development purposes only. Do NOT use this as your primary source for emergency alerts. Always rely on official government channels and approved alert applications for life-safety information.**  
+> **Use the official Tzeva Adom app, OREF website, or other certified emergency systems for actual emergency notifications.**
+
 A real-time web application that aggregates Ynet breaking news and Israeli Homefront Command alerts with comprehensive historical data and location filtering.
 
 ![War Room Screenshot](war-room-screenshot.png)

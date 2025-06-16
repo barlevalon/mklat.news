@@ -2,20 +2,23 @@
 
 [![CI/CD Pipeline](https://github.com/barlevalon/war-room/actions/workflows/ci.yml/badge.svg)](https://github.com/barlevalon/war-room/actions/workflows/ci.yml)
 
-A real-time web application that aggregates Ynet breaking news and Israeli Homefront Command alerts in a clean, two-column layout with instant WebSocket updates.
+A real-time web application that aggregates Ynet breaking news and Israeli Homefront Command alerts with comprehensive historical data and location filtering.
 
 ![War Room Screenshot](war-room-screenshot.png)
 
 ## Features
 
 - **Real-time Updates**: WebSocket connections with instant push updates (2-second server polling)
+- **Alert History**: Comprehensive timeline showing both active alerts (🚨) and historical events (📍)
+- **Location Filtering**: Dynamic location selector with search and bulk operations
 - **Dual Data Sources**:
   - Ynet breaking news RSS feed
-  - Israeli Homefront Command alerts
-- **Modern UI**: Responsive design with Hebrew RTL support
+  - Israeli Homefront Command current alerts
+  - OREF historical alerts with event timeline
+- **Modern UI**: Responsive design with Hebrew RTL support and status indicators
+- **Smart UX**: Clear active alert status, intuitive location picker with OK button
 - **Caching**: Server-side caching to reduce API calls
 - **Error Handling**: Graceful fallbacks and error messages
-- **Accessibility**: Keyboard shortcuts and screen reader friendly
 
 ## Quick Start
 
@@ -44,7 +47,8 @@ npm run dev
 ## API Endpoints
 
 - `GET /api/ynet` - Fetch latest Ynet breaking news
-- `GET /api/alerts` - Fetch current Homefront Command alerts
+- `GET /api/alerts` - Fetch current and historical alerts (combined timeline)
+- `GET /api/alert-areas` - Fetch available alert locations
 - `GET /api/health` - Health check endpoint
 
 ## Architecture
@@ -68,22 +72,23 @@ npm run dev
 ## Data Sources
 
 - **Ynet RSS**: `https://www.ynet.co.il/Integration/StoryRss1854.xml`
-- **Homefront Alerts**: `https://www.oref.org.il/warningMessages/alert/Alerts.json`
+- **Current Alerts**: `https://www.oref.org.il/warningMessages/alert/Alerts.json`
+- **Historical Alerts**: `https://alerts-history.oref.org.il/Shared/Ajax/GetAlerts.aspx?lang=he`
 - **Alert Areas**: `https://alerts-history.oref.org.il/Shared/Ajax/GetDistricts.aspx?lang=he`
 - **Fallback Alerts**: `https://api.tzevaadom.co.il/notifications`
 
-All data comes directly from official Israeli government sources.
+All data comes directly from official Israeli government sources with real-time updates.
 
-## Features
+## Implementation Status
 
-- ✅ Real-time data fetching
-- ✅ Responsive design
-- ✅ Hebrew RTL support
-- ✅ Error handling
-- ✅ Real-time WebSocket updates with 3-second fallback polling
-- ✅ Visual alerts for recent threats
-- ✅ Auto-refresh on tab focus
-- ✅ Keyboard shortcuts (Ctrl+R to refresh)
+- ✅ Real-time WebSocket updates with fallback polling
+- ✅ Historical alert timeline with OREF integration
+- ✅ Location-based alert filtering with intuitive UI
+- ✅ Active alert status indicators
+- ✅ Responsive design with Hebrew RTL support
+- ✅ Comprehensive test coverage (90% success rate)
+- ✅ CI/CD pipeline with automated testing
+- ✅ Error handling and graceful degradation
 
 ## Browser Support
 

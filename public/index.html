@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>חדר מלחמה - מבזקים ואזעקות</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>🚨 חדר מלחמה - מבזקים ואזעקות</h1>
+        <div class="status-bar">
+            <span id="last-update">עדכון אחרון: --</span>
+            <span id="connection-status" class="status-connected">מחובר</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="panel" id="alerts-panel">
+            <div class="panel-header">
+                <h2>🔴 אזעקות פיקוד העורף</h2>
+                <div class="header-controls">
+                    <div class="location-filter">📍</div>
+                    <div class="refresh-btn" onclick="fetchAlerts()">🔄</div>
+                </div>
+            </div>
+            <div class="location-selector" id="location-selector">
+                <div class="location-selector-header">
+                    <h3>בחירת אזורים לאזעקות</h3>
+                    <div class="close-btn">✕</div>
+                </div>
+                <div class="location-search">
+                    <input type="text" id="location-search" placeholder="חיפוש אזור...">
+                </div>
+                <div class="location-controls">
+                    <button onclick="selectAllLocations()">בחר הכל</button>
+                    <button onclick="clearAllLocations()">נקה הכל</button>
+                    <span id="selected-count">0 נבחרו</span>
+                </div>
+                <div class="location-list" id="location-list">
+                    <div class="loading">טוען רשימת אזורים...</div>
+                </div>
+            </div>
+            <div class="selected-locations" id="selected-locations">
+                <span>כל האזורים</span>
+            </div>
+            <div class="panel-content">
+                <div id="alerts-content">
+                    <div class="loading">טוען אזעקות...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="news-panel">
+            <div class="panel-header">
+                <h2>📰 מבזקי ynet</h2>
+                <div class="refresh-btn" onclick="fetchNews()">🔄</div>
+            </div>
+            <div class="panel-content">
+                <div id="news-content">
+                    <div class="loading">טוען חדשות...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>עודכן כל 30 שניות | נתונים מ-ynet ופיקוד העורף</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

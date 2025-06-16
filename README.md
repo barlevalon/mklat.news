@@ -90,6 +90,19 @@ All data comes directly from official Israeli government sources with real-time 
 - ✅ CI/CD pipeline with automated testing
 - ✅ Error handling and graceful degradation
 
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+- 🐛 **Bug Reports**: Use our [issue templates](.github/ISSUE_TEMPLATE/)
+- ✨ **Feature Requests**: Check [existing issues](https://github.com/barlevalon/war-room/issues) first
+- 🤝 **Pull Requests**: Follow our [PR template](.github/pull_request_template.md)
+- 🆘 **Good First Issues**: Look for [`good first issue`](https://github.com/barlevalon/war-room/labels/good%20first%20issue) label
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
 ## Browser Support
 
 Modern browsers with ES6+ support.

@@ -2,10 +2,10 @@
   "name": "war-room-aggregator",
   "version": "1.0.0",
   "description": "Ynet news and Homefront Command alerts aggregator",
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
     "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "test:unit": "jest tests/unit",
     "test:integration": "jest tests/integration", 

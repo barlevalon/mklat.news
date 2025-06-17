@@ -1,7 +1,13 @@
 const { test, expect, devices } = require('@playwright/test');
 
 test.describe('Mobile Location Picker Bug Reproduction', () => {
-  test('should reproduce z-index layering bug when selecting location', async ({ browser }) => {
+  test('should reproduce z-index layering bug when selecting location', async ({ browser, browserName }) => {
+    // Skip mobile device emulation on Firefox (not supported)
+    if (browserName === 'firefox') {
+      test.skip('Mobile device emulation not supported in Firefox');
+      return;
+    }
+    
     // Create iPhone context
     const context = await browser.newContext(devices['iPhone 12']);
     const page = await context.newPage();

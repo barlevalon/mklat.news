@@ -13,6 +13,82 @@ const port = process.env.PORT || 3000;
 // Cache for 2 seconds (aggressive polling like tzevaadom)
 const cache = new NodeCache({ stdTTL: 2 });
 
+// Common configurations
+const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+const DEFAULT_TIMEOUT = 10000;
+
+// Cache TTL constants (in seconds)
+const CACHE_TTL = {
+  SHORT: 2,        // For frequently changing data (alerts, news)
+  MEDIUM: 120,     // For moderately changing data (historical alerts)
+  LONG: 3600       // For rarely changing data (alert areas)
+};
+
+// Application constants
+const LIMITS = {
+  YNET_ITEMS: 10,
+  HISTORICAL_ALERTS: 50,
+  RECENT_ALERT_MINUTES: 30
+};
+
+const POLLING_INTERVAL_MS = 2000;
+
+// API endpoints
+const API_ENDPOINTS = {
+  YNET_RSS: 'https://www.ynet.co.il/Integration/StoryRss1854.xml',
+  OREF_CURRENT_ALERTS: 'https://www.oref.org.il/warningMessages/alert/Alerts.json',
+  OREF_HISTORICAL_ALERTS: 'https://alerts-history.oref.org.il/Shared/Ajax/GetAlerts.aspx?lang=he',
+  OREF_DISTRICTS: 'https://alerts-history.oref.org.il/Shared/Ajax/GetDistricts.aspx?lang=he',
+  OREF_CITIES_BACKUP: 'https://www.oref.org.il/districts/cities_heb.json',
+  TZEVA_ADOM_FALLBACK: 'https://api.tzevaadom.co.il/notifications'
+};
+
+// Common axios config generator
+function createAxiosConfig(timeout = DEFAULT_TIMEOUT, headers = {}) {
+  return {
+    timeout,
+    headers: {
+      'User-Agent': DEFAULT_USER_AGENT,
+      ...headers
+    }
+  };
+}
+
+// Generic cache wrapper
+function withCache(key, ttl, fetchFn) {
+  return async function(...args) {
+    const cached = cache.get(key);
+    if (cached) return cached;
+    
+    const result = await fetchFn(...args);
+    cache.set(key, result, ttl);
+    return result;
+  };
+}
+
+// Common data processing utilities
+function processAlertAreasData(data) {
+  return [...new Set(
+    data
+      .filter(item => item && item.label && item.label.trim())
+      .map(item => item.label.trim())
+  )].sort();
+}
+
+function processYnetItems(items) {
+  return items.slice(0, LIMITS.YNET_ITEMS).map(item => ({
+    title: item.title[0],
+    link: item.link[0],
+    pubDate: item.pubDate[0],
+    description: item.description ? item.description[0].replace(/<[^>]*>/g, '') : ''
+  }));
+}
+
+// Utility for efficient data comparison
+function hasDataChanged(newData, oldData) {
+  return JSON.stringify(newData) !== JSON.stringify(oldData);
+}
+
 app.use(cors());
 app.use(express.static('public'));
 
@@ -50,30 +126,7 @@ app.get('/', (req, res) => {
 // Ynet breaking news endpoint
 app.get('/api/ynet', async (req, res) => {
   try {
-    const cached = cache.get('ynet');
-    if (cached) {
-      return res.json(cached);
-    }
-
-    const response = await axios.get('https://www.ynet.co.il/Integration/StoryRss1854.xml', {
-      timeout: 10000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    });
-
-    const parser = new xml2js.Parser();
-    const result = await parser.parseStringPromise(response.data);
-    
-    const items = result.rss.channel[0].item || [];
-    const news = items.slice(0, 10).map(item => ({
-      title: item.title[0],
-      link: item.link[0],
-      pubDate: item.pubDate[0],
-      description: item.description ? item.description[0].replace(/<[^>]*>/g, '') : ''
-    }));
-
-    cache.set('ynet', news);
+    const news = await fetchYnetData();
     res.json(news);
   } catch (error) {
     console.error('Ynet fetch error:', error.message);
@@ -95,73 +148,11 @@ app.get('/api/alerts', async (req, res) => {
 // Get all possible alert areas/locations
 app.get('/api/alert-areas', async (req, res) => {
   try {
-    const cached = cache.get('alert-areas');
-    if (cached) {
-      return res.json(cached);
-    }
-
-    // Fetch official cities list directly from oref.org.il
-    const response = await axios.get('https://alerts-history.oref.org.il/Shared/Ajax/GetDistricts.aspx?lang=he', {
-      timeout: 10000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
-      }
-    });
-
-    const districts = response.data || [];
-    
-    // Extract city names from the official API response
-    const alertAreas = [...new Set(
-      districts
-        .filter(district => district && district.label && district.label.trim())
-        .map(district => district.label.trim())
-    )].sort();
-
-    console.log(`Fetched ${alertAreas.length} areas from official oref.org.il API`);
-
-    // Cache for 1 hour (cities don't change often)
-    cache.set('alert-areas', alertAreas, 3600);
-    
+    const alertAreas = await fetchAlertAreas();
     res.json(alertAreas);
   } catch (error) {
-    console.error('Error fetching official cities list from oref.org.il:', error.message);
-    
-    // Try backup API from oref.org.il
-    try {
-      const backupResponse = await axios.get('https://www.oref.org.il/districts/cities_heb.json', {
-        timeout: 10000,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36'
-        }
-      });
-
-      const backupData = backupResponse.data || [];
-      const backupAreas = [...new Set(
-        backupData
-          .filter(item => item && item.label && item.label.trim())
-          .map(item => item.label.trim())
-      )].sort();
-
-      if (backupAreas.length > 0) {
-        console.log(`Fetched ${backupAreas.length} areas from backup oref.org.il API`);
-        cache.set('alert-areas', backupAreas, 3600);
-        return res.json(backupAreas);
-      }
-    } catch (backupError) {
-      console.error('Backup API also failed:', backupError.message);
-    }
-    
-    // Last resort fallback to essential cities
-    const fallbackAreas = [
-      'תל אביב', 'ירושלים', 'חיפה', 'באר שבע', 'אשדוד', 'אשקלון', 'נתניה',
-      'פתח תקווה', 'ראשון לציון', 'רחובות', 'חולון', 'בת ים', 'בני ברק', 
-      'רמת גן', 'הרצליה', 'כפר סבא', 'רעננה', 'הוד השרון', 'נס ציונה',
-      'מודיעין', 'לוד', 'רמלה', 'קרית גת', 'קרית מלאכי', 'יבנה', 'גדרה',
-      'אלוני הבשן', 'מטולה', 'קרית שמונה', 'שדרות', 'עומר', 'אילת'
-    ].sort();
-    
-    console.log('Using fallback areas list');
-    res.json(fallbackAreas);
+    console.error('Error fetching alert areas:', error.message);
+    res.status(500).json({ error: 'Failed to fetch alert areas' });
   }
 });
 
@@ -212,31 +203,15 @@ function broadcastToClients(type, data) {
 }
 
 // Extract data fetching logic into reusable functions
-async function fetchYnetData() {
-  const cached = cache.get('ynet');
-  if (cached) return cached;
-  
-  const response = await axios.get('https://www.ynet.co.il/Integration/StoryRss1854.xml', {
-    timeout: 10000,
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-    }
-  });
+const fetchYnetData = withCache('ynet', CACHE_TTL.SHORT, async () => {
+  const response = await axios.get(API_ENDPOINTS.YNET_RSS, createAxiosConfig());
 
   const parser = new xml2js.Parser();
   const result = await parser.parseStringPromise(response.data);
   
   const items = result.rss.channel[0].item || [];
-  const news = items.slice(0, 10).map(item => ({
-    title: item.title[0],
-    link: item.link[0],
-    pubDate: item.pubDate[0],
-    description: item.description ? item.description[0].replace(/<[^>]*>/g, '') : ''
-  }));
-
-  cache.set('ynet', news);
-  return news;
-}
+  return processYnetItems(items);
+});
 
 async function fetchAlertsData() {
   // Get both active alerts and historical alerts
@@ -251,150 +226,157 @@ async function fetchAlertsData() {
   };
 }
 
-async function fetchActiveAlerts() {
-  const cached = cache.get('active-alerts');
-  if (cached) return cached;
-  
+const fetchActiveAlerts = withCache('active-alerts', CACHE_TTL.SHORT, async () => {
   try {
-    const response = await axios.get('https://www.oref.org.il/warningMessages/alert/Alerts.json', {
-      timeout: 5000,
-      headers: {
+    const response = await axios.get(API_ENDPOINTS.OREF_CURRENT_ALERTS, 
+      createAxiosConfig(5000, {
         'X-Requested-With': 'XMLHttpRequest',
         'Referer': 'https://www.oref.org.il/'
-      }
-    });
+      }));
     
-    let alerts = response.data || [];
-    console.log('OREF Active Alerts response:', JSON.stringify(alerts).substring(0, 200));
-    
-    // Handle different response formats from OREF API
-    if (typeof alerts === 'string') {
-      alerts = alerts.trim();
-      if (alerts === '' || alerts === '\r\n' || alerts === '\n') {
-        alerts = []; // No alerts
-      } else {
-        try {
-          alerts = JSON.parse(alerts);
-        } catch (e) {
-          console.log('Failed to parse alerts string, treating as empty:', alerts);
-          alerts = [];
-        }
-      }
-    }
-    
-    if (!Array.isArray(alerts)) {
-      alerts = [];
-    }
-    
-    cache.set('active-alerts', alerts);
-    return alerts;
+    return normalizeAlertsResponse(response.data);
   } catch (error) {
     // Fallback API
-    const fallbackResponse = await axios.get('https://api.tzevaadom.co.il/notifications', {
-      timeout: 5000
-    });
-    const alerts = fallbackResponse.data || [];
-    cache.set('active-alerts', alerts);
-    return alerts;
+    const fallbackResponse = await axios.get(API_ENDPOINTS.TZEVA_ADOM_FALLBACK, 
+      createAxiosConfig(5000));
+    return fallbackResponse.data || [];
   }
+});
+
+// Helper function to normalize OREF API response
+function normalizeAlertsResponse(data) {
+  let alerts = data || [];
+  console.log('OREF Active Alerts response:', JSON.stringify(alerts).substring(0, 200));
+  
+  // Handle different response formats from OREF API
+  if (typeof alerts === 'string') {
+    alerts = alerts.trim();
+    if (alerts === '' || alerts === '\r\n' || alerts === '\n') {
+      alerts = []; // No alerts
+    } else {
+      try {
+        alerts = JSON.parse(alerts);
+      } catch (e) {
+        console.log('Failed to parse alerts string, treating as empty:', alerts);
+        alerts = [];
+      }
+    }
+  }
+  
+  if (!Array.isArray(alerts)) {
+    alerts = [];
+  }
+  
+  return alerts;
 }
 
-async function fetchHistoricalAlerts() {
-  const cached = cache.get('historical-alerts');
-  if (cached) return cached;
-  
+const fetchHistoricalAlerts = withCache('historical-alerts', CACHE_TTL.MEDIUM, async () => {
   try {
-    const response = await axios.get('https://alerts-history.oref.org.il/Shared/Ajax/GetAlerts.aspx?lang=he', {
-      timeout: 10000,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    });
+    const response = await axios.get(API_ENDPOINTS.OREF_HISTORICAL_ALERTS, createAxiosConfig());
     
     const html = response.data;
-    const alerts = parseHistoricalAlertsHTML(html);
-    
-    cache.set('historical-alerts', alerts, 120); // Cache for 2 minutes
-    return alerts;
+    return parseHistoricalAlertsHTML(html);
   } catch (error) {
     console.error('Error fetching historical alerts:', error.message);
     return [];
   }
+});
+
+// Historical alerts parsing utilities
+const ALERT_REGEX = /<div[^>]*class="alertInfo"[^>]*area_name="([^"]*)"[^>]*>[\s\S]*?<div class="date"><span>([^<]*)<\/span><span>([^<]*)<\/span><\/div>[\s\S]*?<div class="area">([^<]*)<\/div>/g;
+const ALERT_END_MARKER = 'האירוע הסתיים';
+
+function parseAlertDateTime(dateStr, timeStr) {
+  const [day, month, year] = dateStr.split('.');
+  return new Date(`${year}-${month}-${day}T${timeStr}:00`);
+}
+
+function cleanAlertDescription(description, locationName) {
+  let cleanDescription = description.trim();
+  
+  // Remove location name from end of description if it's duplicated
+  if (cleanDescription.endsWith(locationName)) {
+    cleanDescription = cleanDescription.slice(0, -locationName.length).trim();
+  }
+  
+  return cleanDescription;
+}
+
+function isRecentAlert(alertDateTime) {
+  const thresholdMs = LIMITS.RECENT_ALERT_MINUTES * 60 * 1000;
+  return (new Date() - alertDateTime) < thresholdMs;
+}
+
+function createAlertObject(areaName, date, time, description) {
+  const locationName = areaName.trim();
+  const alertDateTime = parseAlertDateTime(date, time);
+  const cleanDescription = cleanAlertDescription(description, locationName);
+  
+  return {
+    area: locationName,
+    description: cleanDescription,
+    alertDate: alertDateTime.toISOString(),
+    time: alertDateTime.toISOString(),
+    isActive: !description.includes(ALERT_END_MARKER),
+    isRecent: isRecentAlert(alertDateTime)
+  };
 }
 
 function parseHistoricalAlertsHTML(html) {
   const alerts = [];
   
-  // Parse HTML structure: <div class="alertInfo" area_name="...">
-  const alertRegex = /<div[^>]*class="alertInfo"[^>]*area_name="([^"]*)"[^>]*>[\s\S]*?<div class="date"><span>([^<]*)<\/span><span>([^<]*)<\/span><\/div>[\s\S]*?<div class="area">([^<]*)<\/div>/g;
-  
   let match;
-  while ((match = alertRegex.exec(html)) !== null) {
+  while ((match = ALERT_REGEX.exec(html)) !== null) {
     const [, areaName, date, time, description] = match;
-    
-    // Parse date and time
-    const [day, month, year] = date.split('.');
-    const alertDateTime = new Date(`${year}-${month}-${day}T${time}:00`);
-    
-    // Clean up description by removing the location name from the end if it's duplicated
-    let cleanDescription = description.trim();
-    const locationName = areaName.trim();
-    
-    // Remove location name from end of description if it's there
-    if (cleanDescription.endsWith(locationName)) {
-      cleanDescription = cleanDescription.slice(0, -locationName.length).trim();
-    }
-    
-    alerts.push({
-      area: locationName,
-      description: cleanDescription,
-      alertDate: alertDateTime.toISOString(),
-      time: alertDateTime.toISOString(),
-      isActive: description.includes('האירוע הסתיים') ? false : true,
-      isRecent: (new Date() - alertDateTime) < 30 * 60 * 1000 // Recent if less than 30 minutes
-    });
+    alerts.push(createAlertObject(areaName, date, time, description));
   }
   
   // Sort by date (most recent first)
   alerts.sort((a, b) => new Date(b.alertDate) - new Date(a.alertDate));
   
-  return alerts.slice(0, 50); // Return last 50 alerts
+  return alerts.slice(0, LIMITS.HISTORICAL_ALERTS);
 }
 
-async function fetchAlertAreas() {
-  const cached = cache.get('alert-areas');
-  if (cached) return cached;
-  
+// Fallback areas constant
+const FALLBACK_ALERT_AREAS = [
+  'תל אביב', 'ירושלים', 'חיפה', 'באר שבע', 'אשדוד', 'אשקלון', 'נתניה',
+  'פתח תקווה', 'ראשון לציון', 'רחובות', 'חולון', 'בת ים', 'בני ברק', 
+  'רמת גן', 'הרצליה', 'כפר סבא', 'רעננה', 'הוד השרון', 'נס ציונה',
+  'מודיעין', 'לוד', 'רמלה', 'קרית גת', 'קרית מלאכי', 'יבנה', 'גדרה',
+  'אלוני הבשן', 'מטולה', 'קרית שמונה', 'שדרות', 'עומר', 'אילת'
+].sort();
+
+const fetchAlertAreas = withCache('alert-areas', CACHE_TTL.LONG, async () => {
   try {
-    const response = await axios.get('https://alerts-history.oref.org.il/Shared/Ajax/GetDistricts.aspx?lang=he', {
-      timeout: 10000
-    });
+    const response = await axios.get(API_ENDPOINTS.OREF_DISTRICTS, createAxiosConfig());
     
     const data = response.data || [];
-    const alertAreas = [...new Set(
-      data
-        .filter(district => district && district.label && district.label.trim())
-        .map(district => district.label.trim())
-    )].sort();
+    const alertAreas = processAlertAreasData(data);
     
-    cache.set('alert-areas', alertAreas, 3600);
+    console.log(`Fetched ${alertAreas.length} areas from official oref.org.il API`);
     return alertAreas;
   } catch (error) {
     console.error('Error in fetchAlertAreas:', error.message);
     
-    // Fallback to essential cities
-    const fallbackAreas = [
-      'תל אביב', 'ירושלים', 'חיפה', 'באר שבע', 'אשדוד', 'אשקלון', 'נתניה',
-      'פתח תקווה', 'ראשון לציון', 'רחובות', 'חולון', 'בת ים', 'בני ברק', 
-      'רמת גן', 'הרצליה', 'כפר סבא', 'רעננה', 'הוד השרון', 'נס ציונה',
-      'מודיעין', 'לוד', 'רמלה', 'קרית גת', 'קרית מלאכי', 'יבנה', 'גדרה',
-      'אלוני הבשן', 'מטולה', 'קרית שמונה', 'שדרות', 'עומר', 'אילת'
-    ].sort();
+    // Try backup API from oref.org.il
+    try {
+      const backupResponse = await axios.get(API_ENDPOINTS.OREF_CITIES_BACKUP, createAxiosConfig());
+
+      const backupData = backupResponse.data || [];
+      const backupAreas = processAlertAreasData(backupData);
+
+      if (backupAreas.length > 0) {
+        console.log(`Fetched ${backupAreas.length} areas from backup oref.org.il API`);
+        return backupAreas;
+      }
+    } catch (backupError) {
+      console.error('Backup API also failed:', backupError.message);
+    }
     
-    cache.set('alert-areas', fallbackAreas, 3600);
-    return fallbackAreas;
+    console.log('Using fallback areas list');
+    return FALLBACK_ALERT_AREAS;
   }
-}
+});
 
 // Background polling system
 let lastYnetData = null;
@@ -409,12 +391,12 @@ async function backgroundPoll() {
     ]);
     
     // Check for changes and broadcast
-    if (JSON.stringify(ynetData) !== JSON.stringify(lastYnetData)) {
+    if (hasDataChanged(ynetData, lastYnetData)) {
       lastYnetData = ynetData;
       broadcastToClients('ynet', ynetData);
     }
     
-    if (JSON.stringify(alertsData) !== JSON.stringify(lastAlertsData)) {
+    if (hasDataChanged(alertsData, lastAlertsData)) {
       lastAlertsData = alertsData;
       broadcastToClients('alerts', alertsData);
     }
@@ -423,11 +405,11 @@ async function backgroundPoll() {
   }
 }
 
-// Start background polling every 2 seconds
-setInterval(backgroundPoll, 2000);
+// Start background polling
+setInterval(backgroundPoll, POLLING_INTERVAL_MS);
 
 server.listen(port, () => {
   console.log(`War Room server running at http://localhost:${port}`);
   console.log(`WebSocket server running at ws://localhost:${port}`);
-  console.log('Background polling started (2-second intervals)');
+  console.log(`Background polling started (${POLLING_INTERVAL_MS}ms intervals)`);
 });

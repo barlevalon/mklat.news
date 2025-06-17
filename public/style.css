@@ -322,10 +322,11 @@ footer {
         gap: 0.5rem;
     }
     
-    .location-selector {
+    .location-selector-overlay {
         max-height: 80vh;
-        left: -10px;
-        right: -10px;
+        left: 0.5rem;
+        right: 0.5rem;
+        top: 100px;
     }
     
     .location-list {
@@ -343,17 +344,17 @@ footer {
     100% { transform: scale(1); }
 }
 
-/* Location Selector Styles */
-.location-selector {
-    position: absolute;
-    top: 60px;
-    left: -1px;
-    right: -1px;
+/* Location Selector Overlay - Fixed positioning for true overlay */
+.location-selector-overlay {
+    position: fixed;
+    top: 120px;
+    left: 1rem;
+    right: 1rem;
     background: rgba(0, 0, 0, 0.95);
     backdrop-filter: blur(15px);
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.2);
-    z-index: 1000;
+    z-index: 9999;
     max-height: 70vh;
     overflow: hidden;
     transform: scale(0.95);
@@ -363,7 +364,7 @@ footer {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
-.location-selector.show {
+.location-selector-overlay.show {
     transform: scale(1);
     opacity: 1;
     visibility: visible;
@@ -543,7 +544,4 @@ footer {
     color: #60a5fa;
 }
 
-/* Make alerts panel relative for positioning */
-#alerts-panel {
-    position: relative;
-}
+/* Alerts panel no longer needs relative positioning */

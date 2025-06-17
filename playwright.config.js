@@ -25,6 +25,15 @@ module.exports = defineConfig({
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
     },
+    // Mobile testing for responsive bugs
+    {
+      name: 'mobile-chrome',
+      use: { ...devices['iPhone 12'] },
+    },
+    {
+      name: 'mobile-android',
+      use: { ...devices['Pixel 5'] },
+    },
   ],
   webServer: {
     command: 'npm start',

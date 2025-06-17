@@ -23,26 +23,6 @@
                     <div class="refresh-btn" onclick="fetchAlerts()">🔄</div>
                 </div>
             </div>
-            <div class="location-selector" id="location-selector">
-                <div class="location-selector-header">
-                    <h3>בחירת אזורים לאזעקות</h3>
-                    <div class="close-btn">✕</div>
-                </div>
-                <div class="location-search">
-                    <input type="text" id="location-search" placeholder="חיפוש אזור...">
-                </div>
-                <div class="location-controls">
-                    <button onclick="selectAllLocations()">בחר הכל</button>
-                    <button onclick="clearAllLocations()">נקה הכל</button>
-                    <span id="selected-count">0 נבחרו</span>
-                </div>
-                <div class="location-actions">
-                    <button class="ok-btn" onclick="applyLocationSelection()">✓ אישור</button>
-                </div>
-                <div class="location-list" id="location-list">
-                    <div class="loading">טוען רשימת אזורים...</div>
-                </div>
-            </div>
             <div class="selected-locations" id="selected-locations">
                 <span>כל האזורים</span>
             </div>
@@ -62,6 +42,28 @@
                 <div id="news-content">
                     <div class="loading">טוען חדשות...</div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Location selector moved outside panels to be a true overlay -->
+        <div class="location-selector-overlay" id="location-selector">
+            <div class="location-selector-header">
+                <h3>בחירת אזורים לאזעקות</h3>
+                <div class="close-btn">✕</div>
+            </div>
+            <div class="location-search">
+                <input type="text" id="location-search" placeholder="חיפוש אזור...">
+            </div>
+            <div class="location-controls">
+                <button onclick="selectAllLocations()">בחר הכל</button>
+                <button onclick="clearAllLocations()">נקה הכל</button>
+                <span id="selected-count">0 נבחרו</span>
+            </div>
+            <div class="location-actions">
+                <button class="ok-btn" onclick="applyLocationSelection()">✓ אישור</button>
+            </div>
+            <div class="location-list" id="location-list">
+                <div class="loading">טוען רשימת אזורים...</div>
             </div>
         </div>
     </main>

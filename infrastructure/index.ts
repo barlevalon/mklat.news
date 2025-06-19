@@ -89,25 +89,25 @@ const service = new gcp.cloudrun.Service("mklat-news-service", {
                         value: domain || "",
                     },
                 ],
-                // Add readiness and liveness probes for zero-downtime
-                startupProbe: {
-                    httpGet: {
-                        path: "/api/health",
-                        port: 3000,
-                    },
-                    initialDelaySeconds: 5,
-                    periodSeconds: 10,
-                    timeoutSeconds: 5,
-                    failureThreshold: 3,
-                },
-                livenessProbe: {
-                    httpGet: {
-                        path: "/api/health", 
-                        port: 3000,
-                    },
-                    periodSeconds: 30,
-                    timeoutSeconds: 5,
-                },
+                // Temporarily remove probes to fix startup issues
+                // startupProbe: {
+                //     httpGet: {
+                //         path: "/api/health",
+                //         port: 3000,
+                //     },
+                //     initialDelaySeconds: 10,  // Give more time for startup
+                //     periodSeconds: 5,          // Check more frequently
+                //     timeoutSeconds: 10,        // Longer timeout for slow responses
+                //     failureThreshold: 6,       // Allow more failures (30s total)
+                // },
+                // livenessProbe: {
+                //     httpGet: {
+                //         path: "/api/health", 
+                //         port: 3000,
+                //     },
+                //     periodSeconds: 30,
+                //     timeoutSeconds: 10,
+                // },
             }],
             containerConcurrency: 100,
             timeoutSeconds: 300,

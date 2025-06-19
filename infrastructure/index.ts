@@ -89,25 +89,7 @@ const service = new gcp.cloudrun.Service("mklat-news-service", {
                         value: domain || "",
                     },
                 ],
-                // Restore working probe configuration from git history
-                startupProbe: {
-                    httpGet: {
-                        path: "/api/health",
-                        port: 3000,
-                    },
-                    initialDelaySeconds: 5,
-                    periodSeconds: 10,
-                    timeoutSeconds: 5,
-                    failureThreshold: 3,
-                },
-                livenessProbe: {
-                    httpGet: {
-                        path: "/api/health",
-                        port: 3000,
-                    },
-                    periodSeconds: 30,
-                    timeoutSeconds: 5,
-                },
+                // Use Cloud Run default probes (TCP with 240s timeout) - worked 2h ago
             }],
             containerConcurrency: 100,
             timeoutSeconds: 300,

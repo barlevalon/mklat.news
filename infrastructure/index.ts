@@ -100,19 +100,8 @@ const iamPolicy = new gcp.cloudrun.IamMember("mklat-news-public-access", {
     member: "allUsers",
 });
 
-// Create custom domain mapping (only if domain is configured)
-const domainMapping = domain ? new gcp.cloudrun.DomainMapping("mklat-news-domain", {
-    location: region,
-    name: domain,
-    metadata: {
-        namespace: projectId,
-    },
-    spec: {
-        routeName: service.name,
-    },
-}, { 
-    dependsOn: [service] 
-}) : undefined;
+// Note: Domain mappings are not supported in me-west1 region
+// We'll use Cloudflare CNAME to point directly to the Cloud Run URL
 
 // Configure Cloudflare DNS (only if domain is configured)
 const zone = domain ? cloudflare.getZoneOutput({
@@ -128,6 +117,7 @@ const dnsRecord = domain && zone ? new cloudflare.Record("dns-record", {
     }),
     type: "CNAME",
     proxied: true, // Enable Cloudflare proxy
+    comment: "Points to Cloud Run service in me-west1 (Tel Aviv)",
 }, { dependsOn: [service] }) : undefined;
 
 // Outputs

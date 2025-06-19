@@ -139,20 +139,33 @@ jobs:
           sleep 5
           curl -f http://localhost:3000/api/health
 
-  trigger-deploy:
-    name: Trigger Deployment
+  publish:
+    name: Build & Push Docker Image
     needs: [lint, test-unit, test-e2e, security, build]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
     steps:
-      - name: Trigger deployment workflow
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'deploy.yml',
-              ref: 'main'
-            })
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+    - name: Set up Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker for Artifact Registry
+      run: gcloud auth configure-docker me-west1-docker.pkg.dev
+
+    - name: Build Docker image
+      run: |
+        docker build -t me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/mklat-news/mklat-news:latest .
+        docker build -t me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/mklat-news/mklat-news:${{ github.sha }} .
+
+    - name: Push Docker image
+      run: |
+        docker push me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/mklat-news/mklat-news:latest
+        docker push me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/mklat-news/mklat-news:${{ github.sha }}

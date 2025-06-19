@@ -27,6 +27,11 @@ const artifactRegistryApi = new gcp.projects.Service("artifact-registry-api", {
     project: projectId,
 });
 
+const cloudBuildApi = new gcp.projects.Service("cloud-build-api", {
+    service: "cloudbuild.googleapis.com",
+    project: projectId,
+});
+
 // Create Artifact Registry repository
 const repository = new gcp.artifactregistry.Repository("mklat-news-repo", {
     location: region,
@@ -35,15 +40,8 @@ const repository = new gcp.artifactregistry.Repository("mklat-news-repo", {
     format: "DOCKER",
 }, { dependsOn: [artifactRegistryApi] });
 
-// Build and push Docker image
-const image = new docker.Image("mklat-news-image", {
-    imageName: pulumi.interpolate`${region}-docker.pkg.dev/${projectId}/mklat-news/mklat-news:latest`,
-    build: {
-        context: "../", // Build from parent directory
-        dockerfile: "../Dockerfile",
-        platform: "linux/amd64",
-    },
-}, { dependsOn: [repository] });
+// Reference the Docker image (will be built and pushed by CI)
+const imageUri = pulumi.interpolate`${region}-docker.pkg.dev/${projectId}/mklat-news/mklat-news:latest`;
 
 // Create Cloud Run service
 const service = new gcp.cloudrun.Service("mklat-news-service", {
@@ -55,9 +53,18 @@ const service = new gcp.cloudrun.Service("mklat-news-service", {
         },
     },
     template: {
+        metadata: {
+            annotations: {
+                // Enable continuous deployment
+                "run.googleapis.com/execution-environment": "gen2",
+                // Auto-deploy when new image is pushed
+                "autoscaling.knative.dev/maxScale": "10",
+                "autoscaling.knative.dev/minScale": "0",
+            },
+        },
         spec: {
             containers: [{
-                image: image.imageName,
+                image: imageUri,
                 ports: [{
                     containerPort: 3000,
                 }],
@@ -91,6 +98,33 @@ const service = new gcp.cloudrun.Service("mklat-news-service", {
         latestRevision: true,
     }],
 }, { dependsOn: [cloudRunApi] });
+
+// Create Cloud Build trigger to auto-deploy when new images are pushed
+const deployTrigger = new gcp.cloudbuild.Trigger("auto-deploy-trigger", {
+    name: "mklat-news-auto-deploy",
+    description: "Auto-deploy Cloud Run service when new image is pushed",
+    
+    // Trigger on Artifact Registry image push
+    pubsubConfig: {
+        topic: pulumi.interpolate`projects/${projectId}/topics/gcr`, // Default topic for registry events
+    },
+    
+    // Filter to only trigger on our specific image
+    filter: pulumi.interpolate`_IMAGE_NAME.matches("${region}-docker.pkg.dev/${projectId}/mklat-news/mklat-news")`,
+    
+    build: {
+        steps: [{
+            name: "gcr.io/google.com/cloudsdktool/cloud-sdk",
+            args: [
+                "gcloud", "run", "deploy", service.name,
+                "--image", pulumi.interpolate`${region}-docker.pkg.dev/${projectId}/mklat-news/mklat-news:latest`,
+                "--region", region,
+                "--platform", "managed",
+                "--quiet"
+            ],
+        }],
+    },
+}, { dependsOn: [cloudBuildApi, service] });
 
 // Create IAM policy to allow public access
 const iamPolicy = new gcp.cloudrun.IamMember("mklat-news-public-access", {
@@ -195,7 +229,7 @@ export const serviceUrl = service.statuses.apply(statuses =>
 );
 export const customDomain = domain || "No custom domain configured";
 export const loadBalancerIp = globalAddress.address;
-export const imageUri = image.imageName;
+export const deployedImageUri = imageUri;
 export const serviceLocation = service.location;
 export const repositoryUrl = repository.name;
 export const sslCertificateName = sslCertificate?.name || "No SSL certificate configured";

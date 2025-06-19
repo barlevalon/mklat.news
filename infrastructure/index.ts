@@ -125,7 +125,6 @@ const neg = new gcp.compute.RegionNetworkEndpointGroup("mklat-news-neg", {
     networkEndpointType: "SERVERLESS",
     cloudRun: {
         service: service.name,
-        region: region,
     },
 });
 
@@ -134,7 +133,6 @@ const backendService = new gcp.compute.BackendService("mklat-news-backend", {
     name: "mklat-news-backend",
     description: "Backend service for mklat.news",
     protocol: "HTTPS",
-    portName: "http",
     timeoutSec: 30,
     backends: [{
         group: neg.id,

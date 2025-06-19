@@ -199,4 +199,4 @@ export const loadBalancerIp = globalAddress.address;
 export const imageUri = image.imageName;
 export const serviceLocation = service.location;
 export const repositoryUrl = repository.name;
-export const sslCertificateStatus = sslCertificate?.managed.status || "No SSL certificate configured";
+export const sslCertificateStatus = sslCertificate?.managed.apply(m => m?.status) || "No SSL certificate configured";

@@ -167,11 +167,22 @@ const backendService = new gcp.compute.BackendService("mklat-news-backend", {
     loadBalancingScheme: "EXTERNAL",
 });
 
-// Create a URL map to route traffic to the backend service
+// Create a URL map to route traffic to the backend service (HTTPS)
 const urlMap = new gcp.compute.URLMap("mklat-news-url-map", {
     name: "mklat-news-url-map",
-    description: "URL map for mklat.news",
+    description: "URL map for mklat.news HTTPS traffic",
     defaultService: backendService.id,
+});
+
+// Create a separate URL map for HTTP that redirects to HTTPS
+const httpRedirectUrlMap = new gcp.compute.URLMap("mklat-news-http-redirect-map", {
+    name: "mklat-news-http-redirect-map", 
+    description: "HTTP to HTTPS redirect for mklat.news",
+    defaultUrlRedirect: {
+        httpsRedirect: true,
+        redirectResponseCode: "MOVED_PERMANENTLY_DEFAULT", // 301 redirect
+        stripQuery: false,
+    },
 });
 
 // Create HTTPS proxy
@@ -184,7 +195,7 @@ const httpsProxy = sslCertificate ? new gcp.compute.TargetHttpsProxy("mklat-news
 // Create HTTP proxy for redirect to HTTPS
 const httpProxy = new gcp.compute.TargetHttpProxy("mklat-news-http-proxy", {
     name: "mklat-news-http-proxy",
-    urlMap: urlMap.id,
+    urlMap: httpRedirectUrlMap.id,
 });
 
 // Create global forwarding rules

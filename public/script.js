@@ -589,7 +589,7 @@ function filterAlertsByLocation(alerts) {
 
 function loadUserPreferences() {
     try {
-        const saved = localStorage.getItem('war-room-locations');
+        const saved = localStorage.getItem('mklat-locations');
         if (saved) {
             const savedLocations = JSON.parse(saved);
             selectedLocations = new Set(savedLocations);
@@ -601,7 +601,7 @@ function loadUserPreferences() {
 
 function saveUserPreferences() {
     try {
-        localStorage.setItem('war-room-locations', JSON.stringify(Array.from(selectedLocations)));
+        localStorage.setItem('mklat-locations', JSON.stringify(Array.from(selectedLocations)));
     } catch (error) {
         console.error('Error saving preferences:', error);
     }

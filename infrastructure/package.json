@@ -1,0 +1,22 @@
+{
+  "name": "mklat-news-infrastructure",
+  "version": "1.0.0",
+  "description": "Infrastructure as Code for War Room news aggregator",
+  "main": "index.ts",
+  "scripts": {
+    "build": "tsc",
+    "deploy": "pulumi up",
+    "destroy": "pulumi destroy",
+    "preview": "pulumi preview"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@pulumi/pulumi": "^3.0.0",
+    "@pulumi/gcp": "^7.0.0",
+    "@pulumi/docker": "^4.0.0",
+    "@pulumi/cloudflare": "^5.0.0"
+  }
+}

@@ -38,3 +38,10 @@ Thumbs.db
 
 # Cache
 .cache/
+
+# Infrastructure build output
+infrastructure/bin/
+
+# GCP service account keys
+key.json
+*-service-account.json

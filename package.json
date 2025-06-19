@@ -1,5 +1,5 @@
 {
-  "name": "war-room-aggregator",
+  "name": "mklat-news",
   "version": "1.0.0",
   "description": "Ynet news and Homefront Command alerts aggregator",
   "main": "src/server.js",

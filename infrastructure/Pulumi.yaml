@@ -1,0 +1,8 @@
+name: mklat-news
+runtime: nodejs
+description: War Room news aggregator infrastructure
+
+config:
+  domain:
+    description: Custom domain name (optional)
+    type: string

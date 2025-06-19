@@ -1,0 +1,3 @@
+config:
+  war-room:domain: mklat.news
+  gcp:project: mklat-news

@@ -79,7 +79,7 @@ describe('Location Filtering Functions', () => {
 
     global.saveUserPreferences = function() {
       try {
-        localStorage.setItem('war-room-locations', JSON.stringify(Array.from(selectedLocations)));
+        localStorage.setItem('mklat-locations', JSON.stringify(Array.from(selectedLocations)));
       } catch (error) {
         console.error('Error saving preferences:', error);
       }
@@ -87,7 +87,7 @@ describe('Location Filtering Functions', () => {
 
     global.loadUserPreferences = function() {
       try {
-        const saved = localStorage.getItem('war-room-locations');
+        const saved = localStorage.getItem('mklat-locations');
         if (saved) {
           const savedLocations = JSON.parse(saved);
           selectedLocations.clear();
@@ -235,7 +235,7 @@ describe('Location Filtering Functions', () => {
       
       expect(selectedLocations.has('רחובות')).toBe(true);
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        'war-room-locations', 
+        'mklat-locations', 
         JSON.stringify(['רחובות'])
       );
     });
@@ -247,7 +247,7 @@ describe('Location Filtering Functions', () => {
       
       expect(selectedLocations.has('רחובות')).toBe(false);
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        'war-room-locations', 
+        'mklat-locations', 
         JSON.stringify([])
       );
     });
@@ -302,7 +302,7 @@ describe('Location Filtering Functions', () => {
       saveUserPreferences();
       
       expect(localStorageMock.setItem).toHaveBeenCalledWith(
-        'war-room-locations',
+        'mklat-locations',
         JSON.stringify(['רחובות', 'תל אביב'])
       );
     });

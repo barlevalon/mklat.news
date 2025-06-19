@@ -52,7 +52,7 @@ function parseHistoricalAlertsHTML(html) {
   // Sort by date (most recent first)
   alerts.sort((a, b) => new Date(b.alertDate) - new Date(a.alertDate));
   
-  return alerts.slice(0, LIMITS.HISTORICAL_ALERTS);
+  return alerts; // Return all alerts, let the caller decide how to limit/filter
 }
 
 module.exports = {

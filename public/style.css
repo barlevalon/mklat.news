@@ -165,11 +165,53 @@ header h1 {
     transform: translateX(-5px);
 }
 
-.news-item h3 {
+.news-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
     margin-bottom: 0.5rem;
+    gap: 1rem;
+}
+
+@media (max-width: 600px) {
+    .news-header {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .news-source {
+        align-self: flex-start;
+    }
+}
+
+.news-item h3 {
+    margin: 0;
     color: #fbbf24;
     font-size: 1.1rem;
     line-height: 1.4;
+    flex: 1;
+}
+
+.news-source {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #9ca3af;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.source-favicon {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    display: inline-block;
+    vertical-align: middle;
 }
 
 .news-item p {

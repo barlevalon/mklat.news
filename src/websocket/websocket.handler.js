@@ -1,5 +1,5 @@
 const WebSocket = require('ws');
-const { fetchYnetData } = require('../services/ynet.service');
+const { fetchCombinedNewsData } = require('../services/combined-news.service');
 const { fetchAlertsData, fetchAlertAreas } = require('../services/oref.service');
 const { hasDataChanged } = require('../utils/data.util');
 const { POLLING_INTERVAL_MS } = require('../config/constants');
@@ -31,8 +31,8 @@ function handleWebSocketConnection(wss) {
 // Send initial data to new WebSocket clients
 async function sendInitialData(ws) {
   try {
-    const [ynetData, alertsData, locationsData] = await Promise.all([
-      fetchYnetData(),
+    const [newsData, alertsData, locationsData] = await Promise.all([
+      fetchCombinedNewsData(),
       fetchAlertsData(),
       fetchAlertAreas()
     ]);
@@ -41,7 +41,7 @@ async function sendInitialData(ws) {
       ws.send(JSON.stringify({
         type: 'initial',
         data: {
-          ynet: ynetData,
+          ynet: newsData,
           alerts: alertsData,
           locations: locationsData
         }
@@ -70,21 +70,21 @@ function broadcastToClients(type, data) {
 }
 
 // Background polling system
-let lastYnetData = null;
+let lastNewsData = null;
 let lastAlertsData = null;
 
 async function backgroundPoll() {
   try {
     // Fetch new data
-    const [ynetData, alertsData] = await Promise.all([
-      fetchYnetData(),
+    const [newsData, alertsData] = await Promise.all([
+      fetchCombinedNewsData(),
       fetchAlertsData()
     ]);
     
     // Check for changes and broadcast
-    if (hasDataChanged(ynetData, lastYnetData)) {
-      lastYnetData = ynetData;
-      broadcastToClients('ynet', ynetData);
+    if (hasDataChanged(newsData, lastNewsData)) {
+      lastNewsData = newsData;
+      broadcastToClients('ynet', newsData);
     }
     
     if (hasDataChanged(alertsData, lastAlertsData)) {

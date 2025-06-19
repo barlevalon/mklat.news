@@ -208,7 +208,7 @@ async function fetchNews() {
     } catch (error) {
         console.error('Error fetching news:', error);
         updateConnectionStatus(false);
-        renderError('news-content', 'שגיאה בטעינת חדשות ynet');
+        renderError('news-content', 'שגיאה בטעינת חדשות');
     }
 }
 
@@ -230,6 +230,21 @@ async function fetchAlerts() {
     }
 }
 
+function getSourceIcon(source) {
+    const faviconUrls = {
+        'Ynet': 'https://www.google.com/s2/favicons?domain=ynet.co.il&sz=16',
+        'Maariv': 'https://www.google.com/s2/favicons?domain=maariv.co.il&sz=16',
+        'Walla': 'https://www.google.com/s2/favicons?domain=walla.co.il&sz=16',
+        'Haaretz': 'https://www.google.com/s2/favicons?domain=haaretz.co.il&sz=16'
+    };
+    
+    const url = faviconUrls[source];
+    if (url) {
+        return `<img src="${url}" alt="${source}" class="source-favicon">`;
+    }
+    return '';
+}
+
 function renderNews(news) {
     const newsContent = document.getElementById('news-content');
     
@@ -240,7 +255,10 @@ function renderNews(news) {
     
     const newsHtml = news.map(item => `
         <div class="news-item">
-            <h3>${escapeHtml(item.title)}</h3>
+            <div class="news-header">
+                <h3>${escapeHtml(item.title)}</h3>
+                <span class="news-source" title="${item.source || 'Ynet'}">${getSourceIcon(item.source || 'Ynet')} ${item.source || 'Ynet'}</span>
+            </div>
             ${item.description ? `<p>${escapeHtml(item.description.substring(0, 200))}...</p>` : ''}
             <div class="meta">
                 <span>${formatDate(item.pubDate)}</span>

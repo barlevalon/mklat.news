@@ -1,5 +1,5 @@
 const express = require('express');
-const { fetchYnetData } = require('../services/ynet.service');
+const { fetchCombinedNewsData } = require('../services/combined-news.service');
 const { fetchAlertsData, fetchAlertAreas } = require('../services/oref.service');
 
 const router = express.Router();
@@ -7,7 +7,7 @@ const router = express.Router();
 // Ynet breaking news endpoint
 router.get('/ynet', async (req, res) => {
   try {
-    const news = await fetchYnetData();
+    const news = await fetchCombinedNewsData();
     res.json(news);
   } catch (error) {
     console.error('Ynet fetch error:', error.message);

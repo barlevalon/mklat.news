@@ -21,6 +21,9 @@ const POLLING_INTERVAL_MS = 2000;
 // API endpoints
 const API_ENDPOINTS = {
   YNET_RSS: 'https://www.ynet.co.il/Integration/StoryRss1854.xml',
+  MAARIV_RSS: 'https://www.maariv.co.il/Rss/RssFeedsMivzakiChadashot',
+  WALLA_RSS: 'https://rss.walla.co.il/feed/22',
+  HAARETZ_RSS: 'https://www.haaretz.co.il/srv/rss---feedly',
   OREF_CURRENT_ALERTS: 'https://www.oref.org.il/warningMessages/alert/Alerts.json',
   OREF_HISTORICAL_ALERTS: 'https://alerts-history.oref.org.il/Shared/Ajax/GetAlerts.aspx?lang=he',
   OREF_DISTRICTS: 'https://alerts-history.oref.org.il/Shared/Ajax/GetDistricts.aspx?lang=he',

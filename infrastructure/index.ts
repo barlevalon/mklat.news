@@ -89,7 +89,23 @@ const service = new gcp.cloudrun.Service("mklat-news-service", {
                         value: domain || "",
                     },
                 ],
-                // Health probes disabled - will re-enable after fixing app startup
+                // Use TCP probe instead of HTTP - just checks if port is listening
+                startupProbe: {
+                    tcpSocket: {
+                        port: 3000,
+                    },
+                    initialDelaySeconds: 10,
+                    periodSeconds: 5,
+                    timeoutSeconds: 3,
+                    failureThreshold: 6,
+                },
+                livenessProbe: {
+                    tcpSocket: {
+                        port: 3000,
+                    },
+                    periodSeconds: 30,
+                    timeoutSeconds: 3,
+                },
             }],
             containerConcurrency: 100,
             timeoutSeconds: 300,

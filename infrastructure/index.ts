@@ -89,25 +89,7 @@ const service = new gcp.cloudrun.Service("mklat-news-service", {
                         value: domain || "",
                     },
                 ],
-                // Temporarily remove probes to fix startup issues
-                // startupProbe: {
-                //     httpGet: {
-                //         path: "/api/health",
-                //         port: 3000,
-                //     },
-                //     initialDelaySeconds: 10,  // Give more time for startup
-                //     periodSeconds: 5,          // Check more frequently
-                //     timeoutSeconds: 10,        // Longer timeout for slow responses
-                //     failureThreshold: 6,       // Allow more failures (30s total)
-                // },
-                // livenessProbe: {
-                //     httpGet: {
-                //         path: "/api/health", 
-                //         port: 3000,
-                //     },
-                //     periodSeconds: 30,
-                //     timeoutSeconds: 10,
-                // },
+                // Health probes disabled - will re-enable after fixing app startup
             }],
             containerConcurrency: 100,
             timeoutSeconds: 300,

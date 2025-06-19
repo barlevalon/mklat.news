@@ -1,6 +1,6 @@
 // Common configurations
 const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
-const DEFAULT_TIMEOUT = 25000; // Slightly reduced timeout for testing
+const DEFAULT_TIMEOUT = 20000; // Test CI pipeline with adjusted timeout
 
 // Cache TTL constants (in seconds)
 const CACHE_TTL = {

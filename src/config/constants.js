@@ -1,6 +1,6 @@
 // Common configurations
 const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
-const DEFAULT_TIMEOUT = 30000; // Increased timeout for external APIs
+const DEFAULT_TIMEOUT = 25000; // Slightly reduced timeout for testing
 
 // Cache TTL constants (in seconds)
 const CACHE_TTL = {

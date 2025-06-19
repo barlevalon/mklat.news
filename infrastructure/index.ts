@@ -77,10 +77,6 @@ const service = new gcp.cloudrun.Service("mklat-news-service", {
                         value: "production",
                     },
                     {
-                        name: "PORT",
-                        value: "3000",
-                    },
-                    {
                         name: "ORIGIN",
                         value: domain || "",
                     },

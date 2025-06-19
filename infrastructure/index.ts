@@ -125,6 +125,7 @@ const neg = new gcp.compute.RegionNetworkEndpointGroup("mklat-news-neg", {
     networkEndpointType: "SERVERLESS",
     cloudRun: {
         service: service.name,
+        region: region,
     },
 });
 

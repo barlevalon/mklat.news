@@ -89,22 +89,24 @@ const service = new gcp.cloudrun.Service("mklat-news-service", {
                         value: domain || "",
                     },
                 ],
-                // Use TCP probe instead of HTTP - just checks if port is listening
+                // Restore working probe configuration from git history
                 startupProbe: {
-                    tcpSocket: {
+                    httpGet: {
+                        path: "/api/health",
                         port: 3000,
                     },
-                    initialDelaySeconds: 10,
-                    periodSeconds: 5,
-                    timeoutSeconds: 3,
-                    failureThreshold: 6,
+                    initialDelaySeconds: 5,
+                    periodSeconds: 10,
+                    timeoutSeconds: 5,
+                    failureThreshold: 3,
                 },
                 livenessProbe: {
-                    tcpSocket: {
+                    httpGet: {
+                        path: "/api/health",
                         port: 3000,
                     },
                     periodSeconds: 30,
-                    timeoutSeconds: 3,
+                    timeoutSeconds: 5,
                 },
             }],
             containerConcurrency: 100,

@@ -35,30 +35,49 @@ function normalizeAlertsResponse(data) {
 // Active alerts fetching
 const fetchActiveAlerts = withCache('active-alerts', CACHE_TTL.SHORT, async () => {
   try {
+    console.log('Fetching active alerts from:', API_ENDPOINTS.OREF_CURRENT_ALERTS);
     const response = await axios.get(API_ENDPOINTS.OREF_CURRENT_ALERTS, 
-      createAxiosConfig(5000, {
+      createAxiosConfig(15000, {
         'X-Requested-With': 'XMLHttpRequest',
         'Referer': 'https://www.oref.org.il/'
       }));
     
-    return normalizeAlertsResponse(response.data);
+    const normalized = normalizeAlertsResponse(response.data);
+    console.log('Active alerts normalized count:', normalized.length);
+    return normalized;
   } catch (error) {
-    // Fallback API
-    const fallbackResponse = await axios.get(API_ENDPOINTS.TZEVA_ADOM_FALLBACK, 
-      createAxiosConfig(5000));
-    return fallbackResponse.data || [];
+    console.error('Primary alerts API failed:', error.message);
+    try {
+      console.log('Trying fallback API:', API_ENDPOINTS.TZEVA_ADOM_FALLBACK);
+      const fallbackResponse = await axios.get(API_ENDPOINTS.TZEVA_ADOM_FALLBACK, 
+        createAxiosConfig(15000));
+      console.log('Fallback API response received');
+      return fallbackResponse.data || [];
+    } catch (fallbackError) {
+      console.error('Fallback API also failed:', fallbackError.message);
+      return [];
+    }
   }
 });
 
 // Historical alerts fetching
 const fetchHistoricalAlerts = withCache('historical-alerts', CACHE_TTL.MEDIUM, async () => {
   try {
-    const response = await axios.get(API_ENDPOINTS.OREF_HISTORICAL_ALERTS, createAxiosConfig());
+    console.log('Fetching historical alerts from:', API_ENDPOINTS.OREF_HISTORICAL_ALERTS);
+    const response = await axios.get(API_ENDPOINTS.OREF_HISTORICAL_ALERTS, createAxiosConfig(30000));
     
+    console.log('Historical alerts response received, length:', response.data?.length || 0);
     const html = response.data;
-    return parseHistoricalAlertsHTML(html);
+    const parsed = parseHistoricalAlertsHTML(html);
+    console.log('Parsed historical alerts count:', parsed.length);
+    return parsed;
   } catch (error) {
     console.error('Error fetching historical alerts:', error.message);
+    console.error('Request details:', {
+      url: API_ENDPOINTS.OREF_HISTORICAL_ALERTS,
+      timeout: 30000,
+      code: error.code
+    });
     return [];
   }
 });

@@ -55,11 +55,12 @@ const service = new gcp.cloudrun.Service("mklat-news-service", {
     template: {
         metadata: {
             annotations: {
-                // Enable continuous deployment
+                // Zero-downtime deployment settings
                 "run.googleapis.com/execution-environment": "gen2",
-                // Auto-deploy when new image is pushed
                 "autoscaling.knative.dev/maxScale": "10",
-                "autoscaling.knative.dev/minScale": "0",
+                "autoscaling.knative.dev/minScale": "1", // Keep at least 1 instance running
+                // Rolling deployment settings
+                "run.googleapis.com/cpu-throttling": "false",
             },
         },
         spec: {
@@ -88,6 +89,25 @@ const service = new gcp.cloudrun.Service("mklat-news-service", {
                         value: domain || "",
                     },
                 ],
+                // Add readiness and liveness probes for zero-downtime
+                startupProbe: {
+                    httpGet: {
+                        path: "/api/health",
+                        port: 3000,
+                    },
+                    initialDelaySeconds: 5,
+                    periodSeconds: 10,
+                    timeoutSeconds: 5,
+                    failureThreshold: 3,
+                },
+                livenessProbe: {
+                    httpGet: {
+                        path: "/api/health", 
+                        port: 3000,
+                    },
+                    periodSeconds: 30,
+                    timeoutSeconds: 5,
+                },
             }],
             containerConcurrency: 100,
             timeoutSeconds: 300,

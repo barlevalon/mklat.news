@@ -1,0 +1,4 @@
+config:
+  gcp:project: mklat-news
+  gcp:region: me-west1
+  mklat-news:domain: mklat.news

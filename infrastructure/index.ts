@@ -100,8 +100,81 @@ const iamPolicy = new gcp.cloudrun.IamMember("mklat-news-public-access", {
     member: "allUsers",
 });
 
-// Note: Domain mappings are not supported in me-west1 region
-// We'll use Cloudflare CNAME to point directly to the Cloud Run URL
+// Global External Application Load Balancer for custom domain support
+// Since domain mappings are not supported in me-west1, we use a load balancer
+
+// Create a global address for the load balancer
+const globalAddress = new gcp.compute.GlobalAddress("mklat-news-lb-ip", {
+    name: "mklat-news-lb-ip",
+    description: "Static IP for mklat.news load balancer",
+});
+
+// Create a managed SSL certificate for the custom domain
+const sslCertificate = domain ? new gcp.compute.ManagedSslCertificate("mklat-news-ssl-cert", {
+    name: "mklat-news-ssl-cert",
+    managed: {
+        domains: [domain],
+    },
+    description: `Managed SSL certificate for ${domain}`,
+}) : undefined;
+
+// Create a Network Endpoint Group for the Cloud Run service
+const neg = new gcp.compute.RegionNetworkEndpointGroup("mklat-news-neg", {
+    name: "mklat-news-neg",
+    region: region,
+    networkEndpointType: "SERVERLESS",
+    cloudRun: {
+        service: service.name,
+    },
+});
+
+// Create a backend service that points to the NEG
+const backendService = new gcp.compute.BackendService("mklat-news-backend", {
+    name: "mklat-news-backend",
+    description: "Backend service for mklat.news",
+    protocol: "HTTPS",
+    portName: "http",
+    timeoutSec: 30,
+    backends: [{
+        group: neg.id,
+    }],
+    loadBalancingScheme: "EXTERNAL",
+});
+
+// Create a URL map to route traffic to the backend service
+const urlMap = new gcp.compute.URLMap("mklat-news-url-map", {
+    name: "mklat-news-url-map",
+    description: "URL map for mklat.news",
+    defaultService: backendService.id,
+});
+
+// Create HTTPS proxy
+const httpsProxy = sslCertificate ? new gcp.compute.TargetHttpsProxy("mklat-news-https-proxy", {
+    name: "mklat-news-https-proxy",
+    urlMap: urlMap.id,
+    sslCertificates: [sslCertificate.id],
+}) : undefined;
+
+// Create HTTP proxy for redirect to HTTPS
+const httpProxy = new gcp.compute.TargetHttpProxy("mklat-news-http-proxy", {
+    name: "mklat-news-http-proxy",
+    urlMap: urlMap.id,
+});
+
+// Create global forwarding rules
+const httpsForwardingRule = httpsProxy ? new gcp.compute.GlobalForwardingRule("mklat-news-https-rule", {
+    name: "mklat-news-https-rule",
+    target: httpsProxy.id,
+    portRange: "443",
+    ipAddress: globalAddress.address,
+}) : undefined;
+
+const httpForwardingRule = new gcp.compute.GlobalForwardingRule("mklat-news-http-rule", {
+    name: "mklat-news-http-rule",
+    target: httpProxy.id,
+    portRange: "80",
+    ipAddress: globalAddress.address,
+});
 
 // Configure Cloudflare DNS (only if domain is configured)
 const zone = domain ? cloudflare.getZoneOutput({
@@ -111,20 +184,19 @@ const zone = domain ? cloudflare.getZoneOutput({
 const dnsRecord = domain && zone ? new cloudflare.Record("dns-record", {
     zoneId: zone.id,
     name: "@", // Root domain
-    content: service.statuses.apply(statuses => {
-        const url = statuses?.[0]?.url;
-        return url ? url.replace(/^https?:\/\//, '') : '';
-    }),
-    type: "CNAME",
-    proxied: true, // Enable Cloudflare proxy
-    comment: "Points to Cloud Run service in me-west1 (Tel Aviv)",
-}, { dependsOn: [service] }) : undefined;
+    content: globalAddress.address,
+    type: "A",
+    proxied: false, // Disable Cloudflare proxy since we're using Google's load balancer
+    comment: "Points to Google Cloud Load Balancer for Cloud Run service in me-west1 (Tel Aviv)",
+}, { dependsOn: [globalAddress] }) : undefined;
 
 // Outputs
 export const serviceUrl = service.statuses.apply(statuses => 
     statuses?.[0]?.url || "Service URL not available"
 );
 export const customDomain = domain || "No custom domain configured";
+export const loadBalancerIp = globalAddress.address;
 export const imageUri = image.imageName;
 export const serviceLocation = service.location;
 export const repositoryUrl = repository.name;
+export const sslCertificateStatus = sslCertificate?.managed.status || "No SSL certificate configured";

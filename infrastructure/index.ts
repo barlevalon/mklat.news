@@ -104,6 +104,9 @@ const iamPolicy = new gcp.cloudrun.IamMember("mklat-news-public-access", {
 const domainMapping = domain ? new gcp.cloudrun.DomainMapping("mklat-news-domain", {
     location: region,
     name: domain,
+    metadata: {
+        namespace: projectId,
+    },
     spec: {
         routeName: service.name,
     },

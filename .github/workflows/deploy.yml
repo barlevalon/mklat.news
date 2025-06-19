@@ -157,7 +157,7 @@ jobs:
     - name: Configure Docker for Google Cloud
       run: gcloud auth configure-docker ${GCP_REGION}-docker.pkg.dev
       env:
-        GCP_REGION: me-central1
+        GCP_REGION: me-west1
 
     - name: Install Pulumi CLI
       uses: pulumi/actions@v4

@@ -7,7 +7,7 @@ import * as cloudflare from "@pulumi/cloudflare";
 const config = new pulumi.Config();
 const gcpConfig = new pulumi.Config("gcp");
 const projectId = gcpConfig.require("project");
-const region = gcpConfig.get("region") || "il-central-1"; // Israel region
+const region = gcpConfig.get("region") || "me-west1"; // Tel Aviv, Israel
 const domain = config.get("domain"); // Custom domain (optional)
 const cloudflareConfig = new pulumi.Config("cloudflare");
 

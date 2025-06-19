@@ -157,7 +157,7 @@ jobs:
     - name: Configure Docker for Google Cloud
       run: gcloud auth configure-docker ${GCP_REGION}-docker.pkg.dev
       env:
-        GCP_REGION: il-central-1
+        GCP_REGION: me-central1
 
     - name: Install Pulumi CLI
       uses: pulumi/actions@v4
@@ -166,7 +166,7 @@ jobs:
       run: |
         cd infrastructure
         pulumi config set --stack=prod gcp:project ${{ secrets.GCP_PROJECT_ID }}
-        pulumi config set --stack=prod gcp:region il-central-1
+        pulumi config set --stack=prod gcp:region me-west1
         pulumi config set --stack=prod domain mklat.news
         pulumi config set --stack=prod --secret cloudflare:apiToken ${{ secrets.CLOUDFLARE_API_TOKEN }}
       env:

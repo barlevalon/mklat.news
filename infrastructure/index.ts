@@ -99,33 +99,6 @@ const service = new gcp.cloudrun.Service("mklat-news-service", {
     }],
 }, { dependsOn: [cloudRunApi] });
 
-// Create Cloud Build trigger to auto-deploy when new images are pushed
-const deployTrigger = new gcp.cloudbuild.Trigger("auto-deploy-trigger", {
-    name: "mklat-news-auto-deploy",
-    description: "Auto-deploy Cloud Run service when new image is pushed",
-    
-    // Trigger on Artifact Registry image push
-    pubsubConfig: {
-        topic: pulumi.interpolate`projects/${projectId}/topics/gcr`, // Default topic for registry events
-    },
-    
-    // Filter to only trigger on our specific image
-    filter: pulumi.interpolate`_IMAGE_NAME.matches("${region}-docker.pkg.dev/${projectId}/mklat-news/mklat-news")`,
-    
-    build: {
-        steps: [{
-            name: "gcr.io/google.com/cloudsdktool/cloud-sdk",
-            args: [
-                "gcloud", "run", "deploy", service.name,
-                "--image", pulumi.interpolate`${region}-docker.pkg.dev/${projectId}/mklat-news/mklat-news:latest`,
-                "--region", region,
-                "--platform", "managed",
-                "--quiet"
-            ],
-        }],
-    },
-}, { dependsOn: [cloudBuildApi, service] });
-
 // Create IAM policy to allow public access
 const iamPolicy = new gcp.cloudrun.IamMember("mklat-news-public-access", {
     service: service.name,

@@ -193,7 +193,7 @@ const backendService = new gcp.compute.BackendService("mklat-news-backend", {
         group: neg.id,
     }],
     loadBalancingScheme: "EXTERNAL",
-    securityPolicy: securityPolicy.id,
+    // securityPolicy: securityPolicy.id, // Temporarily disable to test
 });
 
 // Create a URL map to route traffic to the backend service (HTTPS)

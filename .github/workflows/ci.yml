@@ -161,6 +161,9 @@ jobs:
     - name: Configure Docker for Artifact Registry
       run: gcloud auth configure-docker me-west1-docker.pkg.dev
 
+    - name: Enable Artifact Registry API
+      run: gcloud services enable artifactregistry.googleapis.com
+
     - name: Create Artifact Registry repository if needed
       run: |
         if ! gcloud artifacts repositories describe mklat-news --location=me-west1 &>/dev/null; then

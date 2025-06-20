@@ -168,10 +168,19 @@ jobs:
       run: |
         if ! gcloud artifacts repositories describe mklat-news --location=me-west1 &>/dev/null; then
           echo "Creating Artifact Registry repository..."
-          gcloud artifacts repositories create mklat-news \
-            --repository-format=docker \
-            --location=me-west1 \
-            --description="Docker repository for mklat.news app"
+          # Retry up to 3 times with 30s delay to allow API enablement to propagate
+          for i in {1..3}; do
+            if gcloud artifacts repositories create mklat-news \
+              --repository-format=docker \
+              --location=me-west1 \
+              --description="Docker repository for mklat.news app" 2>/dev/null; then
+              echo "Repository created successfully"
+              break
+            else
+              echo "Attempt $i failed, waiting 30 seconds for API to propagate..."
+              sleep 30
+            fi
+          done
         else
           echo "Repository already exists"
         fi

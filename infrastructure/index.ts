@@ -38,9 +38,9 @@ const cloudBuildApi = new gcp.projects.Service("cloud-build-api", {
 const imageUri = pulumi.interpolate`${region}-docker.pkg.dev/${projectId}/mklat-news/mklat-news:latest`;
 
 // Create Cloud Run service (v2 API)
-const service = new gcp.cloudrunv2.Service("mklat-news-service-v2", {
+const service = new gcp.cloudrunv2.Service("mklat-news-service", {
     location: region,
-    name: "mklat-news-service-v2",
+    name: "mklat-news-service",
     ingress: "INGRESS_TRAFFIC_ALL",
     template: {
         maxInstanceRequestConcurrency: 100,

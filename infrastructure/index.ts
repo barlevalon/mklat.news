@@ -46,6 +46,7 @@ const imageUri = pulumi.interpolate`${region}-docker.pkg.dev/${projectId}/mklat-
 // Create Cloud Run service
 const service = new gcp.cloudrun.Service("mklat-news-service", {
     location: region,
+    name: "mklat-news-service",
     metadata: {
         annotations: {
             "run.googleapis.com/ingress": "all",

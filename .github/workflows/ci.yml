@@ -172,7 +172,7 @@ jobs:
 
     - name: Deploy to Cloud Run
       run: |
-        gcloud run deploy mklat-news-service-68b2142 \
+        gcloud run deploy mklat-news-service \
           --image me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/mklat-news/mklat-news:latest \
           --region me-west1 \
           --platform managed \

@@ -38,9 +38,9 @@ const cloudBuildApi = new gcp.projects.Service("cloud-build-api", {
 const imageUri = pulumi.interpolate`${region}-docker.pkg.dev/${projectId}/mklat-news/mklat-news:latest`;
 
 // Create Cloud Run service (v2 API)
-const service = new gcp.cloudrunv2.Service("mklat-news-service", {
+const service = new gcp.cloudrunv2.Service("mklat-news-service-v2", {
     location: region,
-    name: "mklat-news-service",
+    name: "mklat-news-service-v2",
     ingress: "INGRESS_TRAFFIC_ALL",
     template: {
         maxInstanceRequestConcurrency: 100,
@@ -72,10 +72,7 @@ const service = new gcp.cloudrunv2.Service("mklat-news-service", {
             ],
         }],
     },
-}, { 
-    dependsOn: [cloudRunApi],
-    replaceOnChanges: ["*"]  // Force replacement of v1 with v2
-});
+}, { dependsOn: [cloudRunApi] });
 
 // Allow public access to Cloud Run service (v2 uses different IAM)
 const iamPolicy = new gcp.cloudrunv2.ServiceIamMember("mklat-news-public-access", {

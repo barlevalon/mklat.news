@@ -256,31 +256,30 @@ const dnsRecord = domain && zone ? new cloudflare.Record("dns-record", {
     comment: "Points to Google Cloud Load Balancer for Cloud Run service in me-west1 (Tel Aviv)",
 }, { dependsOn: [globalAddress] }) : undefined;
 
-// TODO: Configure SSL mode manually in Cloudflare dashboard
-// API token needs Zone Settings:Edit permission for this to work
-// const sslSettings = domain && zone ? new cloudflare.ZoneSettingsOverride("ssl-settings", {
-//     zoneId: zone.id,
-//     settings: {
-//         ssl: "full", // Full SSL encryption between Cloudflare and origin
-//         alwaysUseHttps: "on",
-//         minTlsVersion: "1.2",
-//     },
-// }) : undefined;
+// Configure SSL mode for origin connection
+const sslSettings = domain && zone ? new cloudflare.ZoneSettingsOverride("ssl-settings", {
+    zoneId: zone.id,
+    settings: {
+        ssl: "full", // Full SSL encryption between Cloudflare and origin
+        alwaysUseHttps: "on",
+        minTlsVersion: "1.2",
+    },
+}) : undefined;
 
-// TODO: Cloudflare API token still has authentication issues
-// const israelOnlyRule = domain && zone ? new cloudflare.Ruleset("israel-only-access", {
-//     zoneId: zone.id,
-//     name: "Geo-restriction: Israel only",
-//     description: "Block all traffic except from Israel",
-//     kind: "zone",
-//     phase: "http_request_firewall_custom",
-//     rules: [{
-//         action: "block",
-//         expression: "ip.geoip.country ne \"IL\"",
-//         description: "Block non-Israeli traffic",
-//         enabled: true,
-//     }],
-// }) : undefined;
+// Geo-restrict to Israeli IPs only
+const israelOnlyRule = domain && zone ? new cloudflare.Ruleset("israel-only-access", {
+    zoneId: zone.id,
+    name: "Geo-restriction: Israel only",
+    description: "Block all traffic except from Israel",
+    kind: "zone",
+    phase: "http_request_firewall_custom",
+    rules: [{
+        action: "block",
+        expression: "ip.geoip.country ne \"IL\"",
+        description: "Block non-Israeli traffic",
+        enabled: true,
+    }],
+}) : undefined;
 
 // Outputs
 export const serviceUrl = service.statuses.apply(statuses => 

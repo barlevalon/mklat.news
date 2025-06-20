@@ -45,6 +45,7 @@ const service = new gcp.cloudrun.Service("mklat-news-service", {
         annotations: {
             "run.googleapis.com/ingress": "all",
             "run.googleapis.com/ingress-status": "all",
+            "run.googleapis.com/allow-unauthenticated": "true",
         },
     },
     template: {

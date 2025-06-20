@@ -1,0 +1,21 @@
+<svg width="280" height="60" viewBox="0 0 280 60" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <style>
+            .logo-text { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 30px; font-weight: 700; }
+            .main-text { fill: #1f2937; }
+            .news-text { fill: #f97316; font-weight: 600; }
+        </style>
+    </defs>
+    
+    <!-- House Icon -->
+    <g fill="none" fill-rule="evenodd">
+        <path d="M10 41.783l9.217-8.373a1 1 0 011.566 0L30 41.783V49a1 1 0 01-1 1H11a1 1 0 01-1-1v-7.217z" fill="#0D6EFD"/>
+        <circle cx="20" cy="43" r="5" fill="#FFFFFF"/>
+        <path d="M20 40v3.5" stroke="#FF6F00" stroke-width="2" stroke-linecap="round"/>
+        <path d="M20 46.01L20.01 45.99" stroke="#FF6F00" stroke-width="2" stroke-linecap="round"/>
+    </g>
+    
+    <!-- Text -->
+    <text x="55" y="40" class="logo-text main-text">mklat</text>
+    <text x="155" y="40" class="logo-text news-text">.news</text>
+</svg>

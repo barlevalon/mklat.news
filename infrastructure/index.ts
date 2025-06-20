@@ -266,20 +266,20 @@ const sslSettings = domain && zone ? new cloudflare.ZoneSettingsOverride("ssl-se
     },
 }) : undefined;
 
-// Geo-restrict to Israeli IPs only
-const israelOnlyRule = domain && zone ? new cloudflare.Ruleset("israel-only-access", {
-    zoneId: zone.id,
-    name: "Geo-restriction: Israel only",
-    description: "Block all traffic except from Israel",
-    kind: "zone",
-    phase: "http_request_firewall_custom",
-    rules: [{
-        action: "block",
-        expression: "ip.geoip.country ne \"IL\"",
-        description: "Block non-Israeli traffic",
-        enabled: true,
-    }],
-}) : undefined;
+// Temporarily disable geo-restriction to test
+// const israelOnlyRule = domain && zone ? new cloudflare.Ruleset("israel-only-access", {
+//     zoneId: zone.id,
+//     name: "Geo-restriction: Israel only",
+//     description: "Block all traffic except from Israel",
+//     kind: "zone",
+//     phase: "http_request_firewall_custom",
+//     rules: [{
+//         action: "block",
+//         expression: "ip.geoip.country ne \"IL\"",
+//         description: "Block non-Israeli traffic",
+//         enabled: true,
+//     }],
+// }) : undefined;
 
 // Outputs
 export const serviceUrl = service.statuses.apply(statuses => 

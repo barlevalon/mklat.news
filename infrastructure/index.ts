@@ -37,68 +37,46 @@ const cloudBuildApi = new gcp.projects.Service("cloud-build-api", {
 // Reference the Docker image (will be built and pushed by CI)
 const imageUri = pulumi.interpolate`${region}-docker.pkg.dev/${projectId}/mklat-news/mklat-news:latest`;
 
-// Create Cloud Run service
-const service = new gcp.cloudrun.Service("mklat-news-service", {
+// Create Cloud Run service (v2 API)
+const service = new gcp.cloudrunv2.Service("mklat-news-service", {
     location: region,
     name: "mklat-news-service",
-    metadata: {
-        annotations: {
-            "run.googleapis.com/ingress": "all",
-            "run.googleapis.com/ingress-status": "all",
-        },
-    },
+    ingress: "INGRESS_TRAFFIC_ALL",
     template: {
-        metadata: {
-            annotations: {
-                // Zero-downtime deployment settings
-                "run.googleapis.com/execution-environment": "gen2",
-                "autoscaling.knative.dev/maxScale": "10",
-                "autoscaling.knative.dev/minScale": "1", // Keep at least 1 instance running
-                // Rolling deployment settings
-                "run.googleapis.com/cpu-throttling": "false",
-            },
+        maxInstanceRequestConcurrency: 100,
+        timeout: "300s",
+        scaling: {
+            maxInstanceCount: 10,
+            minInstanceCount: 1,
         },
-        spec: {
-            containers: [{
-                image: imageUri,
-                ports: [{
-                    containerPort: 3000,
-                }],
-                resources: {
-                    limits: {
-                        cpu: "1000m",      // 1 vCPU
-                        memory: "1Gi",     // 1GB RAM
-                    },
-                    requests: {
-                        cpu: "100m",       // 0.1 vCPU minimum
-                        memory: "256Mi",   // 256MB minimum
-                    },
-                },
-                envs: [
-                    {
-                        name: "NODE_ENV",
-                        value: "production",
-                    },
-                    {
-                        name: "ORIGIN",
-                        value: domain || "",
-                    },
-                ],
-                // Use Cloud Run default probes (TCP with 240s timeout) - worked 2h ago
+        containers: [{
+            image: imageUri,
+            ports: [{
+                containerPort: 3000,
             }],
-            containerConcurrency: 100,
-            timeoutSeconds: 300,
-        },
+            resources: {
+                limits: {
+                    cpu: "1000m",      // 1 vCPU
+                    memory: "1Gi",     // 1GB RAM
+                },
+            },
+            env: [
+                {
+                    name: "NODE_ENV",
+                    value: "production",
+                },
+                {
+                    name: "ORIGIN",
+                    value: domain || "",
+                },
+            ],
+        }],
     },
-    traffics: [{
-        percent: 100,
-        latestRevision: true,
-    }],
 }, { dependsOn: [cloudRunApi] });
 
-// Allow public access to Cloud Run service
-const iamPolicy = new gcp.cloudrun.IamMember("mklat-news-public-access", {
-    service: service.name,
+// Allow public access to Cloud Run service (v2 uses different IAM)
+const iamPolicy = new gcp.cloudrunv2.ServiceIamMember("mklat-news-public-access", {
+    name: service.name,
     location: service.location,
     role: "roles/run.invoker",
     member: "allUsers",

@@ -37,46 +37,65 @@ const cloudBuildApi = new gcp.projects.Service("cloud-build-api", {
 // Reference the Docker image (will be built and pushed by CI)
 const imageUri = pulumi.interpolate`${region}-docker.pkg.dev/${projectId}/mklat-news/mklat-news:latest`;
 
-// Create Cloud Run service (v2 API)
-const service = new gcp.cloudrunv2.Service("mklat-news-service", {
+// Create Cloud Run service (back to v1 - v2 has compatibility issues with NEG)
+const service = new gcp.cloudrun.Service("mklat-news-service", {
     location: region,
     name: "mklat-news-service",
-    ingress: "INGRESS_TRAFFIC_ALL",
-    template: {
-        maxInstanceRequestConcurrency: 100,
-        timeout: "300s",
-        scaling: {
-            maxInstanceCount: 10,
-            minInstanceCount: 1,
+    metadata: {
+        annotations: {
+            "run.googleapis.com/ingress": "all",
+            "run.googleapis.com/ingress-status": "all",
         },
-        containers: [{
-            image: imageUri,
-            ports: [{
-                containerPort: 3000,
-            }],
-            resources: {
-                limits: {
-                    cpu: "1000m",      // 1 vCPU
-                    memory: "1Gi",     // 1GB RAM
-                },
-            },
-            envs: [
-                {
-                    name: "NODE_ENV",
-                    value: "production",
-                },
-                {
-                    name: "ORIGIN",
-                    value: domain || "",
-                },
-            ],
-        }],
     },
+    template: {
+        metadata: {
+            annotations: {
+                "run.googleapis.com/execution-environment": "gen2",
+                "autoscaling.knative.dev/maxScale": "10",
+                "autoscaling.knative.dev/minScale": "1",
+                "run.googleapis.com/cpu-throttling": "false",
+            },
+        },
+        spec: {
+            containers: [{
+                image: imageUri,
+                ports: [{
+                    containerPort: 3000,
+                }],
+                resources: {
+                    limits: {
+                        cpu: "1000m",
+                        memory: "1Gi",
+                    },
+                    requests: {
+                        cpu: "100m",
+                        memory: "256Mi",
+                    },
+                },
+                envs: [
+                    {
+                        name: "NODE_ENV",
+                        value: "production",
+                    },
+                    {
+                        name: "ORIGIN",
+                        value: domain || "",
+                    },
+                ],
+            }],
+            containerConcurrency: 100,
+            timeoutSeconds: 300,
+        },
+    },
+    traffics: [{
+        percent: 100,
+        latestRevision: true,
+    }],
 }, { dependsOn: [cloudRunApi] });
 
-// Allow public access to Cloud Run service (v2 uses different IAM)
-const iamPolicy = new gcp.cloudrunv2.ServiceIamMember("mklat-news-public-access", {
-    name: service.name,
+// Allow public access to Cloud Run service
+const iamPolicy = new gcp.cloudrun.IamMember("mklat-news-public-access", {
+    service: service.name,
     location: service.location,
     role: "roles/run.invoker",
     member: "allUsers",
@@ -260,7 +279,9 @@ const israelOnlyRule = domain && zone ? new cloudflare.Ruleset("israel-only-acce
 }) : undefined;
 
 // Outputs
-export const serviceUrl = service.uri;
+export const serviceUrl = service.statuses.apply(statuses => 
+    statuses?.[0]?.url || "Service URL not available"
+);
 export const customDomain = domain || "No custom domain configured";
 export const loadBalancerIp = globalAddress.address;
 export const deployedImageUri = imageUri;

@@ -45,7 +45,6 @@ const service = new gcp.cloudrun.Service("mklat-news-service", {
         annotations: {
             "run.googleapis.com/ingress": "all",
             "run.googleapis.com/ingress-status": "all",
-            "run.googleapis.com/allow-unauthenticated": "true",
         },
     },
     template: {
@@ -99,11 +98,11 @@ const service = new gcp.cloudrun.Service("mklat-news-service", {
 
 // Allow public access to Cloud Run service
 const iamPolicy = new gcp.cloudrun.IamMember("mklat-news-public-access", {
-    service: "mklat-news-service",
-    location: region,
+    service: service.name,
+    location: service.location,
     role: "roles/run.invoker",
     member: "allUsers",
-}, { dependsOn: [service] });
+});
 
 // Global External Application Load Balancer for custom domain support
 // Since domain mappings are not supported in me-west1, we use a load balancer

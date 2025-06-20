@@ -169,8 +169,18 @@ const securityPolicy = new gcp.compute.SecurityPolicy("mklat-news-security-polic
             },
             description: "Allow Cloudflare IPs - Part 2",
         },
+        {
+            action: "deny(403)",
+            priority: 2147483647,
+            match: {
+                versionedExpr: "SRC_IPS_V1",
+                config: {
+                    srcIpRanges: ["*"],
+                },
+            },
+            description: "Default deny all",
+        },
     ],
-    // GCP automatically creates default deny rule at priority 2147483647
 });
 
 // Create a backend service that points to the NEG
@@ -246,20 +256,20 @@ const dnsRecord = domain && zone ? new cloudflare.Record("dns-record", {
     comment: "Points to Google Cloud Load Balancer for Cloud Run service in me-west1 (Tel Aviv)",
 }, { dependsOn: [globalAddress] }) : undefined;
 
-// Geo-restrict to Israeli IPs only
-const israelOnlyRule = domain && zone ? new cloudflare.Ruleset("israel-only-access", {
-    zoneId: zone.id,
-    name: "Geo-restriction: Israel only",
-    description: "Block all traffic except from Israel",
-    kind: "zone",
-    phase: "http_request_firewall_custom",
-    rules: [{
-        action: "block",
-        expression: "ip.geoip.country ne \"IL\"",
-        description: "Block non-Israeli traffic",
-        enabled: true,
-    }],
-}) : undefined;
+// TODO: Cloudflare API token still has authentication issues
+// const israelOnlyRule = domain && zone ? new cloudflare.Ruleset("israel-only-access", {
+//     zoneId: zone.id,
+//     name: "Geo-restriction: Israel only",
+//     description: "Block all traffic except from Israel",
+//     kind: "zone",
+//     phase: "http_request_firewall_custom",
+//     rules: [{
+//         action: "block",
+//         expression: "ip.geoip.country ne \"IL\"",
+//         description: "Block non-Israeli traffic",
+//         enabled: true,
+//     }],
+// }) : undefined;
 
 // Outputs
 export const serviceUrl = service.statuses.apply(statuses => 

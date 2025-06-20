@@ -72,7 +72,10 @@ const service = new gcp.cloudrunv2.Service("mklat-news-service", {
             ],
         }],
     },
-}, { dependsOn: [cloudRunApi] });
+}, { 
+    dependsOn: [cloudRunApi],
+    replaceOnChanges: ["*"]  // Force replacement of v1 with v2
+});
 
 // Allow public access to Cloud Run service (v2 uses different IAM)
 const iamPolicy = new gcp.cloudrunv2.ServiceIamMember("mklat-news-public-access", {

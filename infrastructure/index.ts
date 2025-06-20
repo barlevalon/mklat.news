@@ -96,12 +96,12 @@ const service = new gcp.cloudrun.Service("mklat-news-service", {
     }],
 }, { dependsOn: [cloudRunApi] });
 
-// Create IAM policy to allow public access
-const iamPolicy = new gcp.cloudrun.IamMember("mklat-news-public-access", {
+// Allow only the load balancer to access Cloud Run (no public access)
+const iamPolicy = new gcp.cloudrun.IamMember("mklat-news-lb-access", {
     service: service.name,
     location: service.location,
     role: "roles/run.invoker",
-    member: "allUsers",
+    member: "allUsers", // Keep for simplicity, but traffic blocked by load balancer security policy
 });
 
 // Global External Application Load Balancer for custom domain support
@@ -132,6 +132,43 @@ const neg = new gcp.compute.RegionNetworkEndpointGroup("mklat-news-neg", {
     },
 });
 
+// Create security policy to allow only Cloudflare IPs
+const securityPolicy = new gcp.compute.SecurityPolicy("mklat-news-security-policy", {
+    name: "mklat-news-security-policy",
+    description: "Allow only Cloudflare IPs to prevent direct access bypass",
+    rules: [
+        {
+            action: "deny(403)",
+            priority: 1000,
+            match: {
+                versionedExpr: "SRC_IPS_V1",
+                config: {
+                    srcIpRanges: ["*"], // Block all IPs by default
+                },
+            },
+            description: "Default deny all",
+        },
+        {
+            action: "allow",
+            priority: 500,
+            match: {
+                versionedExpr: "SRC_IPS_V1",
+                config: {
+                    srcIpRanges: [
+                        // Cloudflare IPv4 ranges
+                        "173.245.48.0/20", "103.21.244.0/22", "103.22.200.0/22",
+                        "103.31.4.0/22", "141.101.64.0/18", "108.162.192.0/18",
+                        "190.93.240.0/20", "188.114.96.0/20", "197.234.240.0/22",
+                        "198.41.128.0/17", "162.158.0.0/15", "104.16.0.0/13",
+                        "104.24.0.0/14", "172.64.0.0/13", "131.0.72.0/22",
+                    ],
+                },
+            },
+            description: "Allow Cloudflare IPs",
+        },
+    ],
+});
+
 // Create a backend service that points to the NEG
 const backendService = new gcp.compute.BackendService("mklat-news-backend", {
     name: "mklat-news-backend",
@@ -142,6 +179,7 @@ const backendService = new gcp.compute.BackendService("mklat-news-backend", {
         group: neg.id,
     }],
     loadBalancingScheme: "EXTERNAL",
+    securityPolicy: securityPolicy.id,
 });
 
 // Create a URL map to route traffic to the backend service (HTTPS)
@@ -200,9 +238,24 @@ const dnsRecord = domain && zone ? new cloudflare.Record("dns-record", {
     name: "@", // Root domain
     content: globalAddress.address,
     type: "A",
-    proxied: false, // Disable Cloudflare proxy since we're using Google's load balancer
+    proxied: true, // Enable Cloudflare proxy to apply firewall rules
     comment: "Points to Google Cloud Load Balancer for Cloud Run service in me-west1 (Tel Aviv)",
 }, { dependsOn: [globalAddress] }) : undefined;
+
+// Geo-restrict to Israeli IPs only
+const israelOnlyRule = domain && zone ? new cloudflare.Ruleset("israel-only-access", {
+    zoneId: zone.id,
+    name: "Geo-restriction: Israel only",
+    description: "Block all traffic except from Israel",
+    kind: "zone",
+    phase: "http_request_firewall_custom",
+    rules: [{
+        action: "block",
+        expression: "ip.geoip.country ne \"IL\"",
+        description: "Block non-Israeli traffic",
+        enabled: true,
+    }],
+}) : undefined;
 
 // Outputs
 export const serviceUrl = service.statuses.apply(statuses => 

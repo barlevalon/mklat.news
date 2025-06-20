@@ -60,7 +60,7 @@ const service = new gcp.cloudrunv2.Service("mklat-news-service", {
                     memory: "1Gi",     // 1GB RAM
                 },
             },
-            env: [
+            envs: [
                 {
                     name: "NODE_ENV",
                     value: "production",
@@ -260,9 +260,7 @@ const israelOnlyRule = domain && zone ? new cloudflare.Ruleset("israel-only-acce
 }) : undefined;
 
 // Outputs
-export const serviceUrl = service.statuses.apply(statuses => 
-    statuses?.[0]?.url || "Service URL not available"
-);
+export const serviceUrl = service.uri;
 export const customDomain = domain || "No custom domain configured";
 export const loadBalancerIp = globalAddress.address;
 export const deployedImageUri = imageUri;

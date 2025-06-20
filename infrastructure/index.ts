@@ -256,15 +256,16 @@ const dnsRecord = domain && zone ? new cloudflare.Record("dns-record", {
     comment: "Points to Google Cloud Load Balancer for Cloud Run service in me-west1 (Tel Aviv)",
 }, { dependsOn: [globalAddress] }) : undefined;
 
-// Configure SSL mode for origin connection
-const sslSettings = domain && zone ? new cloudflare.ZoneSettingsOverride("ssl-settings", {
-    zoneId: zone.id,
-    settings: {
-        ssl: "full", // Full SSL encryption between Cloudflare and origin
-        alwaysUseHttps: "on",
-        minTlsVersion: "1.2",
-    },
-}) : undefined;
+// TODO: Configure SSL mode manually in Cloudflare dashboard
+// API token needs Zone Settings:Edit permission for this to work
+// const sslSettings = domain && zone ? new cloudflare.ZoneSettingsOverride("ssl-settings", {
+//     zoneId: zone.id,
+//     settings: {
+//         ssl: "full", // Full SSL encryption between Cloudflare and origin
+//         alwaysUseHttps: "on",
+//         minTlsVersion: "1.2",
+//     },
+// }) : undefined;
 
 // TODO: Cloudflare API token still has authentication issues
 // const israelOnlyRule = domain && zone ? new cloudflare.Ruleset("israel-only-access", {

@@ -1,6 +1,6 @@
 {
   "name": "mklat-news",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Ynet news and Homefront Command alerts aggregator",
   "main": "src/server.js",
   "scripts": {

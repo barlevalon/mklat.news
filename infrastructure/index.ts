@@ -252,7 +252,7 @@ const dnsRecord = domain && zone ? new cloudflare.Record("dns-record", {
     name: "@", // Root domain
     content: globalAddress.address,
     type: "A",
-    proxied: false, // Temporarily disable proxy to allow Google SSL cert provisioning
+    proxied: true, // Re-enable proxy now that SSL cert is provisioned
     comment: "Points to Google Cloud Load Balancer for Cloud Run service in me-west1 (Tel Aviv)",
 }, { dependsOn: [globalAddress] }) : undefined;
 

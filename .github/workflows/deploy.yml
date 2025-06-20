@@ -1,17 +1,17 @@
 name: Deploy Pipeline
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types: [completed]
     branches: [main]
-    paths:
-      - 'infrastructure/**'
-      - '.github/workflows/deploy.yml'
-  workflow_dispatch: # Allow manual deployment and CI trigger
+  workflow_dispatch: # Allow manual deployment
 
 jobs:
   deploy:
     name: Deploy to GCP
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
     
     steps:
     - name: Checkout code

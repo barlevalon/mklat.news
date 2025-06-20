@@ -32,13 +32,7 @@ const cloudBuildApi = new gcp.projects.Service("cloud-build-api", {
     project: projectId,
 });
 
-// Create Artifact Registry repository
-const repository = new gcp.artifactregistry.Repository("mklat-news-repo", {
-    location: region,
-    repositoryId: "mklat-news",
-    description: "Docker repository for mklat.news app",
-    format: "DOCKER",
-}, { dependsOn: [artifactRegistryApi] });
+// Artifact Registry repository is created by CI pipeline if needed
 
 // Reference the Docker image (will be built and pushed by CI)
 const imageUri = pulumi.interpolate`${region}-docker.pkg.dev/${projectId}/mklat-news/mklat-news:latest`;
@@ -218,5 +212,5 @@ export const customDomain = domain || "No custom domain configured";
 export const loadBalancerIp = globalAddress.address;
 export const deployedImageUri = imageUri;
 export const serviceLocation = service.location;
-export const repositoryUrl = repository.name;
+export const repositoryUrl = `${region}-docker.pkg.dev/${projectId}/mklat-news`;
 export const sslCertificateName = sslCertificate?.name || "No SSL certificate configured";

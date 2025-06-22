@@ -31,12 +31,21 @@
                 <div class="header-controls">
                     <div class="location-filter">📍</div>
                     <div class="refresh-btn" onclick="fetchAlerts()">🔄</div>
+                    <div class="collapse-btn mobile-only" onclick="toggleAlertsPanel()" id="alerts-collapse-btn">
+                        <span class="collapse-icon">▼</span>
+                    </div>
                 </div>
             </div>
             <div class="selected-locations" id="selected-locations">
                 <span>כל האזורים</span>
             </div>
-            <div class="panel-content">
+            <div class="alerts-summary mobile-only" id="alerts-summary" style="display: none;" onclick="toggleAlertsPanel()">
+                <div class="summary-text">
+                    <span id="summary-count">0 אזעקות פעילות</span>
+                    <span class="summary-hint">לחץ להרחבה</span>
+                </div>
+            </div>
+            <div class="panel-content" id="alerts-panel-content">
                 <div id="alerts-content">
                     <div class="loading">טוען אזעקות...</div>
                 </div>

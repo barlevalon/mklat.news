@@ -45,3 +45,6 @@ infrastructure/bin/
 # GCP service account keys
 key.json
 *-service-account.json
+
+# AI agent configuration (local development only)
+AGENT.md

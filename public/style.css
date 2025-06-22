@@ -371,6 +371,62 @@ footer {
     font-size: 0.9rem;
 }
 
+/* Mobile-only elements - hidden on desktop */
+.mobile-only {
+    display: none;
+}
+
+/* Collapse button for alerts panel */
+.collapse-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.collapse-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.collapse-icon {
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+.collapse-btn.collapsed .collapse-icon {
+    transform: rotate(-90deg);
+}
+
+/* Alerts summary for collapsed state */
+.alerts-summary {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.alerts-summary:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.summary-text {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.summary-hint {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    font-style: italic;
+}
+
 @media (max-width: 768px) {
     .container {
         grid-template-columns: 1fr;
@@ -395,6 +451,31 @@ footer {
     
     .location-list {
         max-height: 60vh;
+    }
+    
+    /* Show mobile-only elements */
+    .mobile-only {
+        display: block;
+    }
+    
+    /* Collapsed state styles */
+    .panel.collapsed .panel-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+    
+    .panel:not(.collapsed) .panel-content {
+        max-height: 2000px;
+        transition: max-height 0.3s ease;
+    }
+    
+    .panel.collapsed .alerts-summary {
+        display: block !important;
+    }
+    
+    .panel:not(.collapsed) .alerts-summary {
+        display: none !important;
     }
 }
 

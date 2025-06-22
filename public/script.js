@@ -353,6 +353,12 @@ function renderAlerts(alertsData) {
     }
     
     alertsContent.innerHTML = html;
+    
+    // Update mobile summary when alerts data changes
+    updateAlertsSummary();
+    
+    // Check if should auto-collapse on mobile
+    setTimeout(checkAutoCollapse, 100);
 }
 
 function renderError(elementId, message) {
@@ -628,6 +634,69 @@ function setupLocationButton() {
     }
 }
 
+// Mobile alerts panel collapse/expand functionality
+let alertsPanelCollapsed = false;
+
+function toggleAlertsPanel() {
+    const panel = document.getElementById('alerts-panel');
+    const collapseBtn = document.getElementById('alerts-collapse-btn');
+    const summary = document.getElementById('alerts-summary');
+    
+    alertsPanelCollapsed = !alertsPanelCollapsed;
+    
+    if (alertsPanelCollapsed) {
+        panel.classList.add('collapsed');
+        collapseBtn.classList.add('collapsed');
+        updateAlertsSummary();
+    } else {
+        panel.classList.remove('collapsed');
+        collapseBtn.classList.remove('collapsed');
+    }
+}
+
+function updateAlertsSummary() {
+    const summaryCountElement = document.getElementById('summary-count');
+    if (!summaryCountElement) return;
+    
+    let activeCount = 0;
+    let totalCount = 0;
+    
+    if (alertsData && alertsData.active) {
+        activeCount = alertsData.active.length;
+    }
+    if (alertsData && alertsData.history) {
+        totalCount = alertsData.history.length;
+    }
+    
+    let summaryText;
+    if (activeCount > 0) {
+        summaryText = `🚨 ${activeCount} אזעקות פעילות`;
+    } else if (totalCount > 0) {
+        summaryText = `📍 ${totalCount} התרעות בהיסטוריה`;
+    } else {
+        summaryText = '🟢 אין אזעקות פעילות';
+    }
+    
+    summaryCountElement.textContent = summaryText;
+}
+
+// Auto-collapse on mobile if no location filter is active
+function checkAutoCollapse() {
+    if (window.innerWidth <= 768 && selectedLocations.size === 0) {
+        const panel = document.getElementById('alerts-panel');
+        const collapseBtn = document.getElementById('alerts-collapse-btn');
+        
+        if (!alertsPanelCollapsed) {
+            alertsPanelCollapsed = true;
+            panel.classList.add('collapsed');
+            collapseBtn.classList.add('collapsed');
+            updateAlertsSummary();
+        }
+    }
+}
+
+
+
 // Global functions for HTML onclick handlers
 window.toggleLocation = toggleLocation;
 window.selectAllLocations = selectAllLocations;
@@ -635,6 +704,7 @@ window.clearAllLocations = clearAllLocations;
 window.applyLocationSelection = applyLocationSelection;
 window.fetchNews = fetchNews;
 window.fetchAlerts = fetchAlerts;
+window.toggleAlertsPanel = toggleAlertsPanel;
 
 // Service worker removed to avoid 404 errors
 // Can be added later for offline functionality if needed

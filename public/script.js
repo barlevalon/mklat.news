@@ -584,8 +584,33 @@ function filterAlertsByLocation(alerts) {
         
         // Check if alert area matches any selected location
         for (const selectedLocation of selectedLocations) {
-            if (alertArea.includes(selectedLocation) || selectedLocation.includes(alertArea)) {
+            // Exact match only
+            if (alertArea === selectedLocation) {
                 return true;
+            }
+            
+            // Only allow partial matches for legitimate cases like "תל אביב - יפו" when "תל אביב" is selected
+            // This handles municipal areas with additional descriptors
+            if (alertArea.includes(selectedLocation)) {
+                // Must be at word boundaries and followed by legitimate municipal suffixes
+                const index = alertArea.indexOf(selectedLocation);
+                const beforeChar = index > 0 ? alertArea.charAt(index - 1) : '';
+                const afterIndex = index + selectedLocation.length;
+                const afterChar = afterIndex < alertArea.length ? alertArea.charAt(afterIndex) : '';
+                
+                // Only allow if at word boundaries and followed by municipal indicators
+                const isAtWordBoundary = (beforeChar === '' || /[\s\-,]/.test(beforeChar)) &&
+                                        (afterChar === '' || /[\s\-,]/.test(afterChar));
+                
+                if (isAtWordBoundary) {
+                    const afterText = alertArea.substring(afterIndex).trim();
+                    // Only allow municipal suffixes, not street patterns
+                    const isMunicipalSuffix = /^(-\s*(יפו|אזור|מרכז|צפון|דרום|מזרח|מערב))?\s*$/.test(afterText);
+                    
+                    if (isMunicipalSuffix) {
+                        return true;
+                    }
+                }
             }
         }
         

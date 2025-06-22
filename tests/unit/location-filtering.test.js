@@ -68,8 +68,33 @@ describe('Location Filtering Functions', () => {
         const alertArea = alert.area;
         
         for (const selectedLocation of selectedLocations) {
-          if (alertArea.includes(selectedLocation) || selectedLocation.includes(alertArea)) {
+          // Exact match only
+          if (alertArea === selectedLocation) {
             return true;
+          }
+          
+          // Only allow partial matches for legitimate cases like "תל אביב - יפו" when "תל אביב" is selected
+          // This handles municipal areas with additional descriptors
+          if (alertArea.includes(selectedLocation)) {
+            // Must be at word boundaries and followed by legitimate municipal suffixes
+            const index = alertArea.indexOf(selectedLocation);
+            const beforeChar = index > 0 ? alertArea.charAt(index - 1) : '';
+            const afterIndex = index + selectedLocation.length;
+            const afterChar = afterIndex < alertArea.length ? alertArea.charAt(afterIndex) : '';
+            
+            // Only allow if at word boundaries and followed by municipal indicators
+            const isAtWordBoundary = (beforeChar === '' || /[\s\-,]/.test(beforeChar)) &&
+                                    (afterChar === '' || /[\s\-,]/.test(afterChar));
+            
+            if (isAtWordBoundary) {
+              const afterText = alertArea.substring(afterIndex).trim();
+              // Only allow municipal suffixes, not street patterns
+              const isMunicipalSuffix = /^(-\s*(יפו|אזור|מרכז|צפון|דרום|מזרח|מערב))?\s*$/.test(afterText);
+              
+              if (isMunicipalSuffix) {
+                return true;
+              }
+            }
           }
         }
         
@@ -222,6 +247,55 @@ describe('Location Filtering Functions', () => {
       
       const result = filterAlertsByLocation(alerts);
       expect(result).toHaveLength(0);
+    });
+
+    test('should not match partial strings that could cause false positives', () => {
+      // Bug reproduction: filtering for 'רחובות' should NOT match 'רחוב'
+      const alerts = [
+        { area: 'רחובות' },    // Should match (exact city name)
+        { area: 'רחוב הרצל' }, // Should NOT match (street name)
+        { area: 'רחוב' },      // Should NOT match (generic "street")
+        { area: 'תל אביב' }    // Should NOT match (different city)
+      ];
+      
+      selectedLocations.add('רחובות');
+      
+      const result = filterAlertsByLocation(alerts);
+      expect(result).toHaveLength(1);
+      expect(result[0].area).toBe('רחובות');
+    });
+
+    test('should handle exact matching only for selected locations', () => {
+      // This test verifies exact matching behavior
+      const alerts = [
+        { area: 'רחובות' },           // Should match when 'רחובות' selected
+        { area: 'רחוב בן גוריון' },   // Should NOT match when 'רחובות' selected
+        { area: 'שדרות' },            // Should match when 'שדרות' selected
+        { area: 'שדרות רוטשילד' },    // Should NOT match when 'שדרות' selected
+        { area: 'תל אביב - יפו' },     // Should match when 'תל אביב' selected (municipal suffix)
+        { area: 'נתניה' },            // Should NOT match (not selected)
+        { area: 'נתיב' }              // Should NOT match (not selected)
+      ];
+      
+      selectedLocations.add('רחובות');
+      selectedLocations.add('שדרות');
+      selectedLocations.add('תל אביב');
+      
+      const result = filterAlertsByLocation(alerts);
+      
+      // Should only match exact cities and legitimate municipal variants
+      expect(result).toHaveLength(3);
+      expect(result.map(a => a.area)).toEqual(expect.arrayContaining([
+        'רחובות', 
+        'שדרות', 
+        'תל אביב - יפו'
+      ]));
+      
+      // Verify streets are NOT matched
+      const hasStreets = result.some(alert => 
+        alert.area.includes('רחוב ') || alert.area === 'שדרות רוטשילד'
+      );
+      expect(hasStreets).toBe(false);
     });
   });
 

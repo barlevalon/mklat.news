@@ -469,8 +469,21 @@ function renderLocationList() {
         return;
     }
     
-    const locationsHtml = availableLocations.map((location, index) => `
-        <div class="location-item">
+    // Sort locations: selected first, then alphabetical
+    const sortedLocations = [...availableLocations].sort((a, b) => {
+        const aIsSelected = selectedLocations.has(a);
+        const bIsSelected = selectedLocations.has(b);
+        
+        // Selected items come first
+        if (aIsSelected && !bIsSelected) return -1;
+        if (!aIsSelected && bIsSelected) return 1;
+        
+        // Within same group (selected or unselected), sort alphabetically
+        return a.localeCompare(b, 'he');
+    });
+    
+    const locationsHtml = sortedLocations.map((location, index) => `
+        <div class="location-item ${selectedLocations.has(location) ? 'selected' : ''}" data-location="${location}">
             <input type="checkbox" 
                    id="loc-${index}" 
                    value="${location}"
@@ -564,7 +577,14 @@ function setupLocationSearch() {
             const label = item.querySelector('label');
             if (label) {
                 const locationName = label.textContent.toLowerCase();
-                if (locationName.includes(searchTerm)) {
+                const location = item.getAttribute('data-location');
+                const isSelected = selectedLocations.has(location);
+                
+                // Show item if:
+                // 1. It's selected (always visible), OR
+                // 2. It matches the search term, OR  
+                // 3. Search term is empty
+                if (isSelected || locationName.includes(searchTerm) || searchTerm === '') {
                     item.style.display = 'flex';
                 } else {
                     item.style.display = 'none';

@@ -811,7 +811,6 @@ function updateSelectedLocationsDisplay() {
     const countElement = document.getElementById('selected-count');
 
     const searchParams = new URLSearchParams([...selectedLocations].map(l => ['where', l]))
-    console.log(`set=`, [...selectedLocations])
     const href = `?${searchParams.toString()}`
     const link = `<a href="${href}" target="_blank" rel="noopener noreferrer">🔗</a>&nbsp;`
     if (selectedLocations.size === 0) {
@@ -904,12 +903,10 @@ function filterAlertsByLocation(alerts) {
 function loadUserPreferences() {
     try {
         const where = new URL(location).searchParams.getAll('where')
-        console.log(`L.908 where=${JSON.stringify(where)}`)
         const saved = localStorage.getItem('mklat-locations');
         if (saved) {
             const savedLocations = JSON.parse(saved);
             selectedLocations = new Set([...savedLocations,...where]);
-              console.log(`L.913 selectedLocations=${JSON.stringify([...selectedLocations])}`)
         }
     } catch (error) {
         console.error('Error loading preferences:', error);

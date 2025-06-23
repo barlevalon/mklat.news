@@ -86,6 +86,137 @@ header {
     overflow: visible;
 }
 
+/* Location Status Panel - Primary Display */
+.location-status-panel {
+    grid-column: 1 / -1;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    margin-bottom: 1rem;
+}
+
+.location-status-content {
+    text-align: center;
+}
+
+.location-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.location-name:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.location-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.location-icon svg {
+    width: 24px;
+    height: 24px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.alert-state {
+    margin: 1.5rem 0;
+}
+
+.state-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-radius: 10px;
+    font-size: 1.8rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.state-indicator.all-clear {
+    background: rgba(76, 175, 80, 0.2);
+    color: #81c784;
+    border: 2px solid rgba(76, 175, 80, 0.5);
+}
+
+.state-indicator.alert-imminent {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffd54f;
+    border: 2px solid rgba(255, 193, 7, 0.5);
+}
+
+.state-indicator.red-alert {
+    background: rgba(244, 67, 54, 0.2);
+    color: #ff5252;
+    border: 2px solid rgba(244, 67, 54, 0.5);
+    animation: pulse 1s infinite;
+}
+
+.state-indicator.waiting-clear {
+    background: rgba(33, 150, 243, 0.2);
+    color: #64b5f6;
+    border: 2px solid rgba(33, 150, 243, 0.5);
+}
+
+.state-indicator.just-cleared {
+    background: rgba(74, 222, 128, 0.2);
+    color: #4ade80;
+    border: 2px solid rgba(74, 222, 128, 0.5);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.state-icon {
+    font-size: 2.5rem;
+}
+
+.state-instruction {
+    font-size: 1.1rem;
+    margin-top: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.state-timer {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.incident-scale {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.incident-scale.has-content {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .panel {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
@@ -124,6 +255,9 @@ header {
     padding: 0.5rem;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.3s ease;
 }
 
@@ -135,6 +269,23 @@ header {
 .location-filter:hover {
     background: rgba(255, 255, 255, 0.2);
     transform: scale(1.1);
+}
+
+.location-filter svg {
+    width: 18px;
+    height: 18px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.refresh-btn svg {
+    width: 18px;
+    height: 18px;
+    color: rgba(255, 255, 255, 0.8);
+    transition: transform 0.3s ease;
+}
+
+.refresh-btn:hover svg {
+    transform: rotate(180deg);
 }
 
 .panel-content {
@@ -174,16 +325,16 @@ header {
 }
 
 .news-item {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(158, 158, 158, 0.2);
     margin-bottom: 1rem;
     padding: 1rem;
     border-radius: 8px;
-    border-right: 4px solid #fbbf24;
+    border-right: 4px solid rgba(158, 158, 158, 0.5);
     transition: all 0.3s ease;
 }
 
 .news-item:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(158, 158, 158, 0.3);
     transform: translateX(-5px);
 }
 
@@ -200,7 +351,7 @@ header {
         flex-direction: column;
         gap: 0.5rem;
     }
-    
+
     .news-source {
         align-self: flex-start;
     }
@@ -208,7 +359,7 @@ header {
 
 .news-item h3 {
     margin: 0;
-    color: #fbbf24;
+    color: #bdbdbd;
     font-size: 1.1rem;
     line-height: 1.4;
     flex: 1;
@@ -252,7 +403,7 @@ header {
 }
 
 .news-item a {
-    color: #60a5fa;
+    color: #9e9e9e;
     text-decoration: none;
     font-weight: bold;
 }
@@ -280,8 +431,14 @@ header {
 }
 
 .alert-item.historical {
-    background: rgba(156, 163, 175, 0.1);
-    border-right: 4px solid #9ca3af;
+    background: rgba(74, 222, 128, 0.1);
+    border-right: 4px solid rgba(74, 222, 128, 0.5);
+}
+
+.alert-item.warning {
+    background: rgba(251, 191, 36, 0.2);
+    border-right: 4px solid #fbbf24;
+    animation: none;
 }
 
 @keyframes alertPulse {
@@ -299,21 +456,30 @@ header {
 }
 
 .alert-item.historical h3 {
-    color: #d1d5db;
+    color: #4ade80;
 }
 
-.alert-item .alert-description {
+.alert-item.warning h3 {
+    color: #fbbf24;
+}
+
+.alert-item .alert-location {
     font-size: 0.9rem;
     margin-bottom: 0.5rem;
-    opacity: 0.9;
+    opacity: 0.7;
+    color: rgba(255, 255, 255, 0.6);
 }
 
-.alert-item.active .alert-description {
+.alert-item.active .alert-location {
     color: #fbb6ce;
 }
 
-.alert-item.historical .alert-description {
-    color: #9ca3af;
+.alert-item.historical .alert-location {
+    color: #4ade80;
+}
+
+.alert-item.warning .alert-location {
+    color: #fcd34d;
 }
 
 .alert-item .time {
@@ -326,7 +492,11 @@ header {
 }
 
 .alert-item.historical .time {
-    color: #d1d5db;
+    color: #4ade80;
+}
+
+.alert-item.warning .time {
+    color: #fcd34d;
 }
 
 .no-alerts {
@@ -369,6 +539,24 @@ footer {
     padding: 1rem;
     opacity: 0.7;
     font-size: 0.9rem;
+}
+
+footer a {
+    color: #61dafb;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+footer a:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+footer .disclaimer {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #ff9800;
+    opacity: 0.9;
 }
 
 /* Mobile-only elements - hidden on desktop */
@@ -432,48 +620,53 @@ footer {
         grid-template-columns: 1fr;
         padding: 1rem;
     }
-    
+
     header h1 {
         font-size: 1.5rem;
     }
-    
+
     .status-bar {
         flex-direction: column;
         gap: 0.5rem;
     }
-    
+
     .location-selector-overlay {
         max-height: 80vh;
-        left: 0.5rem;
-        right: 0.5rem;
+        width: calc(100vw - 1rem);
+        left: 50%;
+        transform: translateX(-50%) scale(1);
         top: 100px;
     }
     
+    .location-selector-overlay.show {
+        transform: translateX(-50%) scale(1);
+    }
+
     .location-list {
         max-height: 60vh;
     }
-    
+
     /* Show mobile-only elements */
     .mobile-only {
         display: block;
     }
-    
+
     /* Collapsed state styles */
     .panel.collapsed .panel-content {
         max-height: 0;
         overflow: hidden;
         transition: max-height 0.3s ease;
     }
-    
+
     .panel:not(.collapsed) .panel-content {
         max-height: 2000px;
         transition: max-height 0.3s ease;
     }
-    
+
     .panel.collapsed .alerts-summary {
         display: block !important;
     }
-    
+
     .panel:not(.collapsed) .alerts-summary {
         display: none !important;
     }
@@ -493,8 +686,9 @@ footer {
 .location-selector-overlay {
     position: fixed;
     top: 120px;
-    left: 1rem;
-    right: 1rem;
+    left: 50%;
+    transform: translateX(-50%) scale(0.95);
+    width: min(600px, calc(100vw - 2rem));
     background: rgba(0, 0, 0, 0.95);
     backdrop-filter: blur(15px);
     border-radius: 12px;
@@ -502,7 +696,6 @@ footer {
     z-index: 9999;
     max-height: 70vh;
     overflow: hidden;
-    transform: scale(0.95);
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
@@ -510,7 +703,7 @@ footer {
 }
 
 .location-selector-overlay.show {
-    transform: scale(1);
+    transform: translateX(-50%) scale(1);
     opacity: 1;
     visibility: visible;
 }
@@ -705,3 +898,38 @@ footer {
 }
 
 /* Alerts panel no longer needs relative positioning */
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .location-status-panel {
+        padding: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .location-name {
+        font-size: 1.2rem;
+    }
+
+    .state-indicator {
+        font-size: 1.5rem;
+        padding: 1rem;
+    }
+
+    .state-icon {
+        font-size: 2rem;
+    }
+
+    .state-instruction {
+        font-size: 1rem;
+    }
+
+    .incident-scale {
+        font-size: 0.85rem;
+    }
+}

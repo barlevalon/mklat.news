@@ -14,14 +14,26 @@ async function fetchSingleFeed(url, source) {
   const result = await parser.parseStringPromise(response.data);
   
   const items = result.rss.channel[0].item || [];
-  return items.slice(0, LIMITS.YNET_ITEMS).map(item => ({
-    title: item.title[0].replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1'),
-    link: item.link[0],
-    pubDate: item.pubDate[0],
-    description: item.description ? 
-      item.description[0].replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1').replace(/<[^>]*>/g, '') : '',
-    source: source
-  }));
+  return items.slice(0, LIMITS.YNET_ITEMS).map(item => {
+    let pubDate = item.pubDate[0];
+    
+    // Fix Walla's timezone issue - they provide GMT times that should be interpreted as local Israel time
+    if (source === 'Walla' && pubDate.includes('GMT')) {
+      // Remove GMT and parse as local time
+      const dateStr = pubDate.replace(' GMT', '');
+      const localDate = new Date(dateStr + ' GMT+0300');
+      pubDate = localDate.toISOString();
+    }
+    
+    return {
+      title: item.title[0].replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1'),
+      link: item.link[0],
+      pubDate: pubDate,
+      description: item.description ? 
+        item.description[0].replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1').replace(/<[^>]*>/g, '') : '',
+      source: source
+    };
+  });
 }
 
 // Combined news data fetching from all sources

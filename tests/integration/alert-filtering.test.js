@@ -24,7 +24,7 @@ describe('Alert Filtering Logic', () => {
         ${Array.from({ length: 50 }, (_, i) => `<div class="alertInfo" area_name="Other Area ${i}">
           <div class="info">
             <div class="date"><span>17.06.2025</span><span>10:${String(i).padStart(2, '0')}</span></div>
-            <div class="area">אזעקה Other Area ${i}</div>
+            <div class="area">התרעה Other Area ${i}</div>
           </div>
         </div>`).join('')}
         
@@ -32,14 +32,14 @@ describe('Alert Filtering Logic', () => {
         <div class="alertInfo" area_name="תל אביב">
           <div class="info">
             <div class="date"><span>17.06.2025</span><span>09:30</span></div>
-            <div class="area">אזעקה תל אביב</div>
+            <div class="area">התרעה תל אביב</div>
           </div>
         </div>
         
         <div class="alertInfo" area_name="תל אביב">
           <div class="info">
             <div class="date"><span>17.06.2025</span><span>09:15</span></div>
-            <div class="area">אזעקה תל אביב</div>
+            <div class="area">התרעה תל אביב</div>
           </div>
         </div>
       `;

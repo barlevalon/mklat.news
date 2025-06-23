@@ -41,11 +41,11 @@ describe('Mobile Alerts Panel Collapse', () => {
     
     let summaryText;
     if (activeCount > 0) {
-        summaryText = `🚨 ${activeCount} אזעקות פעילות`;
+        summaryText = `🚨 ${activeCount} התרעות פעילות`;
     } else if (totalCount > 0) {
         summaryText = `📍 ${totalCount} התרעות בהיסטוריה`;
     } else {
-        summaryText = '🟢 אין אזעקות פעילות';
+        summaryText = '🟢 אין התרעות פעילות';
     }
     
     summaryCountElement.textContent = summaryText;
@@ -77,7 +77,7 @@ describe('Mobile Alerts Panel Collapse', () => {
           </div>
         </div>
         <div id="alerts-summary" class="alerts-summary mobile-only" style="display: none;">
-          <span id="summary-count">0 אזעקות פעילות</span>
+          <span id="summary-count">0 התרעות פעילות</span>
         </div>
         <div id="alerts-panel-content" class="panel-content">
           <div id="alerts-content"></div>
@@ -135,7 +135,7 @@ describe('Mobile Alerts Panel Collapse', () => {
       updateAlertsSummary();
       
       const summaryCount = document.getElementById('summary-count');
-      expect(summaryCount.textContent).toBe('🚨 2 אזעקות פעילות');
+      expect(summaryCount.textContent).toBe('🚨 2 התרעות פעילות');
     });
 
     test('should show historical count when no active alerts', () => {
@@ -156,7 +156,7 @@ describe('Mobile Alerts Panel Collapse', () => {
       updateAlertsSummary();
       
       const summaryCount = document.getElementById('summary-count');
-      expect(summaryCount.textContent).toBe('🟢 אין אזעקות פעילות');
+      expect(summaryCount.textContent).toBe('🟢 אין התרעות פעילות');
     });
 
     test('should handle missing summary element gracefully', () => {
@@ -236,7 +236,7 @@ describe('Mobile Alerts Panel Collapse', () => {
       updateAlertsSummary();
       
       const summaryCount = document.getElementById('summary-count');
-      expect(summaryCount.textContent).toBe('🚨 1 אזעקות פעילות');
+      expect(summaryCount.textContent).toBe('🚨 1 התרעות פעילות');
     });
   });
 
@@ -262,7 +262,7 @@ describe('Mobile Alerts Panel Collapse', () => {
       // Test with different data scenarios
       alertsData = { active: [{}], history: [] };
       updateAlertsSummary();
-      expect(summaryCount.textContent).toContain('1 אזעקות פעילות');
+      expect(summaryCount.textContent).toContain('1 התרעות פעילות');
       
       alertsData = { active: [], history: [{}, {}] };
       updateAlertsSummary();
@@ -270,7 +270,7 @@ describe('Mobile Alerts Panel Collapse', () => {
       
       alertsData = { active: [], history: [] };
       updateAlertsSummary();
-      expect(summaryCount.textContent).toContain('אין אזעקות פעילות');
+      expect(summaryCount.textContent).toContain('אין התרעות פעילות');
     });
   });
 });

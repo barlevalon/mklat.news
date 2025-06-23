@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>חדר מלחמה - מבזקים ואזעקות</title>
+    <title>חדר מלחמה - מבזקים והתרעות</title>
+    <link rel="icon" type="image/svg+xml" href="favicon-icon.svg">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,25 +13,54 @@
             <span class="mklat-logo-text">mklat<span class="news-suffix">.news</span></span>
             <svg class="mklat-logo-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <g fill="none" fill-rule="evenodd">
-                    <path d="M2 13.783l9.217-8.373a1 1 0 011.566 0L22 13.783V21a1 1 0 01-1 1H3a1 1 0 01-1-1v-7.217z" fill="#0D6EFD"/>
-                    <circle cx="12" cy="15" r="5" fill="#FFFFFF"/>
-                    <path d="M12 12v3.5" stroke="#FF6F00" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M12 18.01L12.01 17.99" stroke="#FF6F00" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M2 13.783l9.217-8.373a1 1 0 011.566 0L22 13.783V21a1 1 0 01-1 1H3a1 1 0 01-1-1v-7.217z" fill="#2a5298"/>
+                    <path d="M12 12v3.5" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M12 18.01L12.01 17.99" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
                 </g>
             </svg>
         </div>
         <div class="status-bar">
-            <span id="connection-status" class="status-connecting">מתחבר...</span>
+            <span id="connection-status" class="status-error" style="display: none;">⚠️ אין חיבור לשרת</span>
         </div>
     </header>
 
     <main class="container">
+        <!-- Primary Location Status Display -->
+        <div class="location-status-panel" id="location-status-panel">
+            <div class="location-status-content">
+                <div class="location-name" id="primary-location-name" onclick="toggleLocationSelector()">
+                    <span class="location-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                    </span>
+                    <span id="primary-location-text">בחר אזור</span>
+                </div>
+                <div class="alert-state" id="alert-state">
+                    <div class="state-indicator" id="state-indicator">
+                        <span class="state-icon">✅</span>
+                        <span class="state-text">מצב רגיל</span>
+                    </div>
+                    <div class="state-instruction" id="state-instruction"></div>
+                    <div class="state-timer" id="state-timer"></div>
+                </div>
+                <div class="incident-scale" id="incident-scale"></div>
+            </div>
+        </div>
+
+        <!-- Secondary Alerts Panel -->
         <div class="panel" id="alerts-panel">
             <div class="panel-header">
-                <h2>🔴 אזעקות פיקוד העורף - פעילות והיסטוריה</h2>
+                <h2>התרעות פיקוד העורף</h2>
                 <div class="header-controls">
-                    <div class="location-filter">📍</div>
-                    <div class="refresh-btn" onclick="fetchAlerts()">🔄</div>
+                    <div class="refresh-btn" onclick="fetchAlerts()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                    </div>
                     <div class="collapse-btn mobile-only" onclick="toggleAlertsPanel()" id="alerts-collapse-btn">
                         <span class="collapse-icon">▼</span>
                     </div>
@@ -41,21 +71,27 @@
             </div>
             <div class="alerts-summary mobile-only" id="alerts-summary" style="display: none;" onclick="toggleAlertsPanel()">
                 <div class="summary-text">
-                    <span id="summary-count">0 אזעקות פעילות</span>
+                    <span id="summary-count">0 התרעות פעילות</span>
                     <span class="summary-hint">לחץ להרחבה</span>
                 </div>
             </div>
             <div class="panel-content" id="alerts-panel-content">
                 <div id="alerts-content">
-                    <div class="loading">טוען אזעקות...</div>
+                    <div class="loading">טוען התרעות...</div>
                 </div>
             </div>
         </div>
 
         <div class="panel" id="news-panel">
             <div class="panel-header">
-                <h2>📰 מבזקי חדשות</h2>
-                <div class="refresh-btn" onclick="fetchNews()">🔄</div>
+                <h2>מבזקי חדשות</h2>
+                <div class="refresh-btn" onclick="fetchNews()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                </div>
             </div>
             <div class="panel-content">
                 <div id="news-content">
@@ -67,7 +103,7 @@
         <!-- Location selector moved outside panels to be a true overlay -->
         <div class="location-selector-overlay" id="location-selector">
             <div class="location-selector-header">
-                <h3>בחירת אזורים לאזעקות</h3>
+                <h3>בחירת אזורים להתרעות</h3>
                 <div class="close-btn">✕</div>
             </div>
             <div class="location-search">
@@ -88,7 +124,8 @@
     </main>
 
     <footer>
-        <p>עדכונים בזמן אמת | נתונים מ-Ynet, Maariv, Walla, Haaretz ופיקוד העורף</p>
+        <p>עדכונים בזמן אמת | נתונים מ-Ynet, Maariv, Walla, Haaretz ופיקוד העורף | <a href="https://github.com/barlevalon/mklat.news" target="_blank" rel="noopener noreferrer">GitHub</a></p>
+        <p class="disclaimer">⚠️ למטרות פיתוח וחינוך בלבד. אין להסתמך על אתר זה למידע חירום. השתמשו באפליקציית צבע אדום הרשמית או באתר פיקוד העורף.</p>
     </footer>
 
     <script src="script.js"></script>

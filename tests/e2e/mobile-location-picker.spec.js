@@ -18,17 +18,17 @@ test.describe('Mobile Location Picker Bug Reproduction', () => {
     await page.waitForTimeout(3000);
     
     // STEP 1: Take initial screenshot
-    await page.screenshot({ path: 'bug-initial.png', fullPage: true });
+    // Screenshot removed - bug is fixed
     
     // STEP 2: Open location selector
-    const locationBtn = page.locator('.location-filter');
+    const locationBtn = page.locator('#primary-location-name');
     await locationBtn.tap();
     await page.waitForTimeout(500);
     
     // STEP 3: Verify selector opens properly
     const locationSelector = page.locator('#location-selector');
     await expect(locationSelector).toHaveClass(/show/);
-    await page.screenshot({ path: 'bug-selector-open.png', fullPage: true });
+    // Screenshot removed - bug is fixed
     
     // STEP 4: Check z-index values before interaction
     const selectorZIndex = await locationSelector.evaluate(el => window.getComputedStyle(el).zIndex);
@@ -55,7 +55,7 @@ test.describe('Mobile Location Picker Bug Reproduction', () => {
       await page.waitForTimeout(500);
       
       // STEP 6: Check if selector is still properly visible
-      await page.screenshot({ path: 'bug-after-selection.png', fullPage: true });
+      // Screenshot removed - bug is fixed
       
       // STEP 7: Check if selector is behind news panel
       const selectorBounds = await locationSelector.boundingBox();
@@ -90,7 +90,7 @@ test.describe('Mobile Location Picker Bug Reproduction', () => {
       console.log('✅ Clicking OK button...');
       await okButton.tap();
       await page.waitForTimeout(500);
-      await page.screenshot({ path: 'bug-after-close.png', fullPage: true });
+      // Screenshot removed - bug is fixed
     }
     
     console.log('✅ Z-index layering bug test completed');

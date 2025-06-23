@@ -1,14 +1,14 @@
-# War Room - News & Alerts Aggregator
+# mklat.news - חדשות והתרעות בזמן אמת
 
-[![CI/CD Pipeline](https://github.com/barlevalon/war-room/actions/workflows/ci.yml/badge.svg)](https://github.com/barlevalon/war-room/actions/workflows/ci.yml)
+[![CI/CD Pipeline](https://github.com/barlevalon/mklat.news/actions/workflows/ci.yml/badge.svg)](https://github.com/barlevalon/mklat.news/actions/workflows/ci.yml)
 
 > **⚠️ IMPORTANT DISCLAIMER**  
 > **This project is for educational and development purposes only. Do NOT use this as your primary source for emergency alerts. Always rely on official government channels and approved alert applications for life-safety information.**  
 > **Use the official Tzeva Adom app, OREF website, or other certified emergency systems for actual emergency notifications.**
 
-A real-time web application that aggregates Ynet breaking news and Israeli Homefront Command alerts with comprehensive historical data and location filtering.
+A real-time web application that aggregates Israeli news from multiple sources (Ynet, Maariv, Walla, Haaretz) and Homefront Command alerts with comprehensive historical data and location filtering.
 
-![War Room Screenshot](war-room-screenshot.png)
+![mklat.news Screenshot](mklat-news-screenshot.png)
 
 ## Features
 
@@ -99,9 +99,9 @@ All data comes directly from official Israeli government sources with real-time 
 We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 - 🐛 **Bug Reports**: Use our [issue templates](.github/ISSUE_TEMPLATE/)
-- ✨ **Feature Requests**: Check [existing issues](https://github.com/barlevalon/war-room/issues) first
+- ✨ **Feature Requests**: Check [existing issues](https://github.com/barlevalon/mklat.news/issues) first
 - 🤝 **Pull Requests**: Follow our [PR template](.github/pull_request_template.md)
-- 🆘 **Good First Issues**: Look for [`good first issue`](https://github.com/barlevalon/war-room/labels/good%20first%20issue) label
+- 🆘 **Good First Issues**: Look for [`good first issue`](https://github.com/barlevalon/mklat.news/labels/good%20first%20issue) label
 
 ## License
 

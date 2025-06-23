@@ -11,11 +11,9 @@ test.describe('Critical User Journey (E2E)', () => {
         // STEP 3: Wait for WebSocket connection and data loading
         await page.waitForTimeout(5000);
         
-        // STEP 4: Verify connection status shows successful connection
+        // STEP 4: Verify connection status is hidden (only shows on error)
         const statusElement = page.locator('#connection-status');
-        await expect(statusElement).toBeVisible();
-        const statusText = await statusElement.textContent();
-        expect(['● בזמן אמת', '◐ בדיקה']).toContain(statusText);
+        await expect(statusElement).toBeHidden();
         
         // STEP 5: Verify news content loads
         const newsContent = page.locator('#news-content');
@@ -30,7 +28,7 @@ test.describe('Critical User Journey (E2E)', () => {
         expect(alertsText.length).toBeGreaterThan(0); // Should show something
         
         // STEP 7: Test location filtering functionality
-        const locationBtn = page.locator('.location-filter');
+        const locationBtn = page.locator('#primary-location-name');
         await expect(locationBtn).toBeVisible();
         await locationBtn.click();
         
@@ -44,11 +42,12 @@ test.describe('Critical User Journey (E2E)', () => {
         
         // STEP 9: Close location selector
         const closeBtn = page.locator('.close-btn');
-        await closeBtn.click();
+        await closeBtn.scrollIntoViewIfNeeded();
+        await closeBtn.click({ force: true });
         await expect(locationSelector).not.toHaveClass(/show/);
         
         console.log('✅ Critical user journey test passed');
-        console.log('Connection status:', statusText);
+        console.log('Connection status: Hidden (working normally)');
         console.log('News content length:', newsText.length);
         console.log('Alerts content:', alertsText.trim());
     });

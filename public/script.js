@@ -811,8 +811,7 @@ function updateSelectedLocationsDisplay() {
     const countElement = document.getElementById('selected-count');
 
     const searchParams = new URLSearchParams([...selectedLocations].map(l => ['where', l]))
-    const href = `?${searchParams.toString()}`
-    const link = `<a href="${href}" target="_blank" rel="noopener noreferrer">🔗</a>&nbsp;`
+    const link = `<a href="?${searchParams}" target="_blank" rel="noopener noreferrer">🔗</a>&nbsp;`
     if (selectedLocations.size === 0) {
         selectedElement.innerHTML = '<span>כל האזורים</span>';
     } else if (selectedLocations.size <= 3) {

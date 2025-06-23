@@ -345,7 +345,7 @@ if (typeof window !== 'undefined') {
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', function() {
     console.log('War Room initialized');
-    loadUserPreferences();
+    loadUserPreferences(new URL(location).searchParams.getAll('where'));
     fetchLocations();
 
     // Initialize state display
@@ -899,13 +899,12 @@ function filterAlertsByLocation(alerts) {
     });
 }
 
-function loadUserPreferences() {
+function loadUserPreferences(additionalLocations) {
     try {
-        const where = new URL(location).searchParams.getAll('where')
         const saved = localStorage.getItem('mklat-locations');
         if (saved) {
             const savedLocations = JSON.parse(saved);
-            selectedLocations = new Set([...savedLocations,...where]);
+            selectedLocations = new Set([...savedLocations,...additionalLocations].sort());
         }
     } catch (error) {
         console.error('Error loading preferences:', error);

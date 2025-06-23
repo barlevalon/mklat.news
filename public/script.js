@@ -899,10 +899,11 @@ function filterAlertsByLocation(alerts) {
 
 function loadUserPreferences() {
     try {
+        const sp = new URL(location).searchParams.getAll('where')
         const saved = localStorage.getItem('mklat-locations');
         if (saved) {
             const savedLocations = JSON.parse(saved);
-            selectedLocations = new Set(savedLocations);
+            selectedLocations = new Set([...savedLocations,...sp]);
         }
     } catch (error) {
         console.error('Error loading preferences:', error);

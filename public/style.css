@@ -172,6 +172,12 @@ header {
     animation: pulse 1s infinite;
 }
 
+.state-indicator.alert-imminent {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fbbf24;
+    border: 2px solid rgba(251, 191, 36, 0.5);
+}
+
 .state-indicator.waiting-clear {
     background: rgba(33, 150, 243, 0.2);
     color: #64b5f6;

@@ -243,7 +243,6 @@ describe('Mobile Alerts Panel Collapse', () => {
   describe('CSS and DOM behavior', () => {
     test('should properly toggle CSS classes', () => {
       const panel = document.getElementById('alerts-panel');
-      const collapseBtn = document.getElementById('alerts-collapse-btn');
       
       // Multiple toggles should work correctly
       toggleAlertsPanel(); // collapse

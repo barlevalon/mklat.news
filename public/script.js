@@ -62,10 +62,21 @@ const AlertStateMachine = {
             return this.states.ALL_CLEAR;
         }
 
-        // If it's a clearance (contains "האירוע הסתיים") and within 5 minutes
+        // Check for warning message (alert imminent)
+        if (mostRecent.description?.includes('בדקות הקרובות צפויות להתקבל התרעות')) {
+            return this.states.ALERT_IMMINENT;
+        }
+
+        // Check for full clearance
         if (mostRecent.description?.includes('האירוע הסתיים') && 
             this.isWithinMinutes(mostRecent.alertDate, 5, currentTime)) {
             return this.states.JUST_CLEARED;
+        }
+
+        // Check for partial clearance (can exit but stay nearby)
+        if (mostRecent.description?.includes('ניתן לצאת מהמרחב המוגן')) {
+            // This is still a waiting state, just with different instructions
+            return this.states.WAITING_CLEAR;
         }
 
         // Otherwise, we're waiting for clearance
@@ -169,7 +180,7 @@ class StateManager {
 const stateManager = new StateManager();
 
 // Subscribe to state changes and update UI
-stateManager.subscribe((oldState, newState) => {
+stateManager.subscribe(() => {
     updateStateDisplay();
 });
 
@@ -532,8 +543,24 @@ function renderAlerts(alertsData) {
         if (filteredAllAlerts.length > 0) {
             const alertsHtml = filteredAllAlerts.map(alert => {
                 const isWarning = alert.description && alert.description.includes('בדקות הקרובות צפויות להתקבל התרעות');
-                const alertClass = isWarning ? 'warning' : (alert.isActive ? 'active' : 'historical');
-                const icon = isWarning ? '⚠️' : (alert.isActive ? '🚨' : '');
+                const isPartialClearance = alert.description && alert.description.includes('ניתן לצאת מהמרחב המוגן אך יש להישאר');
+                const isFullClearance = alert.description && alert.description.includes('האירוע הסתיים');
+                
+                // Determine alert class and icon
+                let alertClass, icon;
+                if (isWarning || isPartialClearance) {
+                    alertClass = 'warning';
+                    icon = '⚠️';
+                } else if (isFullClearance) {
+                    alertClass = 'historical';
+                    icon = '';
+                } else if (alert.isActive) {
+                    alertClass = 'active';
+                    icon = '🚨';
+                } else {
+                    alertClass = 'historical';
+                    icon = '';
+                }
                 
                 return `
                 <div class="alert-item ${alert.isRecent ? 'recent' : ''} ${alertClass}">
@@ -927,7 +954,6 @@ let alertsPanelCollapsed = false;
 function toggleAlertsPanel() {
     const panel = document.getElementById('alerts-panel');
     const collapseBtn = document.getElementById('alerts-collapse-btn');
-    const summary = document.getElementById('alerts-summary');
 
     alertsPanelCollapsed = !alertsPanelCollapsed;
 
@@ -1121,12 +1147,31 @@ function updateStateDisplay() {
             updateTimer();
             break;
 
-        case AlertStateMachine.states.WAITING_CLEAR:
+        case AlertStateMachine.states.ALERT_IMMINENT:
+            stateIndicator.classList.add('alert-imminent');
+            stateIndicator.innerHTML = '<span class="state-icon">⚠️</span><span class="state-text">התרעה צפויה</span>';
+            stateInstruction.textContent = 'התרעות צפויות בדקות הקרובות';
+            stateTimerEl.textContent = '';
+            break;
+
+        case AlertStateMachine.states.WAITING_CLEAR: {
             stateIndicator.classList.add('waiting-clear');
-            stateIndicator.innerHTML = '<span class="state-icon">◷</span><span class="state-text">המתינו במרחב המוגן</span>';
-            stateInstruction.textContent = 'ממתינים לאישור יציאה';
+            // Check if this is a partial clearance
+            const recentAlert = alertsData?.history?.find(alert => 
+                AlertStateMachine.isLocationMatch(alert.area, primaryLocation) &&
+                alert.description?.includes('ניתן לצאת מהמרחב המוגן')
+            );
+            
+            if (recentAlert && AlertStateMachine.isWithinMinutes(recentAlert.alertDate, 10)) {
+                stateIndicator.innerHTML = '<span class="state-icon">⚡</span><span class="state-text">היו בכוננות</span>';
+                stateInstruction.textContent = 'ניתן לצאת אך הישארו בקרבת המרחב המוגן';
+            } else {
+                stateIndicator.innerHTML = '<span class="state-icon">◷</span><span class="state-text">המתינו במרחב המוגן</span>';
+                stateInstruction.textContent = 'ממתינים לאישור יציאה';
+            }
             updateTimer();
             break;
+        }
 
         case AlertStateMachine.states.JUST_CLEARED:
             stateIndicator.classList.add('just-cleared');

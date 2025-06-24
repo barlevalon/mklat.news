@@ -76,8 +76,6 @@ describe('Server Startup Integration', () => {
       server.listen(0, resolve);
     });
 
-    const port = server.address().port;
-
     // Test all API endpoints
     const health = await request(app).get('/api/health').expect(200);
     expect(health.body.status).toBe('ok');

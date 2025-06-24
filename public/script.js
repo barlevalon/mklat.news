@@ -180,7 +180,7 @@ class StateManager {
 const stateManager = new StateManager();
 
 // Subscribe to state changes and update UI
-stateManager.subscribe((oldState, newState) => {
+stateManager.subscribe(() => {
     updateStateDisplay();
 });
 
@@ -952,7 +952,6 @@ let alertsPanelCollapsed = false;
 function toggleAlertsPanel() {
     const panel = document.getElementById('alerts-panel');
     const collapseBtn = document.getElementById('alerts-collapse-btn');
-    const summary = document.getElementById('alerts-summary');
 
     alertsPanelCollapsed = !alertsPanelCollapsed;
 
@@ -1153,7 +1152,7 @@ function updateStateDisplay() {
             stateTimerEl.textContent = '';
             break;
 
-        case AlertStateMachine.states.WAITING_CLEAR:
+        case AlertStateMachine.states.WAITING_CLEAR: {
             stateIndicator.classList.add('waiting-clear');
             // Check if this is a partial clearance
             const recentAlert = alertsData?.history?.find(alert => 
@@ -1170,6 +1169,7 @@ function updateStateDisplay() {
             }
             updateTimer();
             break;
+        }
 
         case AlertStateMachine.states.JUST_CLEARED:
             stateIndicator.classList.add('just-cleared');

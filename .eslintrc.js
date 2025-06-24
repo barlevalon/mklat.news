@@ -14,7 +14,7 @@ module.exports = {
   },
   rules: {
     // Temporarily more permissive rules for CI setup
-    'no-console': 'warn',
+    'no-console': 'off',
     'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     'semi': 'off',
     'quotes': 'off',

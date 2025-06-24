@@ -9,6 +9,41 @@ describe('Alert State Machine', () => {
             expect(stateManager.getState()).toBe(states.ALL_CLEAR);
         });
 
+        test('should recognize alternative clearance message from OREF', () => {
+            const stateManager = new StateManager();
+            const userLocations = ['רחובות'];
+            
+            // Start with alert history (waiting for clearance)
+            const alertHistory = [{
+                area: 'רחובות',
+                alertDate: new Date().toISOString(),
+                description: 'ירי רקטות וטילים',
+                isActive: false
+            }];
+            stateManager.updateState([], alertHistory, userLocations);
+            expect(stateManager.getState()).toBe(states.WAITING_CLEAR);
+            
+            // Partial clearance message should keep us in WAITING_CLEAR
+            const partialClearanceHistory = [{
+                area: 'רחובות',
+                alertDate: new Date().toISOString(),
+                description: 'ניתן לצאת מהמרחב המוגן אך יש להישאר בקרבתו',
+                isActive: false
+            }];
+            stateManager.updateState([], partialClearanceHistory, userLocations);
+            expect(stateManager.getState()).toBe(states.WAITING_CLEAR);
+            
+            // Full clearance should move to JUST_CLEARED
+            const fullClearanceHistory = [{
+                area: 'רחובות',
+                alertDate: new Date().toISOString(),
+                description: 'ירי רקטות וטילים - האירוע הסתיים',
+                isActive: false
+            }];
+            stateManager.updateState([], fullClearanceHistory, userLocations);
+            expect(stateManager.getState()).toBe(states.JUST_CLEARED);
+        });
+
         test('should transition through complete alert lifecycle', () => {
             const stateManager = new StateManager();
             const userLocations = ['תל אביב'];
@@ -52,6 +87,21 @@ describe('Alert State Machine', () => {
             expect(stateChanges[0].newState).toBe(states.RED_ALERT);
             expect(stateChanges[1].newState).toBe(states.WAITING_CLEAR);
             expect(stateChanges[2].newState).toBe(states.JUST_CLEARED);
+        });
+
+        test('should recognize warning messages and set ALERT_IMMINENT state', () => {
+            const stateManager = new StateManager();
+            const userLocations = ['תל אביב'];
+            
+            // Warning message should trigger ALERT_IMMINENT
+            const warningHistory = [{
+                area: 'תל אביב',
+                alertDate: new Date().toISOString(),
+                description: 'בדקות הקרובות צפויות להתקבל התרעות באזורך',
+                isActive: false
+            }];
+            stateManager.updateState([], warningHistory, userLocations);
+            expect(stateManager.getState()).toBe(states.ALERT_IMMINENT);
         });
 
         test('should handle no location selected', () => {

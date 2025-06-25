@@ -1,4 +1,4 @@
-const { LIMITS } = require('../config/constants');
+import { LIMITS } from '../config/constants.js';
 
 // Historical alerts parsing utilities
 const ALERT_REGEX = /<div[^>]*class="alertInfo"[^>]*area_name="([^"]*)"[^>]*>[\s\S]*?<div class="date"><span>([^<]*)<\/span><span>([^<]*)<\/span><\/div>[\s\S]*?<div class="area">([^<]*)<\/div>/g;
@@ -55,6 +55,6 @@ function parseHistoricalAlertsHTML(html) {
   return alerts; // Return all alerts, let the caller decide how to limit/filter
 }
 
-module.exports = {
+export {
   parseHistoricalAlertsHTML
 };

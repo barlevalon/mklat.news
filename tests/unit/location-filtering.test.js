@@ -2,6 +2,8 @@
  * @jest-environment jsdom
  */
 
+import { jest } from '@jest/globals';
+
 // Mock localStorage
 const localStorageMock = {
   getItem: jest.fn(),
@@ -37,10 +39,8 @@ describe('Location Filtering Functions', () => {
 
   // Helper function to load the script functions
   function loadScriptFunctions() {
-    // Simulate the functions from script.js
     global.selectedLocations = selectedLocations;
     global.availableLocations = availableLocations;
-
     global.updateSelectedLocationsDisplay = function() {
       const selectedElement = document.getElementById('selected-locations');
       const countElement = document.getElementById('selected-count');
@@ -67,38 +67,8 @@ describe('Location Filtering Functions', () => {
       return alerts.filter(alert => {
         const alertArea = alert.area;
         
-        for (const selectedLocation of selectedLocations) {
-          // Exact match only
-          if (alertArea === selectedLocation) {
-            return true;
-          }
-          
-          // Only allow partial matches for legitimate cases like "תל אביב - יפו" when "תל אביב" is selected
-          // This handles municipal areas with additional descriptors
-          if (alertArea.includes(selectedLocation)) {
-            // Must be at word boundaries and followed by legitimate municipal suffixes
-            const index = alertArea.indexOf(selectedLocation);
-            const beforeChar = index > 0 ? alertArea.charAt(index - 1) : '';
-            const afterIndex = index + selectedLocation.length;
-            const afterChar = afterIndex < alertArea.length ? alertArea.charAt(afterIndex) : '';
-            
-            // Only allow if at word boundaries and followed by municipal indicators
-            const isAtWordBoundary = (beforeChar === '' || /[\s\-,]/.test(beforeChar)) &&
-                                    (afterChar === '' || /[\s\-,]/.test(afterChar));
-            
-            if (isAtWordBoundary) {
-              const afterText = alertArea.substring(afterIndex).trim();
-              // Only allow municipal suffixes, not street patterns
-              const isMunicipalSuffix = /^(-\s*(יפו|אזור|מרכז|צפון|דרום|מזרח|מערב))?\s*$/.test(afterText);
-              
-              if (isMunicipalSuffix) {
-                return true;
-              }
-            }
-          }
-        }
-        
-        return false;
+        // Exact match only - locations from the API are specific and complete
+        return selectedLocations.has(alertArea);
       });
     };
 
@@ -207,19 +177,6 @@ describe('Location Filtering Functions', () => {
       expect(result[0].area).toBe('רחובות');
     });
 
-    test('should filter alerts by partial location match', () => {
-      selectedLocations.add('תל אביב');
-      
-      const alerts = [
-        { area: 'תל אביב - יפו' },
-        { area: 'רחובות' },
-        { area: 'חיפה' }
-      ];
-      
-      const result = filterAlertsByLocation(alerts);
-      expect(result).toHaveLength(1);
-      expect(result[0].area).toBe('תל אביב - יפו');
-    });
 
     test('should filter alerts by multiple selected locations', () => {
       selectedLocations.add('רחובות');
@@ -272,18 +229,18 @@ describe('Location Filtering Functions', () => {
         { area: 'רחוב בן גוריון' },   // Should NOT match when 'רחובות' selected
         { area: 'שדרות' },            // Should match when 'שדרות' selected
         { area: 'שדרות רוטשילד' },    // Should NOT match when 'שדרות' selected
-        { area: 'תל אביב - יפו' },     // Should match when 'תל אביב' selected (municipal suffix)
+        { area: 'תל אביב - יפו' },     // Should match when 'תל אביב - יפו' selected
         { area: 'נתניה' },            // Should NOT match (not selected)
         { area: 'נתיב' }              // Should NOT match (not selected)
       ];
       
       selectedLocations.add('רחובות');
       selectedLocations.add('שדרות');
-      selectedLocations.add('תל אביב');
+      selectedLocations.add('תל אביב - יפו');
       
       const result = filterAlertsByLocation(alerts);
       
-      // Should only match exact cities and legitimate municipal variants
+      // Should only match exact location names
       expect(result).toHaveLength(3);
       expect(result.map(a => a.area)).toEqual(expect.arrayContaining([
         'רחובות', 
@@ -296,6 +253,21 @@ describe('Location Filtering Functions', () => {
         alert.area.includes('רחוב ') || alert.area === 'שדרות רוטשילד'
       );
       expect(hasStreets).toBe(false);
+    });
+
+    test('should match selected locations exactly - no substring matching', () => {
+      loadScriptFunctions();
+      selectedLocations.clear();
+      selectedLocations.add('גדרה');
+      
+      const alerts = [
+        { area: 'גדרה' },                    // Should match - exact match
+        { area: 'אזור תעשייה גדרה' }        // Should NOT match - different location
+      ];
+      
+      const result = filterAlertsByLocation(alerts);
+      expect(result).toHaveLength(1);
+      expect(result[0].area).toBe('גדרה');
     });
   });
 

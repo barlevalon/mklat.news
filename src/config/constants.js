@@ -40,7 +40,7 @@ const FALLBACK_ALERT_AREAS = [
   'אלוני הבשן', 'מטולה', 'קרית שמונה', 'שדרות', 'עומר', 'אילת'
 ].sort();
 
-module.exports = {
+export {
   DEFAULT_USER_AGENT,
   DEFAULT_TIMEOUT,
   CACHE_TTL,

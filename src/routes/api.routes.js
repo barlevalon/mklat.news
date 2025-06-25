@@ -1,45 +1,70 @@
-const express = require('express');
-const { fetchCombinedNewsData } = require('../services/combined-news.service');
-const { fetchAlertsData, fetchAlertAreas } = require('../services/oref.service');
+import express from 'express';
 
-const router = express.Router();
+export function createApiRoutes({ alertProvider, newsProvider }) {
+  const router = express.Router();
 
-// Ynet breaking news endpoint
-router.get('/ynet', async (req, res) => {
-  try {
-    const news = await fetchCombinedNewsData();
-    res.json(news);
-  } catch (error) {
-    console.error('Ynet fetch error:', error.message);
-    res.status(500).json({ error: 'Failed to fetch Ynet news' });
-  }
-});
+  // Combined news endpoint
+  router.get('/ynet', async (req, res) => {
+    try {
+      const news = await newsProvider.fetchNews();
+      res.json(news);
+    } catch (error) {
+      console.error('News fetch error:', error.message);
+      res.status(500).json({ error: 'Failed to fetch news' });
+    }
+  });
 
-// Homefront Command alerts endpoint
-router.get('/alerts', async (req, res) => {
-  try {
-    const alertsData = await fetchAlertsData();
-    res.json(alertsData);
-  } catch (error) {
-    console.error('Alerts fetch error:', error.message);
-    res.status(500).json({ error: 'Failed to fetch alerts' });
-  }
-});
+  // Combined alerts endpoint (active + history)
+  router.get('/alerts', async (req, res) => {
+    try {
+      const [active, history] = await Promise.all([
+        alertProvider.fetchActiveAlerts(),
+        alertProvider.fetchHistoricalAlerts()
+      ]);
+      res.json({ active, history });
+    } catch (error) {
+      console.error('Alerts fetch error:', error.message);
+      res.status(500).json({ error: 'Failed to fetch alerts' });
+    }
+  });
+  
+  // Active alerts only endpoint
+  router.get('/alerts/active', async (req, res) => {
+    try {
+      const active = await alertProvider.fetchActiveAlerts();
+      res.json(active);
+    } catch (error) {
+      console.error('Active alerts fetch error:', error.message);
+      res.status(500).json({ error: 'Failed to fetch active alerts' });
+    }
+  });
+  
+  // Historical alerts only endpoint
+  router.get('/alerts/history', async (req, res) => {
+    try {
+      const history = await alertProvider.fetchHistoricalAlerts();
+      res.json(history);
+    } catch (error) {
+      console.error('Historical alerts fetch error:', error.message);
+      res.status(500).json({ error: 'Failed to fetch historical alerts' });
+    }
+  });
 
-// Get all possible alert areas/locations
-router.get('/alert-areas', async (req, res) => {
-  try {
-    const alertAreas = await fetchAlertAreas();
-    res.json(alertAreas);
-  } catch (error) {
-    console.error('Error fetching alert areas:', error.message);
-    res.status(500).json({ error: 'Failed to fetch alert areas' });
-  }
-});
+  // Get all possible alert areas/locations
+  router.get('/alert-areas', async (req, res) => {
+    try {
+      const alertAreas = await alertProvider.fetchAlertAreas();
+      res.json(alertAreas);
+    } catch (error) {
+      console.error('Error fetching alert areas:', error.message);
+      res.status(500).json({ error: 'Failed to fetch alert areas' });
+    }
+  });
 
-// Health check
-router.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+  // Health check
+  router.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
 
-module.exports = router;
+  return router;
+}

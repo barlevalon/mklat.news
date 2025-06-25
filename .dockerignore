@@ -18,3 +18,10 @@ infrastructure
 .github
 bug-*.png
 take-screenshot.js
+.eslintrc.cjs
+jest.config.js
+playwright.config.js
+dist
+.DS_Store
+.vscode
+.idea

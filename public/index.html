@@ -28,7 +28,7 @@
         <!-- Primary Location Status Display -->
         <div class="location-status-panel" id="location-status-panel">
             <div class="location-status-content">
-                <div class="location-name" id="primary-location-name" onclick="toggleLocationSelector()">
+                <div class="location-name" id="primary-location-name">
                     <span class="location-icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
@@ -54,14 +54,14 @@
             <div class="panel-header">
                 <h2>התרעות פיקוד העורף</h2>
                 <div class="header-controls">
-                    <div class="refresh-btn" onclick="fetchAlerts()">
+                    <div class="refresh-btn" id="alerts-refresh-btn">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="23 4 23 10 17 10"></polyline>
                             <polyline points="1 20 1 14 7 14"></polyline>
                             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
                         </svg>
                     </div>
-                    <div class="collapse-btn mobile-only" onclick="toggleAlertsPanel()" id="alerts-collapse-btn">
+                    <div class="collapse-btn mobile-only" id="alerts-collapse-btn">
                         <span class="collapse-icon">▼</span>
                     </div>
                 </div>
@@ -69,7 +69,7 @@
             <div class="selected-locations" id="selected-locations">
                 <span>כל האזורים</span>
             </div>
-            <div class="alerts-summary mobile-only" id="alerts-summary" style="display: none;" onclick="toggleAlertsPanel()">
+            <div class="alerts-summary mobile-only" id="alerts-summary" style="display: none;">
                 <div class="summary-text">
                     <span id="summary-count">0 התרעות פעילות</span>
                     <span class="summary-hint">לחץ להרחבה</span>
@@ -85,7 +85,7 @@
         <div class="panel" id="news-panel">
             <div class="panel-header">
                 <h2>מבזקי חדשות</h2>
-                <div class="refresh-btn" onclick="fetchNews()">
+                <div class="refresh-btn" id="news-refresh-btn">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="23 4 23 10 17 10"></polyline>
                         <polyline points="1 20 1 14 7 14"></polyline>
@@ -110,12 +110,12 @@
                 <input type="text" id="location-search" placeholder="חיפוש אזור...">
             </div>
             <div class="location-controls">
-                <button onclick="selectAllLocations()">בחר הכל</button>
-                <button onclick="clearAllLocations()">נקה הכל</button>
+                <button id="select-all-locations-btn">בחר הכל</button>
+                <button id="clear-all-locations-btn">נקה הכל</button>
                 <span id="selected-count">0 נבחרו</span>
             </div>
             <div class="location-actions">
-                <button class="ok-btn" onclick="applyLocationSelection()">✓ אישור</button>
+                <button class="ok-btn" id="apply-location-btn">✓ אישור</button>
             </div>
             <div class="location-list" id="location-list">
                 <div class="loading">טוען רשימת אזורים...</div>
@@ -128,6 +128,6 @@
         <p class="disclaimer">⚠️ למטרות פיתוח וחינוך בלבד. אין להסתמך על אתר זה למידע חירום. השתמשו באפליקציית צבע אדום הרשמית או באתר פיקוד העורף.</p>
     </footer>
 
-    <script src="script.js"></script>
+    <script type="module" src="/script.js"></script>
 </body>
 </html>

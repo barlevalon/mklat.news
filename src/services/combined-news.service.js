@@ -1,8 +1,8 @@
-const axios = require('axios');
-const xml2js = require('xml2js');
-const { withCache } = require('./cache.service');
-const { createAxiosConfig } = require('../utils/axios.util');
-const { API_ENDPOINTS, CACHE_TTL, LIMITS } = require('../config/constants');
+import axios from 'axios';
+import xml2js from 'xml2js';
+import { withCache } from './cache.service.js';
+import { createAxiosConfig } from '../utils/axios.util.js';
+import { API_ENDPOINTS, CACHE_TTL, LIMITS } from '../config/constants.js';
 
 // Track when we first see each item
 const seenItems = new Map();
@@ -69,7 +69,6 @@ const fetchCombinedNewsData = withCache('combined-news', CACHE_TTL.SHORT, async 
       // Check if this is a new item we haven't seen before
       if (!seenItems.has(itemKey)) {
         seenItems.set(itemKey, now);
-        console.log(`New item: [${latestItem.source}] ${latestItem.title}`);
       }
     }
     
@@ -87,6 +86,6 @@ const fetchCombinedNewsData = withCache('combined-news', CACHE_TTL.SHORT, async 
   }
 });
 
-module.exports = {
+export {
   fetchCombinedNewsData
 };

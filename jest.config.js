@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   // Test environment
   testEnvironment: 'node',
   
@@ -26,6 +26,11 @@ module.exports = {
   // Module directories
   moduleDirectories: ['node_modules'],
   
+  // Module name mapper for Vite aliases
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1'
+  },
+  
   // Verbose output
   verbose: true,
   
@@ -33,5 +38,8 @@ module.exports = {
   clearMocks: true,
   
   // Timeout for tests
-  testTimeout: 10000
+  testTimeout: 10000,
+  
+  // Transform modules for ESM support
+  transform: {},
 };

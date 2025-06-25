@@ -1,4 +1,4 @@
-const { AlertStateMachine, StateManager } = require('../../public/script.js');
+import { AlertStateMachine, StateManager } from '../../src/utils/alert-state-machine.js';
 
 describe('Alert State Machine', () => {
     const states = AlertStateMachine.states;
@@ -188,18 +188,15 @@ describe('Alert State Machine', () => {
     });
 
     describe('Location Matching', () => {
-        test('should handle location variants correctly', () => {
-            const variants = [
-                'תל אביב - דרום העיר ויפו',
-                'תל אביב - מרכז העיר',
-                'תל אביב - צפון העיר',
-                'תל אביב-יפו'
-            ];
+        test('should use exact matching for locations', () => {
+            // Test exact matches
+            expect(AlertStateMachine.isLocationMatch('תל אביב - יפו', 'תל אביב - יפו')).toBe(true);
+            expect(AlertStateMachine.isLocationMatch('גדרה', 'גדרה')).toBe(true);
             
-            variants.forEach(variant => {
-                const result = AlertStateMachine.isLocationMatch(variant, 'תל אביב');
-                expect(result).toBe(true);
-            });
+            // Test non-matches (no more variant matching)
+            expect(AlertStateMachine.isLocationMatch('תל אביב - דרום העיר ויפו', 'תל אביב')).toBe(false);
+            expect(AlertStateMachine.isLocationMatch('תל אביב - מרכז העיר', 'תל אביב')).toBe(false);
+            expect(AlertStateMachine.isLocationMatch('אזור תעשייה גדרה', 'גדרה')).toBe(false);
         });
 
         test('should not match partial location names', () => {

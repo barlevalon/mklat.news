@@ -1,4 +1,4 @@
-const NodeCache = require('node-cache');
+import NodeCache from 'node-cache';
 
 // Cache for 2 seconds (aggressive polling like tzevaadom)
 const cache = new NodeCache({ stdTTL: 2 });
@@ -15,7 +15,7 @@ function withCache(key, ttl, fetchFn) {
   };
 }
 
-module.exports = {
+export {
   cache,
   withCache
 };

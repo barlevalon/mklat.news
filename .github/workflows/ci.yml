@@ -11,6 +11,7 @@ on:
       - '*.json'
       - 'package*.json'
       - 'Dockerfile'
+      - 'vite.config.js'
       - '.github/workflows/ci.yml'
   pull_request:
     branches: [main]
@@ -22,6 +23,7 @@ on:
       - '*.json'
       - 'package*.json'
       - 'Dockerfile'
+      - 'vite.config.js'
 
 jobs:
   lint:
@@ -34,7 +36,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -53,7 +55,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -72,7 +74,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -102,7 +104,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -125,7 +127,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
@@ -187,8 +189,8 @@ jobs:
 
     - name: Build Docker image
       run: |
-        docker build -t me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/mklat-news/mklat-news:latest .
         docker build -t me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/mklat-news/mklat-news:${{ github.sha }} .
+        docker tag me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/mklat-news/mklat-news:${{ github.sha }} me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/mklat-news/mklat-news:latest
 
     - name: Push Docker image
       run: |

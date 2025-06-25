@@ -1,4 +1,7 @@
 
+import { filterAlertsByLocation, isLocationMatch } from '@/utils/location-matcher.js';
+import { AlertStateMachine, StateManager } from '@/utils/alert-state-machine.js';
+
 let newsData = [];
 let alertsData = [];
 let availableLocations = [];
@@ -10,171 +13,7 @@ let wsReconnectAttempts = 0;
 let maxReconnectAttempts = 5;
 let fallbackPolling = null;
 
-// Alert state machine - Pure functions with no side effects
-
-
-const AlertStateMachine = {
-    states: {
-        ALL_CLEAR: 'all-clear',
-        ALERT_IMMINENT: 'alert-imminent',
-        RED_ALERT: 'red-alert',
-        WAITING_CLEAR: 'waiting-clear',
-        JUST_CLEARED: 'just-cleared'
-    },
-
-    // Pure function - returns new state based on inputs
-    calculateNextState(currentState, activeAlerts, alertHistory, userLocations, currentTime = new Date()) {
-        const primaryLocation = userLocations[0];
-        if (!primaryLocation) {
-            return this.states.ALL_CLEAR;
-        }
-
-        // Check for active alerts in user's location
-        const hasActiveAlert = activeAlerts.some(alert => {
-            const alertArea = typeof alert === 'string' ? alert : alert.area;
-            return this.isLocationMatch(alertArea, primaryLocation);
-        });
-
-        // If there's an active alert, we're in RED_ALERT
-        if (hasActiveAlert) {
-            return this.states.RED_ALERT;
-        }
-
-        // Look for the most recent alert/clearance for this location
-        const recentHistory = alertHistory?.filter(alert =>
-            this.isLocationMatch(alert.area, primaryLocation)
-        ).sort((a, b) => new Date(b.alertDate) - new Date(a.alertDate));
-
-
-        const mostRecent = recentHistory?.[0];
-        
-        if (!mostRecent) {
-            // If we're in WAITING_CLEAR with no history, stay there
-            if (currentState === this.states.WAITING_CLEAR) {
-                return this.states.WAITING_CLEAR;
-            }
-            return this.states.ALL_CLEAR;
-        }
-
-
-        // Check if it's within the last 10 minutes
-        if (!this.isWithinMinutes(mostRecent.alertDate, 10, currentTime)) {
-            return this.states.ALL_CLEAR;
-        }
-
-        // Check for warning message (alert imminent)
-        if (mostRecent.description?.includes('בדקות הקרובות צפויות להתקבל התרעות')) {
-            return this.states.ALERT_IMMINENT;
-        }
-
-        // Check for full clearance
-        if (mostRecent.description?.includes('האירוע הסתיים') && 
-            this.isWithinMinutes(mostRecent.alertDate, 5, currentTime)) {
-            return this.states.JUST_CLEARED;
-        }
-
-        // Check for partial clearance (can exit but stay nearby)
-        if (mostRecent.description?.includes('ניתן לצאת מהמרחב המוגן')) {
-            // This is still a waiting state, just with different instructions
-            return this.states.WAITING_CLEAR;
-        }
-
-        // Otherwise, we're waiting for clearance
-        return this.states.WAITING_CLEAR;
-    },
-
-    isLocationMatch(alertLocation, userLocation) {
-        if (!alertLocation || !userLocation) return false;
-
-        // Extract area if alertLocation is an object
-        const alertArea = typeof alertLocation === 'string' ? alertLocation : alertLocation.area;
-        if (!alertArea) return false;
-
-        if (alertArea === userLocation) return true;
-
-        // Handle municipal variants
-        const baseLocation = userLocation.replace(/\s*-\s*.*$/, '').trim();
-        const alertBase = alertArea.replace(/\s*-\s*.*$/, '').trim();
-
-        return alertBase === baseLocation;
-    },
-
-    isWithinMinutes(dateStr, minutes, currentTime = new Date()) {
-        if (!dateStr) return false;
-        const date = new Date(dateStr);
-        const diffMs = currentTime - date;
-        return diffMs < (minutes * 60 * 1000);
-    }
-};
-
-// State Manager - Manages state and notifies observers
-class StateManager {
-    constructor() {
-        this.currentState = AlertStateMachine.states.ALL_CLEAR;
-        this.alertStartTime = null;
-        this.clearanceTime = null;
-        this.observers = [];
-        this.stateTimer = null;
-    }
-
-    updateState(activeAlerts, alertHistory, userLocations) {
-        const newState = AlertStateMachine.calculateNextState(
-            this.currentState,
-            activeAlerts,
-            alertHistory,
-            userLocations
-        );
-
-        if (newState !== this.currentState) {
-            this.transitionTo(newState);
-        }
-    }
-
-    transitionTo(newState) {
-        const oldState = this.currentState;
-        this.currentState = newState;
-
-        // Update timestamps
-        switch (newState) {
-            case AlertStateMachine.states.RED_ALERT:
-                this.alertStartTime = new Date();
-                this.clearanceTime = null;
-                break;
-            case AlertStateMachine.states.JUST_CLEARED:
-                this.clearanceTime = new Date();
-                break;
-        }
-
-        // Notify observers
-        this.notifyObservers(oldState, newState);
-    }
-
-    subscribe(observer) {
-        this.observers.push(observer);
-    }
-
-    notifyObservers(oldState, newState) {
-        this.observers.forEach(observer => {
-            try {
-                observer(oldState, newState);
-            } catch (error) {
-                console.error('Observer error:', error);
-            }
-        });
-    }
-
-    getState() {
-        return this.currentState;
-    }
-
-    getAlertStartTime() {
-        return this.alertStartTime;
-    }
-
-    getClearanceTime() {
-        return this.clearanceTime;
-    }
-}
+// Alert state machine is now imported from utils
 
 // Create global state manager instance
 const stateManager = new StateManager();
@@ -193,9 +32,8 @@ let stateTimer = null;
 // Real-time updates with WebSocket and fallback polling
 function initializeRealTimeUpdates() {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}`;
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
 
-    console.log('Attempting to connect to WebSocket:', wsUrl);
     connectWebSocket(wsUrl);
 }
 
@@ -210,7 +48,6 @@ function connectWebSocket(wsUrl) {
         }
 
         ws.onopen = function() {
-            console.log('WebSocket connected - real-time updates active');
             wsReconnectAttempts = 0;
 
             // Stop fallback polling if it's running
@@ -221,6 +58,9 @@ function connectWebSocket(wsUrl) {
 
             // Update connection status
             updateWebSocketStatus('connected');
+            
+            // Fetch initial data after WebSocket connects
+            fetchAllData();
         };
 
         ws.onmessage = function(event) {
@@ -233,7 +73,6 @@ function connectWebSocket(wsUrl) {
         };
 
         ws.onclose = function() {
-            console.log('WebSocket connection closed');
             updateWebSocketStatus('disconnected');
             handleWebSocketReconnect(wsUrl);
         };
@@ -282,7 +121,7 @@ function handleWebSocketMessage(message) {
             break;
 
         default:
-            console.log('Unknown WebSocket message type:', message.type);
+            // Unknown message type
     }
 }
 
@@ -297,13 +136,10 @@ function handleWebSocketReconnect(wsUrl) {
 
         const delay = Math.min(1000 * Math.pow(2, wsReconnectAttempts), 30000); // Exponential backoff, max 30s
 
-        console.log(`Attempting to reconnect WebSocket in ${delay}ms (attempt ${wsReconnectAttempts}/${maxReconnectAttempts})`);
-
         setTimeout(() => {
             connectWebSocket(wsUrl);
         }, delay);
     } else {
-        console.log('Max WebSocket reconnect attempts reached, falling back to polling');
         startFallbackPolling();
     }
 }
@@ -355,7 +191,6 @@ if (typeof window !== 'undefined') {
 // Initialize the application
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', function() {
-    console.log('War Room initialized');
     loadUserPreferences();
     fetchLocations();
 
@@ -523,7 +358,7 @@ function renderAlerts(alertsData) {
     const processedHistoricalAlerts = historicalAlerts || [];
 
     // Filter active alerts by location
-    const filteredActiveAlerts = filterAlertsByLocation(processedActiveAlerts);
+    const filteredActiveAlerts = filterAlerts(processedActiveAlerts);
 
     // Show active alerts status only if there are active alerts
     let html = '';
@@ -538,7 +373,7 @@ function renderAlerts(alertsData) {
         allAlerts.sort((a, b) => new Date(b.time) - new Date(a.time));
 
         // Filter all alerts based on selected locations
-        const filteredAllAlerts = filterAlertsByLocation(allAlerts);
+        const filteredAllAlerts = filterAlerts(allAlerts);
 
         if (filteredAllAlerts.length > 0) {
             const alertsHtml = filteredAllAlerts.map(alert => {
@@ -754,7 +589,7 @@ function renderLocationList() {
                    id="loc-${index}"
                    value="${location}"
                    ${selectedLocations.has(location) ? 'checked' : ''}
-                   onchange="toggleLocation('${location.replace(/'/g, "\\'")}')">
+                   class="location-checkbox">
             <label for="loc-${index}">${location}</label>
         </div>
     `).join('');
@@ -880,48 +715,9 @@ function setupLocationSearch() {
     });
 }
 
-function filterAlertsByLocation(alerts) {
-    if (selectedLocations.size === 0) {
-        return alerts; // Show all alerts if no locations selected
-    }
-
-    return alerts.filter(alert => {
-        const alertArea = alert.area;
-
-        // Check if alert area matches any selected location
-        for (const selectedLocation of selectedLocations) {
-            // Exact match only
-            if (alertArea === selectedLocation) {
-                return true;
-            }
-
-            // Only allow partial matches for legitimate cases like "תל אביב - יפו" when "תל אביב" is selected
-            // This handles municipal areas with additional descriptors
-            if (alertArea.includes(selectedLocation)) {
-                // Must be at word boundaries and followed by legitimate municipal suffixes
-                const index = alertArea.indexOf(selectedLocation);
-                const beforeChar = index > 0 ? alertArea.charAt(index - 1) : '';
-                const afterIndex = index + selectedLocation.length;
-                const afterChar = afterIndex < alertArea.length ? alertArea.charAt(afterIndex) : '';
-
-                // Only allow if at word boundaries and followed by municipal indicators
-                const isAtWordBoundary = (beforeChar === '' || /[\s\-,]/.test(beforeChar)) &&
-                                        (afterChar === '' || /[\s\-,]/.test(afterChar));
-
-                if (isAtWordBoundary) {
-                    const afterText = alertArea.substring(afterIndex).trim();
-                    // Only allow municipal suffixes, not street patterns
-                    const isMunicipalSuffix = /^(-\s*(יפו|אזור|מרכז|צפון|דרום|מזרח|מערב))?\s*$/.test(afterText);
-
-                    if (isMunicipalSuffix) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    });
+// Helper function to use the imported filterAlertsByLocation with our global selectedLocations
+function filterAlerts(alerts) {
+    return filterAlertsByLocation(alerts, selectedLocations);
 }
 
 function loadUserPreferences() {
@@ -996,13 +792,13 @@ function updateAlertsSummary() {
         }
         
         // Filter active alerts by location
-        const filteredActiveAlerts = filterAlertsByLocation(processedActiveAlerts);
+        const filteredActiveAlerts = filterAlerts(processedActiveAlerts);
         activeCount = filteredActiveAlerts.length;
     }
     
     if (alertsData && alertsData.history) {
         // Filter historical alerts by location
-        const filteredHistoricalAlerts = filterAlertsByLocation(alertsData.history);
+        const filteredHistoricalAlerts = filterAlerts(alertsData.history);
         totalCount = filteredHistoricalAlerts.length;
     }
 
@@ -1208,10 +1004,10 @@ function updateIncidentScale(activeAlerts) {
         scaleEl.textContent = '';
         scaleEl.classList.remove('has-content');
     } else if (count === 1) {
-        scaleEl.textContent = 'התרעה מקומית';
+        scaleEl.textContent = 'התרעה אחת פעילה';
         scaleEl.classList.add('has-content');
     } else if (count < 10) {
-        scaleEl.textContent = `גם פעיל ב: ${count - 1} ערים נוספות`;
+        scaleEl.textContent = `${count} התרעות פעילות`;
         scaleEl.classList.add('has-content');
     } else {
         scaleEl.textContent = `⚠️ אירוע נרחב: ${count} ערים`;
@@ -1224,10 +1020,7 @@ function isWithinMinutes(dateStr, minutes) {
     return AlertStateMachine.isWithinMinutes(dateStr, minutes);
 }
 
-// Use the one from AlertStateMachine
-function isLocationMatch(alertLocation, userLocation) {
-    return AlertStateMachine.isLocationMatch(alertLocation, userLocation);
-}
+// isLocationMatch is now imported from location-matcher.js
 
 function updateLocationDisplay(location, state) {
     document.getElementById('primary-location-text').textContent = location;
@@ -1311,7 +1104,92 @@ if (typeof window !== 'undefined') {
 };
 }
 
-// Export for testing
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { AlertStateMachine, StateManager };
+// Main initialization function
+function initialize() {
+    // Load locations first
+    fetchLocations();
+    
+    // Load user preferences
+    loadUserPreferences();
+    
+    // Set up event listeners
+    initializeEventListeners();
+    
+    // Start real-time updates
+    initializeRealTimeUpdates();
 }
+
+// Initialize event listeners when DOM is loaded
+function initializeEventListeners() {
+    // Location selector toggle
+    const primaryLocationName = document.getElementById('primary-location-name');
+    if (primaryLocationName) {
+        primaryLocationName.addEventListener('click', toggleLocationSelector);
+    }
+
+    // Refresh buttons
+    const alertsRefreshBtn = document.getElementById('alerts-refresh-btn');
+    if (alertsRefreshBtn) {
+        alertsRefreshBtn.addEventListener('click', fetchAlerts);
+    }
+
+    const newsRefreshBtn = document.getElementById('news-refresh-btn');
+    if (newsRefreshBtn) {
+        newsRefreshBtn.addEventListener('click', fetchNews);
+    }
+
+    // Mobile alerts panel toggle
+    const alertsCollapseBtn = document.getElementById('alerts-collapse-btn');
+    if (alertsCollapseBtn) {
+        alertsCollapseBtn.addEventListener('click', toggleAlertsPanel);
+    }
+
+    const alertsSummary = document.getElementById('alerts-summary');
+    if (alertsSummary) {
+        alertsSummary.addEventListener('click', toggleAlertsPanel);
+    }
+
+    // Location selector buttons
+    const selectAllBtn = document.getElementById('select-all-locations-btn');
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', selectAllLocations);
+    }
+
+    const clearAllBtn = document.getElementById('clear-all-locations-btn');
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', clearAllLocations);
+    }
+
+    const applyBtn = document.getElementById('apply-location-btn');
+    if (applyBtn) {
+        applyBtn.addEventListener('click', applyLocationSelection);
+    }
+
+    // Close button
+    const closeBtn = document.querySelector('#location-selector .close-btn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            document.getElementById('location-selector').classList.remove('show');
+        });
+    }
+
+    // Event delegation for location checkboxes
+    const locationList = document.getElementById('location-list');
+    if (locationList) {
+        locationList.addEventListener('change', (e) => {
+            if (e.target.classList.contains('location-checkbox')) {
+                const location = e.target.value;
+                toggleLocation(location);
+            }
+        });
+    }
+}
+
+// Initialize everything when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initialize);
+} else {
+    // DOM is already loaded
+    initialize();
+}
+

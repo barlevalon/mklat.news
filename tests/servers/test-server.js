@@ -11,7 +11,7 @@ export function createTestServer(config = {}) {
   const alertProvider = new FakeAlertProvider(config.alerts || {});
   const newsProvider = new FakeNewsProvider(config.news || []);
   
-  const { server, app, wss } = createHttpServer({ alertProvider, newsProvider });
+  const { server, app } = createHttpServer({ alertProvider, newsProvider });
   
   // Add test control endpoints
   app.post('/test/set-active-alerts', express.json(), (req, res) => {

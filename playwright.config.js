@@ -28,11 +28,11 @@ export default defineConfig({
     },
     // Mobile testing for responsive bugs
     {
-      name: 'mobile-chrome',
+      name: 'mobile-safari',
       use: { ...devices['iPhone 12'] },
     },
     {
-      name: 'mobile-android',
+      name: 'mobile-chrome',
       use: { ...devices['Pixel 5'] },
     },
   ],

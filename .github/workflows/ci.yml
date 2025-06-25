@@ -70,7 +70,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox, webkit, mobile-chrome, mobile-android]
+        browser: [chromium, firefox, webkit, mobile-safari, mobile-chrome]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -85,7 +85,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps ${{ matrix.browser == 'mobile-chrome' && 'chromium' || matrix.browser == 'mobile-android' && 'chromium' || matrix.browser }}
+        run: npx playwright install --with-deps ${{ matrix.browser == 'mobile-safari' && 'webkit' || matrix.browser == 'mobile-chrome' && 'chromium' || matrix.browser }}
 
       - name: Run E2E tests
         run: npm run test:e2e -- --project=${{ matrix.browser }}

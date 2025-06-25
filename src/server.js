@@ -8,9 +8,6 @@ import { dirname } from 'path';
 
 import { createApiRoutes } from './routes/api.routes.js';
 import { createWebSocketHandler } from './websocket/websocket.handler.js';
-import { POLLING_INTERVAL_MS } from './config/constants.js';
-import { OrefAlertProvider } from './providers/oref-alert-provider.js';
-import { CombinedNewsProvider } from './providers/combined-news-provider.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

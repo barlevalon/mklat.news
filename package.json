@@ -2,19 +2,24 @@
   "name": "mklat-news",
   "version": "1.0.3",
   "description": "Ynet news and Homefront Command alerts aggregator",
-  "main": "src/server.js",
+  "main": "src/index.js",
+  "type": "module",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
+    "start": "node src/index.js",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "PORT=3001 nodemon src/index.js",
+    "dev:client": "vite",
+    "test:server": "PORT=3001 node tests/servers/start-test-server.js",
+    "build": "vite build",
+    "preview": "vite preview",
     "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
-    "test:unit": "jest tests/unit",
-    "test:integration": "jest tests/integration",
+    "test:unit": "NODE_OPTIONS=--experimental-vm-modules jest tests/unit",
+    "test:integration": "NODE_OPTIONS=--experimental-vm-modules jest tests/integration",
     "test:e2e": "playwright test",
     "test:ui": "playwright test --ui",
     "test:ci": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "build": "echo 'No build step required for this project'",
     "validate": "npm run lint && npm run test:ci"
   },
   "dependencies": {
@@ -29,11 +34,13 @@
   "devDependencies": {
     "@playwright/test": "^1.40.0",
     "audit-ci": "^7.0.1",
+    "concurrently": "^9.2.0",
     "eslint": "^8.57.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "nodemon": "^3.0.1",
     "puppeteer": "^24.10.2",
-    "supertest": "^6.3.3"
+    "supertest": "^6.3.3",
+    "vite": "^7.0.0"
   }
 }

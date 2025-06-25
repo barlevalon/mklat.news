@@ -1,15 +1,22 @@
+import { jest } from '@jest/globals';
+
 // Mock external dependencies BEFORE importing services
-jest.mock('axios');
-const mockAxios = require('axios');
+jest.unstable_mockModule('axios', () => ({
+  default: {
+    get: jest.fn()
+  }
+}));
 
 // Mock the background polling to prevent it from running during tests
-jest.mock('../../src/websocket/websocket.handler', () => ({
+jest.unstable_mockModule('../../src/websocket/websocket.handler.js', () => ({
   handleWebSocketConnection: jest.fn(),
   startBackgroundPolling: jest.fn()
 }));
 
-const { fetchHistoricalAlerts } = require('../../src/services/oref.service');
-const { parseHistoricalAlertsHTML } = require('../../src/utils/html-parser.util');
+const mockAxios = (await import('axios')).default;
+
+const { fetchHistoricalAlerts } = await import('../../src/services/oref.service.js');
+const { parseHistoricalAlertsHTML } = await import('../../src/utils/html-parser.util.js');
 
 describe('Alert Filtering Logic', () => {
   beforeEach(() => {

@@ -1,3 +1,5 @@
+import { LIMITS } from '../config/constants.js';
+
 // Utility for efficient data comparison
 function hasDataChanged(newData, oldData) {
   return JSON.stringify(newData) !== JSON.stringify(oldData);
@@ -13,8 +15,6 @@ function processAlertAreasData(data) {
 }
 
 function processYnetItems(items) {
-  const { LIMITS } = require('../config/constants');
-  
   return items.slice(0, LIMITS.YNET_ITEMS).map(item => ({
     title: item.title[0],
     link: item.link[0],
@@ -23,7 +23,7 @@ function processYnetItems(items) {
   }));
 }
 
-module.exports = {
+export {
   hasDataChanged,
   processAlertAreasData,
   processYnetItems

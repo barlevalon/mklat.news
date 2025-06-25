@@ -1,4 +1,4 @@
-const { DEFAULT_USER_AGENT, DEFAULT_TIMEOUT } = require('../config/constants');
+import { DEFAULT_USER_AGENT, DEFAULT_TIMEOUT } from '../config/constants.js';
 
 // Common axios config generator
 function createAxiosConfig(timeout = DEFAULT_TIMEOUT, headers = {}) {
@@ -11,6 +11,6 @@ function createAxiosConfig(timeout = DEFAULT_TIMEOUT, headers = {}) {
   };
 }
 
-module.exports = {
+export {
   createAxiosConfig
 };

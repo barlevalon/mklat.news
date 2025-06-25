@@ -191,7 +191,7 @@ if (typeof window !== 'undefined') {
 // Initialize the application
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', function() {
-    loadUserPreferences();
+    loadUserPreferences(new URL(location).searchParams.getAll('where'));
     fetchLocations();
 
     // Initialize state display
@@ -672,13 +672,15 @@ function updateSelectedLocationsDisplay() {
     const selectedElement = document.getElementById('selected-locations');
     const countElement = document.getElementById('selected-count');
 
+    const searchParams = new URLSearchParams([...selectedLocations].map(l => ['where', l]))
+    const link = `<a href="?${searchParams}" target="_blank" rel="noopener noreferrer">🔗</a>&nbsp;`
     if (selectedLocations.size === 0) {
         selectedElement.innerHTML = '<span>כל האזורים</span>';
     } else if (selectedLocations.size <= 3) {
         const locations = Array.from(selectedLocations).join(', ');
-        selectedElement.innerHTML = `<span>${locations}</span>`;
+        selectedElement.innerHTML = `${link}<span>${locations}</span>`;
     } else {
-        selectedElement.innerHTML = `<span>${selectedLocations.size} אזורים נבחרו</span>`;
+        selectedElement.innerHTML = `${link}<span>${selectedLocations.size} אזורים נבחרו</span>`;
     }
 
     if (countElement) {
@@ -720,12 +722,12 @@ function filterAlerts(alerts) {
     return filterAlertsByLocation(alerts, selectedLocations);
 }
 
-function loadUserPreferences() {
+function loadUserPreferences(additionalLocations) {
     try {
         const saved = localStorage.getItem('mklat-locations');
         if (saved) {
             const savedLocations = JSON.parse(saved);
-            selectedLocations = new Set(savedLocations);
+            selectedLocations = new Set([...savedLocations,...additionalLocations].sort());
         }
     } catch (error) {
         console.error('Error loading preferences:', error);

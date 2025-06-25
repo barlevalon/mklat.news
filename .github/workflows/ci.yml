@@ -138,7 +138,7 @@ jobs:
 
       - name: Test server start
         run: |
-          timeout 10 npm start &
+          PORT=3000 timeout 10 npm start &
           sleep 5
           curl -f http://localhost:3000/api/health
 

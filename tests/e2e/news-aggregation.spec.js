@@ -17,7 +17,7 @@ test.describe('News Aggregation', () => {
     await testControl.setNews([]);
   });
 
-  test('should aggregate news from all sources', async ({ page }) => {
+  test('should aggregate news from all sources', async ({ page: _page }) => {
     // Set news items using test control API
     const now = new Date();
     await testControl.setNews([
@@ -73,7 +73,7 @@ test.describe('News Aggregation', () => {
     expect(newsItems[3].source).toBe('Haaretz');
   });
 
-  test('should handle RSS feed errors gracefully', async ({ page }) => {
+  test('should handle RSS feed errors gracefully', async ({ page: _page }) => {
     // Set only some news sources (simulating others failed)
     await testControl.setNews([
       {
@@ -105,7 +105,7 @@ test.describe('News Aggregation', () => {
     expect(sources).toContain('Maariv');
   });
 
-  test('should limit news items per source', async ({ page }) => {
+  test('should limit news items per source', async ({ page: _page }) => {
     // Mock many items from one source
     const manyItems = Array.from({ length: 20 }, (_, i) => ({
       title: `חדשות ${i + 1}`,
@@ -130,7 +130,7 @@ test.describe('News Aggregation', () => {
     expect(ynetItems.length).toBeLessThanOrEqual(5);
   });
 
-  test('should display Hebrew content correctly', async ({ page }) => {
+  test('should display Hebrew content correctly', async ({ page: _page }) => {
     await testControl.setNews([{
       title: 'דיווח: צה"ל תקף במרחב רפיח',
       link: 'https://ynet.co.il/news/1',

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { AlertsPage, timeHelpers } from './helpers/test-helpers.js';
+import { AlertsPage } from './helpers/test-helpers.js';
 import { TestControl } from './helpers/test-control.js';
 
 test.describe('Alert Lifecycle', () => {
@@ -14,7 +14,7 @@ test.describe('Alert Lifecycle', () => {
     await testControl.clearAllAlerts();
   });
 
-  test('should show all-clear state when no alerts', async ({ page }) => {
+  test('should show all-clear state when no alerts', async ({ page: _page }) => {
     await alertsPage.goto();
     
     // Select a location
@@ -108,8 +108,7 @@ test.describe('Alert Lifecycle', () => {
     await expect(page.locator('#state-timer')).toBeAttached();
   });
 
-  test('should return to all-clear after clearance message', async ({ page }) => {
-    const { date, time } = timeHelpers.getCurrentTime();
+  test('should return to all-clear after clearance message', async ({ page: _page }) => {
     
     // Set historical alerts with clearance message
     const now = new Date();
@@ -173,7 +172,7 @@ test.describe('Alert Lifecycle', () => {
     await expect(page.locator('#incident-scale')).toContainText('52 ערים');
   });
 
-  test('should handle empty string response from OREF', async ({ page }) => {
+  test('should handle empty string response from OREF', async ({ page: _page }) => {
     // Our test server handles this case - just ensure no alerts are set
     await testControl.setActiveAlerts([]);
     

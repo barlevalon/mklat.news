@@ -48,3 +48,5 @@ key.json
 
 # AI agent configuration (local development only)
 AGENT.md
+AGENTS.md
+CLAUDE.md

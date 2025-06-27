@@ -10,20 +10,38 @@ export function createWebSocketHandler({ alertProvider, newsProvider }) {
   let lastNewsData = null;
   let lastAlertsData = null;
   
+  // Polling interval reference
+  let pollingInterval = null;
+  
   // WebSocket connection handler
   function handleConnection(ws) {
     clients.add(ws);
+    
+    // Start polling when first client connects
+    if (clients.size === 1 && !pollingInterval) {
+      startPolling();
+    }
     
     // Send initial data
     sendInitialData(ws);
     
     ws.on('close', () => {
       clients.delete(ws);
+      
+      // Stop polling when last client disconnects
+      if (clients.size === 0 && pollingInterval) {
+        stopPolling();
+      }
     });
     
     ws.on('error', (error) => {
       console.error('WebSocket error:', error);
       clients.delete(ws);
+      
+      // Stop polling when last client disconnects
+      if (clients.size === 0 && pollingInterval) {
+        stopPolling();
+      }
     });
   }
 
@@ -73,6 +91,11 @@ export function createWebSocketHandler({ alertProvider, newsProvider }) {
 
   // Background polling
   async function backgroundPoll() {
+    // Skip polling if no clients are connected
+    if (clients.size === 0) {
+      return;
+    }
+    
     try {
       // Fetch new data
       const [newsData, alertsData] = await Promise.all([
@@ -100,7 +123,17 @@ export function createWebSocketHandler({ alertProvider, newsProvider }) {
 
   // Start background polling
   function startPolling() {
-    setInterval(backgroundPoll, POLLING_INTERVAL_MS);
+    if (!pollingInterval) {
+      pollingInterval = setInterval(backgroundPoll, POLLING_INTERVAL_MS);
+    }
+  }
+  
+  // Stop background polling
+  function stopPolling() {
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      pollingInterval = null;
+    }
   }
 
   return {

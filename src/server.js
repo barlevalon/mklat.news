@@ -45,16 +45,13 @@ export function createHttpServer({ alertProvider, newsProvider }) {
   const wss = new WebSocketServer({ server });
   
   // Create websocket handler with providers
-  const { handleConnection, startPolling } = createWebSocketHandler({ 
+  const { handleConnection } = createWebSocketHandler({ 
     alertProvider, 
     newsProvider 
   });
   
   // Handle WebSocket connections
   wss.on('connection', handleConnection);
-  
-  // Start background polling
-  startPolling();
   
   return { server, app, wss };
 }

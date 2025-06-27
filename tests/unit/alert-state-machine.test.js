@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { AlertStateMachine, StateManager } from '../../src/utils/alert-state-machine.js';
 
 describe('Alert State Machine', () => {
@@ -288,6 +289,9 @@ describe('Alert State Machine', () => {
             const stateManager = new StateManager();
             const goodObserverCalls = [];
             
+            // Mock console.error to suppress error messages in test output
+            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+            
             // Bad observer that throws
             stateManager.subscribe(() => {
                 throw new Error('Observer error');
@@ -302,6 +306,11 @@ describe('Alert State Machine', () => {
             }).not.toThrow();
             
             expect(goodObserverCalls).toHaveLength(1);
+            
+            // Verify error was logged (but suppressed in output)
+            expect(consoleErrorSpy).toHaveBeenCalledWith('Observer error:', expect.any(Error));
+            
+            consoleErrorSpy.mockRestore();
         });
     });
 });

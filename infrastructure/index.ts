@@ -35,7 +35,8 @@ const cloudBuildApi = new gcp.projects.Service("cloud-build-api", {
 // Artifact Registry repository is created by CI pipeline if needed
 
 // Reference the Docker image (will be built and pushed by CI)
-const imageUri = pulumi.interpolate`${region}-docker.pkg.dev/${projectId}/mklat-news/mklat-news:latest`;
+const imageTag = process.env.IMAGE_TAG || "latest";
+const imageUri = pulumi.interpolate`${region}-docker.pkg.dev/${projectId}/mklat-news/mklat-news:${imageTag}`;
 
 // Create Cloud Run service (v2 API - try again with clean state)
 const service = new gcp.cloudrunv2.Service("mklat-news-service", {

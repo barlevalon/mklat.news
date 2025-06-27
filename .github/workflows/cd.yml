@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CD Pipeline
 
 on:
   push:
@@ -12,7 +12,8 @@ on:
       - 'package*.json'
       - 'Dockerfile'
       - 'vite.config.js'
-      - '.github/workflows/ci.yml'
+      - '.github/workflows/cd.yml'
+      - 'infrastructure/**'
   pull_request:
     branches: [main]
     paths:
@@ -24,6 +25,8 @@ on:
       - 'package*.json'
       - 'Dockerfile'
       - 'vite.config.js'
+      - 'infrastructure/**'
+  workflow_dispatch: # Allow manual trigger
 
 jobs:
   lint:
@@ -170,6 +173,8 @@ jobs:
     needs: [lint, test-unit, test-integration, test-e2e, security, build]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    outputs:
+      image_tag: ${{ github.sha }}
     
     steps:
     - name: Checkout code
@@ -217,5 +222,73 @@ jobs:
 
     - name: Push Docker image
       run: |
-        docker push me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/mklat-news/mklat-news:latest
         docker push me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/mklat-news/mklat-news:${{ github.sha }}
+        docker push me-west1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/mklat-news/mklat-news:latest
+
+  deploy:
+    name: Deploy to GCP
+    needs: [publish]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+
+    - name: Install app dependencies
+      run: npm ci
+
+    - name: Install infrastructure dependencies
+      run: npm ci
+      working-directory: ./infrastructure
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+    - name: Set up Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+
+    - name: Configure Docker for Google Cloud
+      run: gcloud auth configure-docker ${GCP_REGION}-docker.pkg.dev
+      env:
+        GCP_REGION: me-west1
+
+    - name: Install Pulumi CLI
+      uses: pulumi/actions@v4
+
+    - name: Configure Pulumi stack
+      run: |
+        cd infrastructure
+        pulumi config set --stack=prod gcp:project ${{ secrets.GCP_PROJECT_ID }}
+        pulumi config set --stack=prod gcp:region me-west1
+        pulumi config set --stack=prod domain mklat.news
+        pulumi config set --stack=prod --secret cloudflare:apiToken ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      env:
+        PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+
+    - name: Deploy infrastructure
+      uses: pulumi/actions@v4
+      with:
+        command: up
+        stack-name: prod
+        work-dir: ./infrastructure
+        upsert: true
+      env:
+        PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+        GOOGLE_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        PULUMI_CONFIG_PASSPHRASE: ""
+        IMAGE_TAG: ${{ github.sha }}
+
+    - name: Get service URL
+      run: |
+        cd infrastructure
+        echo "Service URL: $(pulumi stack output serviceUrl)"
+        echo "Deployed image tag: ${{ github.sha }}"

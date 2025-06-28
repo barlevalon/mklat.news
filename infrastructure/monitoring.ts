@@ -68,6 +68,11 @@ AND (
         metricKind: "DELTA",
         valueType: "INT64",
         displayName: "OREF API Failures",
+        labels: [{
+            key: "error_type",
+            valueType: "STRING",
+            description: "Type of OREF API error",
+        }],
     },
     labelExtractors: {
         error_type: 'EXTRACT(textPayload, "(Primary alerts|fetchAlertAreas|Backup API|historical alerts)")',

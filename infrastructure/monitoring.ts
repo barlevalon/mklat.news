@@ -134,11 +134,6 @@ AND metric.type = "logging.googleapis.com/user/${orefFailureMetric.name}"`,
         },
     }],
     notificationChannels: [webhookNotificationChannel.id],
-    alertStrategy: {
-        notificationRateLimit: {
-            period: "300s", // Don't spam - send at most once every 5 minutes
-        },
-    },
 }, { dependsOn: [monitoringApi, orefFailureMetric] });
 
 // Create uptime check for the service itself

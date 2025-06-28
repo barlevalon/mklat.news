@@ -77,6 +77,7 @@ AND (
 // Create an alert policy for OREF API failures
 const orefFailureAlert = new gcp.monitoring.AlertPolicy("oref-api-failure-alert", {
     displayName: "OREF API Failure Alert",
+    combiner: "OR",
     documentation: {
         content: `OREF API is returning 403 errors. This means:
 - Alerts are not being fetched
@@ -112,6 +113,7 @@ AND metric.type = "logging.googleapis.com/user/${orefFailureMetric.name}"`,
 // Create a more sensitive alert for complete OREF outage
 const orefOutageAlert = new gcp.monitoring.AlertPolicy("oref-complete-outage-alert", {
     displayName: "OREF Complete Outage Alert",
+    combiner: "OR",
     documentation: {
         content: `OREF API is completely unreachable. This is a critical issue as:
 - NO real-time alerts are available
@@ -167,6 +169,7 @@ const uptimeCheck = new gcp.monitoring.UptimeCheckConfig("mklat-news-uptime", {
 // Alert for service downtime
 const serviceDownAlert = new gcp.monitoring.AlertPolicy("service-down-alert", {
     displayName: "Mklat News Service Down",
+    combiner: "OR",
     conditions: [{
         displayName: "Service is not responding",
         conditionThreshold: {

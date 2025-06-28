@@ -2,6 +2,7 @@ import * as pulumi from "@pulumi/pulumi";
 import * as gcp from "@pulumi/gcp";
 import * as docker from "@pulumi/docker";
 import * as cloudflare from "@pulumi/cloudflare";
+import * as monitoring from "./monitoring";
 
 // Get configuration
 const config = new pulumi.Config();
@@ -268,3 +269,8 @@ export const deployedImageUri = imageUri;
 export const serviceLocation = service.location;
 export const repositoryUrl = `${region}-docker.pkg.dev/${projectId}/mklat-news`;
 export const sslCertificateName = sslCertificate?.name || "No SSL certificate configured";
+
+// Monitoring outputs
+export const orefFailureAlertName = monitoring.orefFailureAlertName;
+export const orefOutageAlertName = monitoring.orefOutageAlertName;
+export const serviceDownAlertName = monitoring.serviceDownAlertName;

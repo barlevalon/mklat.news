@@ -273,4 +273,3 @@ export const sslCertificateName = sslCertificate?.name || "No SSL certificate co
 // Monitoring outputs
 export const orefFailureAlertName = monitoring.orefFailureAlertName;
 export const orefOutageAlertName = monitoring.orefOutageAlertName;
-export const serviceDownAlertName = monitoring.serviceDownAlertName;

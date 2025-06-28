@@ -136,54 +136,9 @@ AND metric.type = "logging.googleapis.com/user/${orefFailureMetric.name}"`,
     notificationChannels: [webhookNotificationChannel.id],
 }, { dependsOn: [monitoringApi, orefFailureMetric] });
 
-// Create uptime check for the service itself
-const uptimeCheck = new gcp.monitoring.UptimeCheckConfig("mklat-news-uptime", {
-    displayName: "Mklat News Service Uptime",
-    timeout: "10s",
-    period: "60s",
-    httpCheck: {
-        path: "/api/health",
-        port: 443,
-        requestMethod: "GET",
-        useSsl: true,
-        validateSsl: true,
-    },
-    monitoredResource: {
-        type: "uptime_url",
-        labels: {
-            project_id: projectId,
-            host: "mklat.news",
-        },
-    },
-    selectedRegions: ["EUROPE", "USA"],
-}, { dependsOn: [monitoringApi] });
-
-// Alert for service downtime
-const serviceDownAlert = new gcp.monitoring.AlertPolicy("service-down-alert", {
-    displayName: "Mklat News Service Down",
-    combiner: "OR",
-    conditions: [{
-        displayName: "Service is not responding",
-        conditionThreshold: {
-            filter: pulumi.interpolate`resource.type = "uptime_url"
-AND metric.type = "monitoring.googleapis.com/uptime_check/check_passed"
-AND metric.labels.check_id = "${uptimeCheck.uptimeCheckId}"`,
-            comparison: "COMPARISON_LT",
-            thresholdValue: 1,
-            duration: "180s", // Alert if down for 3 minutes
-            aggregations: [{
-                alignmentPeriod: "60s",
-                perSeriesAligner: "ALIGN_FRACTION_TRUE",
-            }],
-        },
-    }],
-    notificationChannels: [webhookNotificationChannel.id],
-}, { dependsOn: [monitoringApi, uptimeCheck] });
 
 // Export monitoring resources
 export const notificationChannelId = webhookNotificationChannel.id;
 export const orefFailureMetricName = orefFailureMetric.name;
 export const orefFailureAlertName = orefFailureAlert.name;
 export const orefOutageAlertName = orefOutageAlert.name;
-export const uptimeCheckId = uptimeCheck.uptimeCheckId;
-export const serviceDownAlertName = serviceDownAlert.name;

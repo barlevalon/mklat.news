@@ -2,6 +2,11 @@
 
 [![CI/CD Pipeline](https://github.com/barlevalon/mklat.news/actions/workflows/ci.yml/badge.svg)](https://github.com/barlevalon/mklat.news/actions/workflows/ci.yml)
 
+> **🚧 SERVICE TEMPORARILY UNAVAILABLE**  
+> The production site at [mklat.news](https://mklat.news) is temporarily down due to API access restrictions from cloud providers.  
+> We're working on a mobile app solution. In the meantime, you can still **run the service locally** - it works perfectly from your local machine!  
+> See instructions below for local setup.
+
 > **⚠️ IMPORTANT DISCLAIMER**  
 > **This project is for educational and development purposes only. Do NOT use this as your primary source for emergency alerts. Always rely on official government channels and approved alert applications for life-safety information.**  
 > **Use the official Tzeva Adom app, OREF website, or other certified emergency systems for actual emergency notifications.**

@@ -12,13 +12,13 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: #fff;
             text-align: center;
             padding: 20px;
         }
@@ -27,16 +27,22 @@
             max-width: 600px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
+            border-radius: 15px;
             padding: 60px 40px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
         h1 {
             font-size: 3em;
             margin-bottom: 20px;
             font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        h1 .news-suffix {
+            font-weight: 600;
+            color: #fbbf24;
         }
         
         .subtitle {
@@ -53,10 +59,12 @@
         }
         
         .status {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .status h3 {
@@ -91,7 +99,7 @@
 <body>
     <div class="container">
         <div class="emoji">🚧</div>
-        <h1>mklat.news</h1>
+        <h1>mklat<span class="news-suffix">.news</span></h1>
         <div class="subtitle">האתר בפיתוח מחדש</div>
         
         <div class="status">
@@ -112,7 +120,7 @@
         </div>
         
         <div class="footer">
-            <p>תודה על הסבלנות 💜</p>
+            <p>תודה על הסבלנות 💛</p>
             <p>נחזור בקרוב חזקים יותר</p>
         </div>
     </div>

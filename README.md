@@ -1,17 +1,13 @@
 # mklat.news - חדשות והתרעות בזמן אמת
 
-[![CI/CD Pipeline](https://github.com/barlevalon/mklat.news/actions/workflows/ci.yml/badge.svg)](https://github.com/barlevalon/mklat.news/actions/workflows/ci.yml)
-
-> **🚧 SERVICE TEMPORARILY UNAVAILABLE**  
-> The production site at [mklat.news](https://mklat.news) is temporarily down due to API access restrictions from cloud providers.  
-> We're working on a mobile app solution. In the meantime, you can still **run the service locally** - it works perfectly from your local machine!  
-> See instructions below for local setup.
+> **🚧 MOBILE APP REWRITE IN PROGRESS**  
+> The web app is being replaced by a Flutter mobile app. The web app code remains in this repo for reference but is no longer maintained.  
+> See [`.agent/`](.agent/) for product specs and implementation plan.
 
 > **⚠️ IMPORTANT DISCLAIMER**  
-> **This project is for educational and development purposes only. Do NOT use this as your primary source for emergency alerts. Always rely on official government channels and approved alert applications for life-safety information.**  
-> **Use the official Tzeva Adom app, OREF website, or other certified emergency systems for actual emergency notifications.**
+> **This project is for educational and development purposes only. Do NOT use this as your primary source for emergency alerts. Always rely on official government channels and approved alert applications for life-safety information.**
 
-A real-time web application that aggregates Israeli news from multiple sources (Ynet, Maariv, Walla, Haaretz) and Homefront Command alerts with comprehensive historical data and location filtering.
+A "situation room" companion app for Israeli emergency alerts - the app you open *after* being alerted to check status, track the event lifecycle, and get news context.
 
 ![mklat.news Screenshot](mklat-news-screenshot.png)
 

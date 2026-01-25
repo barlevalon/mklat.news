@@ -1,0 +1,4 @@
+[tools]
+android-sdk = "20.0"
+flutter = "3.38.7-stable"
+yq = "4.50.1"

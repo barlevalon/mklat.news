@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 import 'data/services/http_client.dart';
 import 'data/services/oref_alerts_service.dart';
 import 'data/services/oref_districts_service.dart';
@@ -19,7 +20,8 @@ void main() {
 }
 
 class MklatApp extends StatefulWidget {
-  const MklatApp({super.key});
+  final http.Client? httpClient;
+  const MklatApp({super.key, this.httpClient});
 
   @override
   State<MklatApp> createState() => _MklatAppState();
@@ -41,7 +43,7 @@ class _MklatAppState extends State<MklatApp> with WidgetsBindingObserver {
   }
 
   void _initializeServices() {
-    _httpClient = HttpClient();
+    _httpClient = HttpClient(client: widget.httpClient);
     final alertsService = OrefAlertsService(_httpClient);
     final historyService = OrefHistoryService(_httpClient);
     final newsService = RssNewsService(_httpClient);

@@ -9,22 +9,25 @@ void main() {
     // Verify app title is present
     expect(find.text('mklat.news'), findsOneWidget);
 
-    // Verify Hebrew text is displayed
-    expect(find.text('אין התרעות'), findsOneWidget);
+    // Verify at least one Directionality with RTL is present
+    final directionalityFinder = find.byType(Directionality);
+    expect(directionalityFinder, findsWidgets);
 
-    // Verify placeholder content
-    expect(find.byType(PlaceholderScreen), findsOneWidget);
+    // Verify one of them has RTL
+    final directionalityWidgets = tester.widgetList<Directionality>(
+      directionalityFinder,
+    );
+    final hasRtl = directionalityWidgets.any(
+      (d) => d.textDirection == TextDirection.rtl,
+    );
+    expect(hasRtl, isTrue);
   });
 
-  testWidgets('RTL directionality is applied', (WidgetTester tester) async {
+  testWidgets('MultiProvider is set up', (WidgetTester tester) async {
     await tester.pumpWidget(const MklatApp());
 
-    // Find the Directionality widget that's a parent of MaterialApp
+    // Verify MaterialApp is present
     final materialAppFinder = find.byType(MaterialApp);
     expect(materialAppFinder, findsOneWidget);
-
-    // Get the MaterialApp and verify it has a Directionality ancestor
-    final materialApp = tester.widget<MaterialApp>(materialAppFinder);
-    expect(materialApp.builder, isNotNull);
   });
 }

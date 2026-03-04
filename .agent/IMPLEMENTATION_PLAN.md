@@ -90,12 +90,12 @@ Every task follows the red/green cycle: write a failing test first, then impleme
 ## Phase 3: State Management
 
 ### 3.1 Alert State Machine
-- [ ] Implement `AlertStateMachine` class with all 5 states
-- [ ] Implement transition logic driven by active alerts + history categories
-- [ ] Implement WAITING_CLEAR as absence-based state (was in RED_ALERT, alert dropped, no cat 13 yet)
-- [ ] WAITING_CLEAR has no auto-timeout — persists until clearance or user changes location
-- [ ] Implement timer tracking (alertStartTime, clearanceTime)
-- [ ] Implement location matching (exact match on OREF canonical names)
+- [x] Implement `AlertStateMachine` class with all 5 states
+- [x] Implement transition logic driven by active alerts + history categories
+- [x] Implement WAITING_CLEAR as absence-based state (was in RED_ALERT, alert dropped, no cat 13 yet)
+- [x] WAITING_CLEAR has no auto-timeout — persists until clearance or user changes location
+- [x] Implement timer tracking (alertStartTime, clearanceTime)
+- [x] Implement location matching (exact match on OREF canonical names)
 - **Spec**: `02-state-management.md`
 - **Acceptance**: State machine transitions correctly through all paths, unit tests pass (TDD). Must cover:
   - Full path: ALL_CLEAR → ALERT_IMMINENT → RED_ALERT → WAITING_CLEAR → JUST_CLEARED → ALL_CLEAR
@@ -107,32 +107,32 @@ Every task follows the red/green cycle: write a failing test first, then impleme
   - Location change resets to ALL_CLEAR from any state
 
 ### 3.2 Location State Provider
-- [ ] Create `LocationProvider` with SavedLocation CRUD
-- [ ] Implement primary location selection
-- [ ] Implement persistence to SharedPreferences
-- [ ] Load saved locations on app start
+- [x] Create `LocationProvider` with SavedLocation CRUD
+- [x] Implement primary location selection
+- [x] Implement persistence to SharedPreferences
+- [x] Load saved locations on app start
 - **Spec**: `02-state-management.md`, `05-location-management.md`
 - **Acceptance**: Locations persist across app restarts, CRUD operations work
 
 ### 3.3 Alerts Provider
-- [ ] Create `AlertsProvider` combining current and historical alerts
-- [ ] Integrate with polling manager
-- [ ] Implement filtering by saved locations
-- [ ] Compute nationwide vs user location counts
+- [x] Create `AlertsProvider` combining current and historical alerts
+- [x] Integrate with polling manager
+- [x] Implement filtering by saved locations
+- [x] Compute nationwide vs user location counts
 - **Spec**: `02-state-management.md`
 - **Acceptance**: Provider exposes filtered alerts, updates on poll
 
 ### 3.4 News Provider
-- [ ] Create `NewsProvider` for news items
-- [ ] Integrate with polling manager
-- [ ] Sort by publication date
+- [x] Create `NewsProvider` for news items
+- [x] Integrate with polling manager
+- [x] Sort by publication date
 - **Spec**: `02-state-management.md`
 - **Acceptance**: Provider exposes sorted news, updates on poll
 
 ### 3.5 Connectivity Provider
-- [ ] Create `ConnectivityProvider` for online/offline status
-- [ ] Monitor network changes
-- [ ] Expose isOffline state
+- [x] Create `ConnectivityProvider` for online/offline status
+- [x] Monitor network changes
+- [x] Expose isOffline state
 - **Spec**: `06-error-handling.md`
 - **Acceptance**: Provider correctly reflects network state
 

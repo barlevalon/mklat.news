@@ -21,7 +21,8 @@ void main() {
 
 class MklatApp extends StatefulWidget {
   final http.Client? httpClient;
-  const MklatApp({super.key, this.httpClient});
+  final ConnectivityProvider? connectivityProvider;
+  const MklatApp({super.key, this.httpClient, this.connectivityProvider});
 
   @override
   State<MklatApp> createState() => _MklatAppState();
@@ -58,7 +59,8 @@ class _MklatAppState extends State<MklatApp> with WidgetsBindingObserver {
     _locationProvider = LocationProvider();
     _alertsProvider = AlertsProvider();
     _newsProvider = NewsProvider();
-    _connectivityProvider = ConnectivityProvider();
+    _connectivityProvider =
+        widget.connectivityProvider ?? ConnectivityProvider();
 
     // Wire polling callbacks to providers
     _pollingManager.onAlertData = _alertsProvider.onAlertData;

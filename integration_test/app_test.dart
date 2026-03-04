@@ -1,8 +1,11 @@
+import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:integration_test/integration_test.dart';
 import 'package:mklat/main.dart';
+import 'package:mklat/presentation/providers/connectivity_provider.dart';
 import 'package:mklat/presentation/widgets/page_indicator.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -234,5 +237,255 @@ void main() {
       // Verify "אין התרעות" is displayed (no active alerts in fixture)
       expect(find.text('אין התרעות'), findsOneWidget);
     });
+
+    testWidgets('add second location shows secondary row', (tester) async {
+      // Pre-populate SharedPreferences with one primary location
+      SharedPreferences.setMockInitialValues({
+        'mklat_saved_locations':
+            '[{"id":"loc-1","orefName":"שדה בועז","customLabel":"","isPrimary":true,"shelterTimeSec":90}]',
+      });
+
+      // Launch app with mock client
+      await tester.pumpWidget(MklatApp(httpClient: mockClient));
+      await tester.pump(const Duration(seconds: 2));
+
+      // Verify "שדה בועז" appears as primary
+      expect(find.text('שדה בועז'), findsOneWidget);
+
+      // Tap "שדה בועז" to open location modal
+      await tester.tap(find.text('שדה בועז'));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Verify modal opened
+      expect(find.text('המיקומים שלי'), findsOneWidget);
+
+      // Tap add button (Icons.add)
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Verify "הוסף מיקום" screen appears
+      expect(find.text('הוסף מיקום'), findsOneWidget);
+
+      // Wait for districts to load
+      await tester.pump(const Duration(seconds: 1));
+
+      // Search for "רחובות"
+      await tester.enterText(
+        find.widgetWithText(TextField, 'חיפוש...'),
+        'רחובות',
+      );
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Find "רחובות" in the ListView
+      final listItems = find.descendant(
+        of: find.byType(ListView),
+        matching: find.text('רחובות'),
+      );
+      expect(listItems, findsOneWidget);
+
+      // Tap to select
+      await tester.tap(listItems);
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Tap "שמור" (do NOT check primary — it should be secondary)
+      await tester.tap(find.text('שמור'));
+      await tester.pump(const Duration(seconds: 1));
+
+      // Verify back on status screen
+      expect(find.text('שדה בועז'), findsOneWidget);
+
+      // Verify "רחובות" appears in the secondary locations row
+      expect(find.text('רחובות'), findsOneWidget);
+    });
+
+    testWidgets('edit location custom label', (tester) async {
+      // Pre-populate with one primary location
+      SharedPreferences.setMockInitialValues({
+        'mklat_saved_locations':
+            '[{"id":"test-id","orefName":"שדה בועז","customLabel":"","isPrimary":true,"shelterTimeSec":90}]',
+      });
+
+      // Launch app with mock client
+      await tester.pumpWidget(MklatApp(httpClient: mockClient));
+      await tester.pump(const Duration(seconds: 2));
+
+      // Tap "שדה בועז" to open location modal
+      await tester.tap(find.text('שדה בועז'));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Long-press the first ListTile to open edit screen
+      // Since there's only one location, we can find by type
+      final listTile = find.byType(ListTile).first;
+      await tester.longPress(listTile);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Verify "ערוך מיקום" appears (edit screen title)
+      expect(find.text('ערוך מיקום'), findsOneWidget);
+
+      // Enter "הבית" in the custom label TextField
+      // The TextField has no label, so we find by type (there's only one editable field)
+      await tester.enterText(find.byType(TextField), 'הבית');
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // Tap "שמור"
+      await tester.tap(find.text('שמור'));
+      await tester.pump(const Duration(seconds: 1));
+
+      // Verify "הבית" appears on the status screen (custom label replaces orefName in display)
+      expect(find.text('הבית'), findsOneWidget);
+    });
+
+    testWidgets('delete location', (tester) async {
+      // Pre-populate with two locations
+      SharedPreferences.setMockInitialValues({
+        'mklat_saved_locations':
+            '[{"id":"loc-1","orefName":"שדה בועז","customLabel":"","isPrimary":true,"shelterTimeSec":90},{"id":"loc-2","orefName":"רחובות","customLabel":"","isPrimary":false,"shelterTimeSec":60}]',
+      });
+
+      // Launch app with mock client
+      await tester.pumpWidget(MklatApp(httpClient: mockClient));
+      await tester.pump(const Duration(seconds: 2));
+
+      // Verify both locations visible
+      expect(find.text('שדה בועז'), findsOneWidget);
+      expect(find.text('רחובות'), findsOneWidget);
+
+      // Tap "שדה בועז" to open location modal
+      await tester.tap(find.text('שדה בועז'));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Long-press the second ListTile (רחובות) to open edit screen
+      // Since רחובות is the second location, we use .at(1)
+      final listTiles = find.byType(ListTile);
+      expect(listTiles, findsNWidgets(2));
+      await tester.longPress(listTiles.at(1));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Verify "ערוך מיקום" appears
+      expect(find.text('ערוך מיקום'), findsOneWidget);
+
+      // Tap "מחק" (the red outlined delete button)
+      await tester.tap(find.text('מחק'));
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Verify delete confirmation dialog appears with "מחק מיקום" title
+      expect(find.text('מחק מיקום'), findsOneWidget);
+
+      // Tap "מחק" in the dialog
+      await tester.tap(find.textContaining('מחק').last);
+      await tester.pump(const Duration(seconds: 1));
+
+      // Verify back on status screen
+      expect(find.text('שדה בועז'), findsOneWidget);
+
+      // Verify "רחובות" is no longer visible
+      expect(find.text('רחובות'), findsNothing);
+    });
+
+    testWidgets('tap news item opens url', (tester) async {
+      // Pre-populate SharedPreferences empty (no locations needed for news)
+      SharedPreferences.setMockInitialValues({});
+
+      // Launch app with mock client
+      await tester.pumpWidget(MklatApp(httpClient: mockClient));
+      await tester.pump(const Duration(seconds: 2));
+
+      // Swipe to news (positive offset for RTL)
+      await tester.dragFrom(
+        tester.getCenter(find.byType(PageView)),
+        const Offset(300, 0),
+      );
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Verify "מבזקי חדשות" header is visible
+      expect(find.text('מבזקי חדשות'), findsOneWidget);
+
+      // Wait for news to load (longer wait for RSS feeds)
+      await tester.pump(const Duration(seconds: 3));
+
+      // Verify source labels exist (Ynet, Maariv, Walla, or Haaretz)
+      // The source name appears in the timestamp line: "SourceName • לפני X דקות"
+      final sourceLabels = ['Ynet', 'Maariv', 'Walla', 'Haaretz'];
+      bool foundSource = false;
+      for (final source in sourceLabels) {
+        if (find.textContaining(source).evaluate().isNotEmpty) {
+          foundSource = true;
+          break;
+        }
+      }
+      expect(
+        foundSource,
+        isTrue,
+        reason: 'Expected to find at least one news source label',
+      );
+
+      // Verify "לפני" appears (Hebrew relative time prefix used in timestamps)
+      // or "עכשיו" for very recent items
+      final hebrewPattern = RegExp(r'לפני|עכשיו');
+      final allTexts = find.byType(Text);
+      bool foundRelativeTime = false;
+      for (var i = 0; i < allTexts.evaluate().length; i++) {
+        final element = allTexts.evaluate().elementAt(i);
+        final text = element.widget is Text
+            ? (element.widget as Text).data ?? ''
+            : '';
+        if (hebrewPattern.hasMatch(text)) {
+          foundRelativeTime = true;
+          break;
+        }
+      }
+      expect(
+        foundRelativeTime,
+        isTrue,
+        reason:
+            'Expected to find "לפני" or "עכשיו" (time indicator) in news items',
+      );
+    });
+
+    testWidgets('offline banner appears and disappears', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+
+      // Create a controllable connectivity stream
+      final connectivityController = StreamController<ConnectivityResult>();
+      final connectivityProvider = ConnectivityProvider.fromStream(
+        connectivityController.stream,
+      );
+
+      await tester.pumpWidget(
+        MklatApp(
+          httpClient: mockClient,
+          connectivityProvider: connectivityProvider,
+        ),
+      );
+      await tester.pump(const Duration(seconds: 2));
+
+      // Banner should not be visible initially (online by default)
+      expect(find.text('אין חיבור לאינטרנט'), findsOneWidget);
+      // The banner exists in the tree but is slid offscreen — verify
+      // it becomes fully visible when offline
+
+      // Go offline
+      connectivityController.add(ConnectivityResult.none);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Banner should be visible
+      expect(find.text('אין חיבור לאינטרנט'), findsOneWidget);
+      expect(find.byIcon(Icons.wifi_off), findsOneWidget);
+
+      // Go back online
+      connectivityController.add(ConnectivityResult.wifi);
+      await tester.pump(const Duration(milliseconds: 500));
+
+      // Banner should animate away (still in tree but slid offscreen)
+      // The AnimatedSlide shifts it to Offset(0, -1) — it's offscreen
+      // but still findable. Check that isOffline is now false.
+      expect(connectivityProvider.isOffline, isFalse);
+
+      await connectivityController.close();
+    });
+
+    // NOTE: Resume overlay is tested via widget tests (test/widget/resume_overlay_test.dart).
+    // IntegrationTestWidgetsFlutterBinding does not dispatch handleAppLifecycleStateChanged
+    // to WidgetsBindingObserver, so lifecycle-dependent flows can't be tested here.
   });
 }

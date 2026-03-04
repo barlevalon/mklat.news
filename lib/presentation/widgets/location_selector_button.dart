@@ -15,9 +15,8 @@ class LocationSelectorButton extends StatelessWidget {
         final primaryLocation = locationProvider.primaryLocation;
         final displayText = primaryLocation?.displayLabel ?? 'בחר אזור';
 
-        return InkWell(
+        return GestureDetector(
           onTap: onTap ?? () => showLocationManagementModal(context),
-          borderRadius: BorderRadius.circular(8),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(

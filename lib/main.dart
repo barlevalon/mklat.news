@@ -87,6 +87,7 @@ class _MklatAppState extends State<MklatApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
+        _alertsProvider.setResuming(true);
         _pollingManager.start();
         break;
       case AppLifecycleState.paused:

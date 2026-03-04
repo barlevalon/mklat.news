@@ -66,18 +66,18 @@ void main() {
 
     testWidgets('can swipe between pages', (WidgetTester tester) async {
       await tester.pumpWidget(buildTestWidget());
-      await tester.pumpAndSettle();
+      await tester.pump();
 
       // Initially on status screen
       expect(find.byType(StatusScreen), findsOneWidget);
 
       // Swipe left - should not throw
       await tester.drag(find.byType(PageView), const Offset(-300, 0));
-      await tester.pumpAndSettle();
+      await tester.pump();
 
       // Swipe right - should not throw
       await tester.drag(find.byType(PageView), const Offset(300, 0));
-      await tester.pumpAndSettle();
+      await tester.pump();
 
       // PageView should still exist
       expect(find.byType(PageView), findsOneWidget);
@@ -86,8 +86,8 @@ void main() {
     testWidgets('has SafeArea and Scaffold', (WidgetTester tester) async {
       await tester.pumpWidget(buildTestWidget());
 
-      // Should have SafeArea
-      expect(find.byType(SafeArea), findsOneWidget);
+      // Should have at least one SafeArea (main content + offline banner)
+      expect(find.byType(SafeArea), findsAtLeastNWidgets(1));
 
       // Should have Scaffold
       expect(find.byType(Scaffold), findsOneWidget);

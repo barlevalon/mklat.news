@@ -9,6 +9,7 @@ class AlertsProvider extends ChangeNotifier {
   List<Alert> _currentAlerts = [];
   List<Alert> _alertHistory = [];
   bool _isLoading = true;
+  bool _isResuming = false;
   String? _errorMessage;
   DateTime? _lastUpdated;
 
@@ -19,6 +20,7 @@ class AlertsProvider extends ChangeNotifier {
   List<Alert> get currentAlerts => List.unmodifiable(_currentAlerts);
   List<Alert> get alertHistory => List.unmodifiable(_alertHistory);
   bool get isLoading => _isLoading;
+  bool get isResuming => _isResuming;
   String? get errorMessage => _errorMessage;
   DateTime? get lastUpdated => _lastUpdated;
 
@@ -56,11 +58,18 @@ class AlertsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Set the resuming state. Called when app resumes from background.
+  void setResuming(bool value) {
+    _isResuming = value;
+    notifyListeners();
+  }
+
   /// Called by polling manager with fresh alert data.
   void onAlertData(List<Alert> current, List<Alert> history) {
     _currentAlerts = current;
     _alertHistory = history;
     _isLoading = false;
+    _isResuming = false; // Clear resume state on fresh data
     _errorMessage = null;
     _lastUpdated = DateTime.now();
 

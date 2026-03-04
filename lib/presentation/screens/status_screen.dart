@@ -4,6 +4,7 @@ import '../../data/models/alert.dart';
 import '../../domain/alert_state_machine.dart';
 import '../providers/alerts_provider.dart';
 import '../providers/location_provider.dart';
+import '../providers/connectivity_provider.dart';
 import '../widgets/primary_status_card.dart';
 import '../widgets/secondary_locations_row.dart';
 import '../widgets/nationwide_summary.dart';
@@ -46,75 +47,155 @@ class _StatusScreenState extends State<StatusScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<AlertsProvider, LocationProvider>(
-      builder: (context, alertsProvider, locationProvider, child) {
-        final hasLocations = locationProvider.locations.isNotEmpty;
-        final filteredAlerts = _getFilteredAlerts(
-          alertsProvider,
-          locationProvider,
-        );
-        final displayCount = filteredAlerts.length < _displayedItemCount
-            ? filteredAlerts.length
-            : _displayedItemCount;
-        final hasMore = filteredAlerts.length > displayCount;
+    return Consumer3<AlertsProvider, LocationProvider, ConnectivityProvider>(
+      builder:
+          (
+            context,
+            alertsProvider,
+            locationProvider,
+            connectivityProvider,
+            child,
+          ) {
+            final hasLocations = locationProvider.locations.isNotEmpty;
+            final isOffline = connectivityProvider.isOffline;
+            final filteredAlerts = _getFilteredAlerts(
+              alertsProvider,
+              locationProvider,
+            );
+            final displayCount = filteredAlerts.length < _displayedItemCount
+                ? filteredAlerts.length
+                : _displayedItemCount;
+            final hasMore = filteredAlerts.length > displayCount;
 
-        return Column(
-          children: [
-            // Primary status card with location selector
-            const PrimaryStatusCard(),
+            return Column(
+              children: [
+                // Primary status card with location selector
+                const PrimaryStatusCard(),
 
-            // Secondary locations row (if >1 saved location)
-            if (locationProvider.secondaryLocations.isNotEmpty)
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
-                child: SecondaryLocationsRow(),
-              ),
-
-            // Nationwide summary (if active alerts)
-            const NationwideSummary(),
-
-            // Recent alerts list header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Divider(color: Colors.grey.shade300, endIndent: 8),
+                // Error indicator (shown when there's an error)
+                if (alertsProvider.errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.warning_amber,
+                          size: 16,
+                          color: Colors.orange.shade600,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          alertsProvider.errorMessage!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.orange.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Text(
-                    'התרעות אחרונות',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: Colors.black54),
-                  ),
-                  Expanded(
-                    child: Divider(color: Colors.grey.shade300, indent: 8),
-                  ),
-                ],
-              ),
-            ),
 
-            // Alerts list (scrollable)
-            Expanded(
-              child: _buildAlertsList(
-                hasLocations,
-                filteredAlerts,
-                displayCount,
-                hasMore,
-              ),
-            ),
-          ],
-        );
-      },
+                // Secondary locations row (if >1 saved location)
+                if (locationProvider.secondaryLocations.isNotEmpty)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: SecondaryLocationsRow(),
+                  ),
+
+                // Nationwide summary (if active alerts)
+                const NationwideSummary(),
+
+                // Recent alerts list header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Divider(
+                          color: Colors.grey.shade300,
+                          endIndent: 8,
+                        ),
+                      ),
+                      Text(
+                        'התרעות אחרונות',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: Colors.black54),
+                      ),
+                      Expanded(
+                        child: Divider(color: Colors.grey.shade300, indent: 8),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Alerts list (scrollable) - handles loading, offline, and content states
+                Expanded(
+                  child: _buildAlertsList(
+                    hasLocations,
+                    isOffline,
+                    alertsProvider,
+                    filteredAlerts,
+                    displayCount,
+                    hasMore,
+                  ),
+                ),
+              ],
+            );
+          },
     );
   }
 
   Widget _buildAlertsList(
     bool hasLocations,
+    bool isOffline,
+    AlertsProvider alertsProvider,
     List<Alert> filteredAlerts,
     int displayCount,
     bool hasMore,
   ) {
+    // Offline state: show waiting message instead of cached data
+    if (isOffline) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.signal_wifi_off, size: 48, color: Colors.grey.shade400),
+            const SizedBox(height: 16),
+            Text(
+              'ממתין לחיבור לאינטרנט...',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: Colors.grey.shade600),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Loading state: show spinner when loading and no data yet
+    if (alertsProvider.isLoading && filteredAlerts.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text(
+              'טוען...',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: Colors.grey.shade600),
+            ),
+          ],
+        ),
+      );
+    }
+
     if (!hasLocations) {
       return Center(
         child: Column(

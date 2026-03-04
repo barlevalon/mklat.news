@@ -1,0 +1,15 @@
+HTTP/2 200 
+content-type: application/json
+last-modified: Wed, 04 Mar 2026 21:04:56 GMT
+etag: W/"3372388e1aacdc1:0"
+x-by: fe1
+access-control-allow-methods: GET, HEAD, OPTIONS
+strict-transport-security: max-age=31536000; includeSubDomains
+x-content-type-options: nosniff
+x-frame-options: ALLOW-FROM https://www.oref.org.il/heb/iframe
+x-xss-protection: 1; mode=block
+content-security-policy: default-src 'self';  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://cdnjs.cloudflare.com https://apis.google.com https://www.gstatic.com https://www.youtube.com https://www.google.com https://connect.facebook.net https://cdn.mxpnl.com https://www.clarity.ms https://cse.google.com/cse.js https://cse.google.com https://clients1.google.com https://partner.googleadservices.com https://www.adsensecustomsearchads.com;  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.google.com;  img-src 'self' data: https://www.google-analytics.com https://www.gstatic.com https://www.facebook.com https://c.clarity.ms https://www.google.co.il https://www.googletagmanager.com https://www.google.com https://clients1.google.com https://ssl.gstatic.com https://encrypted-tbn0.gstatic.com https://c.bing.com;  font-src 'self' https://fonts.gstatic.com;  connect-src 'self' https://www.google-analytics.com https://stats.g.doubleclick.net https://api.oref.org.il https://analytics.google.com https://q.clarity.ms https://api-js.mixpanel.com  https://v.clarity.ms https://r.clarity.ms https://e.clarity.ms https://w.clarity.ms https://api.oref.org.il;  frame-src 'self' https://www.youtube.com https://www.google.com  https://td.doubleclick.net https://alerts-history.oref.org.il https://experience.arcgis.com https://partner.googleadservices.com https://www.adsensecustomsearchads.com;  frame-ancestors 'self' https://www.oref.org.il;
+cache-control: max-age=3
+date: Wed, 04 Mar 2026 21:04:59 GMT
+content-length: 5
+

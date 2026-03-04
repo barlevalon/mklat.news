@@ -1,0 +1,25 @@
+HTTP/2 308 
+date: Wed, 04 Mar 2026 21:05:36 GMT
+server: cloudflare
+location: /rss/rssfeedsmivzakichadashot
+refresh: 0;url=/rss/rssfeedsmivzakichadashot
+via: 1.1 google
+x-cache-status: miss
+x-device-type: UNDETERMINED
+cf-cache-status: DYNAMIC
+cf-ray: 9d73d70a78087d95-TLV
+
+HTTP/2 200 
+date: Wed, 04 Mar 2026 21:05:36 GMT
+content-type: application/xml; charset=utf-8
+content-length: 22095
+server: cloudflare
+x-device-type: UNDETERMINED
+via: 1.1 google
+cache-control: public, max-age=150, stale-while-revalidate=60,public, max-age=20
+vary: RSC, Next-Router-State-Tree, Next-Router-Prefetch
+age: 21
+x-cache-status: hit
+cf-cache-status: DYNAMIC
+cf-ray: 9d73d70af8637d95-TLV
+

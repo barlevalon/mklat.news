@@ -1,0 +1,20 @@
+HTTP/2 200 
+x-envoy-upstream-service-time: 642
+content-type: text/xml;charset=UTF-8
+x-powered-by: Brightspot
+server: istio-envoy
+accept-ranges: bytes
+via: 1.1 varnish, 1.1 varnish
+age: 50
+set-cookie: ab-test-group=B; Domain=.haaretz.co.il; Path=/; Expires=Thu, 05 Mar 2026 21:05:07 GMT
+x-origin-status: 200, 200
+x-served-by: cache-ams2100133-AMS, cache-ams21083-AMS, cache-rtm-ehrd2290049-RTM
+x-cache: MISS, HIT, MISS
+x-cache-hits: 0, 3, 0
+x-timer: S1772658307.206528,VS0,VE3
+vary: Accept-Encoding
+set-cookie: anonymousId=17804343074137; Domain=.haaretz.co.il; Path=/; Expires=Thu, 08 Apr 2027 21:05:07 GMT
+set-cookie: ab-test-group=B; Domain=.haaretz.co.il; Path=/; Expires=Thu, 05 Mar 2026 21:05:07 GMT
+date: Wed, 04 Mar 2026 21:05:07 GMT
+content-length: 156022
+

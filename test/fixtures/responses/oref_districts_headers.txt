@@ -1,0 +1,8 @@
+HTTP/2 200 
+content-type: application/json; charset=UTF8
+last-modified: Wed, 04 Mar 2026 20:58:02 GMT
+x-by: fe1
+cache-control: public, max-age=180
+expires: Wed, 04 Mar 2026 21:08:02 GMT
+date: Wed, 04 Mar 2026 21:05:02 GMT
+

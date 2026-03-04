@@ -67,11 +67,10 @@ void main() {
       final citiesJson = '''
         [
           {
-            "label": "אבו גוש|Abu Ghosh",
-            "value": "6657AD46BF8FA430B022FF282B7A804B",
+            "label": "אבו גוש | אזור שפלת יהודה",
+            "cityAlId": "6657AD46BF8FA430B022FF282B7A804B",
             "id": "511",
-            "areaid": 5,
-            "areaname": "בית שמש"
+            "areaid": 5
           }
         ]
       ''';
@@ -98,6 +97,7 @@ void main() {
 
       expect(result.length, 1);
       expect(result[0].name, 'אבו גוש');
+      expect(result[0].areaName, 'אזור שפלת יהודה');
       expect(result[0].shelterTimeSec, null); // Fallback has no shelter time
     });
 
@@ -172,7 +172,7 @@ void main() {
 
     test('empty Districts response falls back to cities', () async {
       final citiesJson =
-          '[{"label":"Test|Test","value":"v","id":"1","areaid":1,"areaname":"Area"}]';
+          '[{"label":"Test | Area","cityAlId":"V1","id":"1","areaid":1}]';
 
       when(
         mockHttpClient.get(

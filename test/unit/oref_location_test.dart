@@ -255,25 +255,38 @@ void main() {
   group('OrefLocation.fromCitiesFallback', () {
     test('extracts Hebrew name from pipe-separated label', () {
       final json = {
-        'label': 'אבו גוש|Abu Ghosh|أبو غوش',
-        'value': '6657AD46BF8FA430B022FF282B7A804B',
+        'label': 'אבו גוש | אזור שפלת יהודה',
+        'cityAlId': '6657AD46BF8FA430B022FF282B7A804B',
         'id': '511',
         'areaid': 5,
-        'areaname': 'בית שמש',
       };
 
       final location = OrefLocation.fromCitiesFallback(json);
 
       expect(location.name, 'אבו גוש');
+      expect(location.areaName, 'אזור שפלת יהודה');
+    });
+
+    test('handles label without pipe separator', () {
+      final json = {
+        'label': 'אזור תעשייה שחורת',
+        'cityAlId': '124FC5752F86660B7458D50DCE51AE40',
+        'id': '10',
+        'areaid': 1,
+      };
+
+      final location = OrefLocation.fromCitiesFallback(json);
+
+      expect(location.name, 'אזור תעשייה שחורת');
+      expect(location.areaName, '');
     });
 
     test('maps all fields correctly', () {
       final json = {
-        'label': 'תל אביב|Tel Aviv',
-        'value': 'abc123',
+        'label': 'תל אביב | תל אביב יפו',
+        'cityAlId': 'abc123',
         'id': '123',
         'areaid': 5,
-        'areaname': 'תל אביב',
       };
 
       final location = OrefLocation.fromCitiesFallback(json);
@@ -282,16 +295,15 @@ void main() {
       expect(location.id, '123');
       expect(location.hashId, 'abc123');
       expect(location.areaId, 5);
-      expect(location.areaName, 'תל אביב');
+      expect(location.areaName, 'תל אביב יפו');
     });
 
     test('shelterTimeSec is always null for cities fallback', () {
       final json = {
         'label': 'Test',
-        'value': 'hash123',
+        'cityAlId': 'hash123',
         'id': '1',
         'areaid': 1,
-        'areaname': 'Area',
       };
 
       final location = OrefLocation.fromCitiesFallback(json);
@@ -302,10 +314,9 @@ void main() {
     test('handles id as int', () {
       final json = {
         'label': 'Test',
-        'value': 'hash123',
+        'cityAlId': 'hash123',
         'id': 999,
         'areaid': 1,
-        'areaname': 'Area',
       };
 
       final location = OrefLocation.fromCitiesFallback(json);

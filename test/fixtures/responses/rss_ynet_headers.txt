@@ -1,0 +1,14 @@
+HTTP/2 200 
+content-type: application/xml
+x-frame-options: SAMEORIGIN
+osv: c8
+last-modified: Wed, 04 Mar 2026 21:00:00 GMT
+vx-cache: HIT
+wai: 01
+v-ttl: 45
+backend-cache-control: s-maxage=300
+cache-control: private, max-age=28
+expires: Wed, 04 Mar 2026 21:05:31 GMT
+date: Wed, 04 Mar 2026 21:05:03 GMT
+content-length: 18949
+

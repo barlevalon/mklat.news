@@ -55,13 +55,15 @@ class OrefLocation {
   /// Creates an OrefLocation from a cities_heb.json fallback entry.
   factory OrefLocation.fromCitiesFallback(Map<String, dynamic> json) {
     final label = json['label'].toString();
-    final hebrewName = label.split('|').first;
+    final parts = label.split('|');
+    final hebrewName = parts.first.trim();
+    final areaName = parts.length > 1 ? parts[1].trim() : '';
     return OrefLocation(
       name: hebrewName,
       id: json['id'].toString(),
-      hashId: json['value'] as String,
+      hashId: json['cityAlId'] as String,
       areaId: json['areaid'] as int,
-      areaName: json['areaname'] as String,
+      areaName: areaName,
       shelterTimeSec: null,
     );
   }

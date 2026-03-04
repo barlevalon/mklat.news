@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../core/app_constants.dart';
 
@@ -37,7 +38,11 @@ class HttpClient {
       );
     }
 
-    return _stripBom(response.body);
+    // Always decode as UTF-8 from raw bytes. The http package's response.body
+    // uses the charset from Content-Type, defaulting to Latin-1 when absent.
+    // Many servers (e.g., Ynet RSS) omit charset despite serving UTF-8,
+    // causing Hebrew to be mangled if we rely on response.body.
+    return _stripBom(utf8.decode(response.bodyBytes, allowMalformed: true));
   }
 
   /// Strip UTF-8 BOM (\xEF\xBB\xBF or \uFEFF) from the start of a string.

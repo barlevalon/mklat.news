@@ -236,6 +236,30 @@ Every task follows the red/green cycle: write a failing test first, then impleme
 
 ---
 
+## Phase 5.5: Testing Infrastructure
+
+### 5.5.1 Fixture-Based Integration Tests
+- [x] Capture real HTTP response bytes from all OREF and RSS endpoints
+- [x] Create fixture helper to load responses as `http.Response.bytes()`
+- [x] Write encoding regression tests (UTF-8 without charset, BOM handling)
+- [x] Write OREF alerts/history/districts fixture tests
+- [x] Write RSS fixture tests for all 4 feeds (Hebrew validation, mojibake checks)
+- [x] Fix `OrefLocation.fromCitiesFallback` bug (wrong field names: `value`→`cityAlId`, missing `areaname`)
+- **Acceptance**: All fixture tests pass, encoding pipeline verified against real production data
+
+### 5.5.2 Flutter Integration Tests (Emulator)
+- [x] Add hexagonal architecture: `MklatApp` accepts optional `http.Client`
+- [x] Generate test fixture byte constants for device-side testing
+- [x] Implement 4 critical user flow tests:
+  - App launch with empty state
+  - Add location flow (search, select, set primary, save)
+  - Swipe to news screen
+  - Status screen with pre-populated location
+- [x] Create Makefile with `check`, `test-all`, `test-unit`, `test-integration`, `emulator` targets
+- **Acceptance**: All 4 integration tests pass on emulator, `make check` runs full validation
+
+---
+
 ## Phase 6: Error Handling & Polish
 
 ### 6.1 Offline Banner

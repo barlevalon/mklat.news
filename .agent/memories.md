@@ -15,6 +15,32 @@
 - **Tzeva Adom fallback** (`api.tzevaadom.co.il/notifications`) returns `[]` — functional but possibly less reliable.
 - **Alert translations** endpoint exists at `/alerts/alertsTranslation.json` — maps catId to multilingual text. Useful for future i18n.
 
+## HTTP encoding (2026-03-04)
+
+- Dart's `http` package defaults to Latin-1 when Content-Type omits charset. OREF Alerts, History, and Ynet RSS all omit charset — causes mojibake on Hebrew text.
+- Fix: always use `utf8.decode(response.bodyBytes, allowMalformed: true)` instead of `response.body`.
+- OREF Alerts response has BOM (EF BB BF) — must strip before JSON parsing.
+- OREF Districts uses non-standard `charset=UTF8` (missing hyphen) — works fine since we decode from bytes.
+- Cities fallback (`cities_heb.json`) uses `\uXXXX` Unicode escapes in JSON, not raw UTF-8 bytes.
+
+## Cities fallback API format (2026-03-04)
+
+- Real field names: `cityAlId` (not `value`), `areaid`, `id`, `label`, `rashut`, `color`
+- No `areaname` field — area is embedded in `label` after `|` separator: `"אבו גוש | אזור שפלת יהודה"`
+- Some entries have no `|` separator (e.g., `"אזור תעשייה שחורת"`)
+
+## Testing (2026-03-04)
+
+- Unit tests that mock our `HttpClient` miss encoding bugs — they bypass the bytes→string decode pipeline.
+- Fixture-based tests (mock `http.Client`, feed real response bytes) catch what unit tests miss.
+- Integration tests on emulator: use `tester.pump(Duration)` not `pumpAndSettle()` — polling timers prevent settling.
+- SharedPreferences key is `mklat_saved_locations` (not `saved_locations`).
+- RTL PageView: positive drag offset (`Offset(300, 0)`) swipes to next page.
+- `adb shell input text` does NOT support Hebrew — use integration test framework for Hebrew input testing.
+
 ## Development practices
 
 - Red/green TDD for all implementation. Write failing test first, then minimum code to pass, then refactor.
+- All new work must pass `make check` (format + analyze + unit tests + integration tests) before committing.
+- When adding new API endpoints: capture real response with curl, add fixture-based integration test.
+- When adding new screens/flows: add an integration test for the happy path.

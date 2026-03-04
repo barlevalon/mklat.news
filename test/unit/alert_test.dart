@@ -101,6 +101,7 @@ void main() {
         id: 'test-123',
         location: 'תל אביב - מרכז',
         title: 'ירי רקטות וטילים',
+        desc: 'היכנסו למרחב המוגן',
         time: testTime,
         category: 1,
       );
@@ -109,6 +110,7 @@ void main() {
       expect(json['id'], 'test-123');
       expect(json['location'], 'תל אביב - מרכז');
       expect(json['title'], 'ירי רקטות וטילים');
+      expect(json['desc'], 'היכנסו למרחב המוגן');
       expect(json['category'], 1);
       expect(json['time'], testTime.toIso8601String());
 
@@ -116,6 +118,7 @@ void main() {
       expect(fromJson.id, alert.id);
       expect(fromJson.location, alert.location);
       expect(fromJson.title, alert.title);
+      expect(fromJson.desc, alert.desc);
       expect(fromJson.category, alert.category);
       expect(fromJson.time, alert.time);
     });
@@ -147,6 +150,191 @@ void main() {
 
       expect(alert1 == alert2, true); // Same id, location, time
       expect(alert1 == alert3, false); // Different id
+    });
+  });
+
+  group('Alert.fromOrefActive', () {
+    test('maps basic Alerts.json format correctly', () {
+      final alertJson = {
+        'id': '133721700000000000',
+        'cat': 1,
+        'title': 'ירי רקטות וטילים',
+        'desc': 'היכנסו למרחב המוגן',
+        'data': ['תל אביב - מרכז העיר', 'חיפה - מערב'],
+      };
+
+      final alert = Alert.fromOrefActive(alertJson, 'תל אביב - מרכז העיר');
+
+      expect(alert.location, 'תל אביב - מרכז העיר');
+      expect(alert.title, 'ירי רקטות וטילים');
+      expect(alert.category, 1);
+    });
+
+    test('cat field maps to category', () {
+      final alertJson = {
+        'id': '123',
+        'cat': 2,
+        'title': 'חדירת כלי טיס עוין',
+        'data': ['Location'],
+      };
+
+      final alert = Alert.fromOrefActive(alertJson, 'Location');
+
+      expect(alert.category, 2);
+      expect(alert.type, AlertCategory.uav);
+    });
+
+    test('desc field is captured', () {
+      final alertJson = {
+        'id': '123',
+        'cat': 1,
+        'title': 'ירי רקטות וטילים',
+        'desc': 'היכנסו למרחב המוגן',
+        'data': ['Location'],
+      };
+
+      final alert = Alert.fromOrefActive(alertJson, 'Location');
+
+      expect(alert.desc, 'היכנסו למרחב המוגן');
+    });
+
+    test('desc can be null', () {
+      final alertJson = {
+        'id': '123',
+        'cat': 1,
+        'title': 'ירי רקטות וטילים',
+        'data': ['Location'],
+      };
+
+      final alert = Alert.fromOrefActive(alertJson, 'Location');
+
+      expect(alert.desc, null);
+    });
+
+    test('time is set to DateTime.now()', () {
+      final alertJson = {
+        'id': '123',
+        'cat': 1,
+        'title': 'ירי רקטות וטילים',
+        'data': ['Location'],
+      };
+
+      final before = DateTime.now();
+      final alert = Alert.fromOrefActive(alertJson, 'Location');
+      final after = DateTime.now();
+
+      expect(
+        alert.time.isAfter(before) || alert.time.isAtSameMomentAs(before),
+        true,
+      );
+      expect(
+        alert.time.isBefore(after) || alert.time.isAtSameMomentAs(after),
+        true,
+      );
+    });
+
+    test('ID synthesis is unique per location', () {
+      final alertJson = {
+        'id': '133721700000000000',
+        'cat': 1,
+        'title': 'ירי רקטות וטילים',
+        'data': ['תל אביב - מרכז העיר', 'חיפה - מערב'],
+      };
+
+      final alert1 = Alert.fromOrefActive(alertJson, 'תל אביב - מרכז העיר');
+      final alert2 = Alert.fromOrefActive(alertJson, 'חיפה - מערב');
+
+      expect(alert1.id, isNot(equals(alert2.id)));
+      expect(alert1.id, contains('133721700000000000'));
+      expect(alert2.id, contains('133721700000000000'));
+    });
+  });
+
+  group('Alert.fromOrefHistory', () {
+    test('maps basic AlertsHistory.json format correctly', () {
+      final json = {
+        'alertDate': '2026-03-04 14:09:32',
+        'title': 'ירי רקטות וטילים',
+        'data': 'גבעת הראל',
+        'category': 1,
+      };
+
+      final alert = Alert.fromOrefHistory(json);
+
+      expect(alert.location, 'גבעת הראל');
+      expect(alert.title, 'ירי רקטות וטילים');
+      expect(alert.category, 1);
+    });
+
+    test('alertDate is parsed correctly', () {
+      final json = {
+        'alertDate': '2026-03-04 14:09:32',
+        'title': 'ירי רקטות וטילים',
+        'data': 'Location',
+        'category': 1,
+      };
+
+      final alert = Alert.fromOrefHistory(json);
+
+      expect(alert.time.year, 2026);
+      expect(alert.time.month, 3);
+      expect(alert.time.day, 4);
+      expect(alert.time.hour, 14);
+      expect(alert.time.minute, 9);
+      expect(alert.time.second, 32);
+    });
+
+    test('data string maps to location', () {
+      final json = {
+        'alertDate': '2026-03-04 14:09:32',
+        'title': 'ירי רקטות וטילים',
+        'data': 'גבעת הראל',
+        'category': 1,
+      };
+
+      final alert = Alert.fromOrefHistory(json);
+
+      expect(alert.location, 'גבעת הראל');
+    });
+
+    test('category maps correctly', () {
+      final json = {
+        'alertDate': '2026-03-04 14:09:32',
+        'title': 'חדירת כלי טיס עוין',
+        'data': 'Location',
+        'category': 2,
+      };
+
+      final alert = Alert.fromOrefHistory(json);
+
+      expect(alert.category, 2);
+      expect(alert.type, AlertCategory.uav);
+    });
+
+    test('ID is synthesized from alertDate and data', () {
+      final json = {
+        'alertDate': '2026-03-04 14:09:32',
+        'title': 'ירי רקטות וטילים',
+        'data': 'גבעת הראל',
+        'category': 1,
+      };
+
+      final alert = Alert.fromOrefHistory(json);
+
+      expect(alert.id, '2026-03-04 14:09:32_גבעת הראל');
+    });
+
+    test('desc is null for history entries', () {
+      final json = {
+        'alertDate': '2026-03-04 14:09:32',
+        'title': 'ירי רקטות וטילים',
+        'data': 'Location',
+        'category': 1,
+      };
+
+      final alert = Alert.fromOrefHistory(json);
+
+      expect(alert.desc, null);
     });
   });
 }

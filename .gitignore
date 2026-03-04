@@ -50,3 +50,39 @@ key.json
 AGENT.md
 AGENTS.md
 CLAUDE.md
+
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+build/
+.metadata
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+
+# Platform-specific generated code
+android/.gradle/
+android/local.properties
+android/app/debug/
+android/app/profile/
+android/app/release/
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Runner.xcworkspace/
+macos/Flutter/GeneratedPluginRegistrant.swift
+linux/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
+
+# Pubspec lock - include for apps (not libraries)
+# pubspec.lock
+
+# Miscellaneous
+*.iml

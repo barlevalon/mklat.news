@@ -40,6 +40,32 @@ class OrefLocation {
     );
   }
 
+  /// Creates an OrefLocation from a GetDistricts.aspx response entry.
+  factory OrefLocation.fromDistricts(Map<String, dynamic> json) {
+    return OrefLocation(
+      name: (json['label_he'] ?? json['label']) as String,
+      id: json['id'].toString(),
+      hashId: json['value'] as String,
+      areaId: json['areaid'] as int,
+      areaName: json['areaname'] as String,
+      shelterTimeSec: json['migun_time'] as int?,
+    );
+  }
+
+  /// Creates an OrefLocation from a cities_heb.json fallback entry.
+  factory OrefLocation.fromCitiesFallback(Map<String, dynamic> json) {
+    final label = json['label'].toString();
+    final hebrewName = label.split('|').first;
+    return OrefLocation(
+      name: hebrewName,
+      id: json['id'].toString(),
+      hashId: json['value'] as String,
+      areaId: json['areaid'] as int,
+      areaName: json['areaname'] as String,
+      shelterTimeSec: null,
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'name': name,
@@ -55,13 +81,18 @@ class OrefLocation {
   String? get shelterTimeDisplay {
     if (shelterTimeSec == null) return null;
     if (shelterTimeSec == 0) return 'מיידי';
-    if (shelterTimeSec! >= 60) {
+    if (shelterTimeSec! < 60) return '$shelterTimeSec שניות';
+    if (shelterTimeSec == 60) return 'דקה';
+    if (shelterTimeSec == 90) return 'דקה וחצי';
+    if (shelterTimeSec! >= 120) {
       final minutes = shelterTimeSec! ~/ 60;
-      final seconds = shelterTimeSec! % 60;
-      if (seconds == 0) return '$minutes דקות';
-      return '$minutes:${seconds.toString().padLeft(2, '0')} דקות';
+      return '$minutes דקות';
     }
-    return '$shelterTimeSec שניות';
+    // Fallback for other values (unlikely given OREF data: 0, 15, 30, 45, 60, 90)
+    final minutes = shelterTimeSec! ~/ 60;
+    final seconds = shelterTimeSec! % 60;
+    if (seconds == 0) return '$minutes דקות';
+    return '$minutes:${seconds.toString().padLeft(2, '0')} דקות';
   }
 
   @override

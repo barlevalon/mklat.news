@@ -92,6 +92,9 @@ class Alert {
   /// Alert type title in Hebrew
   final String title;
 
+  /// Instruction text from OREF (e.g., "היכנסו למרחב המוגן")
+  final String? desc;
+
   /// Timestamp of the alert
   final DateTime time;
 
@@ -105,6 +108,7 @@ class Alert {
     required this.id,
     required this.location,
     required this.title,
+    this.desc,
     required this.time,
     required this.category,
   });
@@ -114,6 +118,7 @@ class Alert {
       id: json['id'] as String,
       location: json['location'] as String,
       title: json['title'] as String,
+      desc: json['desc'] as String?,
       time: DateTime.parse(json['time'] as String),
       category: json['category'] as int,
     );
@@ -124,9 +129,38 @@ class Alert {
       'id': id,
       'location': location,
       'title': title,
+      'desc': desc,
       'time': time.toIso8601String(),
       'category': category,
     };
+  }
+
+  /// Creates an Alert from an OREF Alerts.json entry for a specific location.
+  /// The caller iterates over the `data` array and calls this once per location.
+  factory Alert.fromOrefActive(
+    Map<String, dynamic> alertJson,
+    String locationName,
+  ) {
+    return Alert(
+      id: '${alertJson['id']}_${locationName.hashCode}',
+      location: locationName,
+      title: alertJson['title'] as String,
+      desc: alertJson['desc'] as String?,
+      time: DateTime.now(),
+      category: alertJson['cat'] as int,
+    );
+  }
+
+  /// Creates an Alert from an OREF AlertsHistory.json array entry.
+  factory Alert.fromOrefHistory(Map<String, dynamic> json) {
+    return Alert(
+      id: '${json['alertDate']}_${json['data']}',
+      location: json['data'] as String,
+      title: json['title'] as String,
+      desc: null,
+      time: DateTime.parse(json['alertDate'] as String),
+      category: json['category'] as int,
+    );
   }
 
   @override
@@ -144,5 +178,5 @@ class Alert {
   @override
   String toString() =>
       'Alert(id: $id, location: $location, title: $title, '
-      'category: $category, time: $time)';
+      'desc: $desc, category: $category, time: $time)';
 }

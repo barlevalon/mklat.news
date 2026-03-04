@@ -62,7 +62,7 @@ void main() {
         areaName: 'Area',
         shelterTimeSec: 60,
       );
-      expect(oneMinute.shelterTimeDisplay, '1 דקות');
+      expect(oneMinute.shelterTimeDisplay, 'דקה');
 
       final ninetySec = OrefLocation(
         name: 'D',
@@ -72,7 +72,17 @@ void main() {
         areaName: 'Area',
         shelterTimeSec: 90,
       );
-      expect(ninetySec.shelterTimeDisplay, '1:30 דקות');
+      expect(ninetySec.shelterTimeDisplay, 'דקה וחצי');
+
+      final twoMinutes = OrefLocation(
+        name: 'E',
+        id: '5',
+        hashId: 'h5',
+        areaId: 1,
+        areaName: 'Area',
+        shelterTimeSec: 120,
+      );
+      expect(twoMinutes.shelterTimeDisplay, '2 דקות');
     });
 
     test('shelterTimeDisplay returns null when shelterTimeSec is null', () {
@@ -141,6 +151,166 @@ void main() {
 
       expect(loc1 == loc2, true); // Same hashId
       expect(loc1 == loc3, false); // Different hashId
+    });
+  });
+
+  group('OrefLocation.fromDistricts', () {
+    test('maps complete Districts JSON entry correctly', () {
+      final json = {
+        'label': 'אבו גוש',
+        'value': '6657AD46BF8FA430B022FF282B7A804B',
+        'id': '511',
+        'areaid': 5,
+        'areaname': 'בית שמש',
+        'label_he': 'אבו גוש',
+        'migun_time': 90,
+      };
+
+      final location = OrefLocation.fromDistricts(json);
+
+      expect(location.name, 'אבו גוש');
+      expect(location.id, '511');
+      expect(location.hashId, '6657AD46BF8FA430B022FF282B7A804B');
+      expect(location.areaId, 5);
+      expect(location.areaName, 'בית שמש');
+      expect(location.shelterTimeSec, 90);
+    });
+
+    test('label_he takes precedence over label for name', () {
+      final json = {
+        'label': 'Abu Ghosh',
+        'value': 'hash123',
+        'id': '511',
+        'areaid': 5,
+        'areaname': 'בית שמש',
+        'label_he': 'אבו גוש',
+        'migun_time': 60,
+      };
+
+      final location = OrefLocation.fromDistricts(json);
+
+      expect(location.name, 'אבו גוש');
+    });
+
+    test('falls back to label when label_he is missing', () {
+      final json = {
+        'label': 'Abu Ghosh',
+        'value': 'hash123',
+        'id': '511',
+        'areaid': 5,
+        'areaname': 'בית שמש',
+        'migun_time': 60,
+      };
+
+      final location = OrefLocation.fromDistricts(json);
+
+      expect(location.name, 'Abu Ghosh');
+    });
+
+    test('handles id as int', () {
+      final json = {
+        'label': 'Test',
+        'value': 'hash123',
+        'id': 511,
+        'areaid': 5,
+        'areaname': 'Area',
+        'migun_time': 60,
+      };
+
+      final location = OrefLocation.fromDistricts(json);
+
+      expect(location.id, '511');
+    });
+
+    test('handles id as string', () {
+      final json = {
+        'label': 'Test',
+        'value': 'hash123',
+        'id': '511',
+        'areaid': 5,
+        'areaname': 'Area',
+        'migun_time': 60,
+      };
+
+      final location = OrefLocation.fromDistricts(json);
+
+      expect(location.id, '511');
+    });
+
+    test('handles null migun_time', () {
+      final json = {
+        'label': 'Test',
+        'value': 'hash123',
+        'id': '511',
+        'areaid': 5,
+        'areaname': 'Area',
+      };
+
+      final location = OrefLocation.fromDistricts(json);
+
+      expect(location.shelterTimeSec, null);
+    });
+  });
+
+  group('OrefLocation.fromCitiesFallback', () {
+    test('extracts Hebrew name from pipe-separated label', () {
+      final json = {
+        'label': 'אבו גוש|Abu Ghosh|أبو غوش',
+        'value': '6657AD46BF8FA430B022FF282B7A804B',
+        'id': '511',
+        'areaid': 5,
+        'areaname': 'בית שמש',
+      };
+
+      final location = OrefLocation.fromCitiesFallback(json);
+
+      expect(location.name, 'אבו גוש');
+    });
+
+    test('maps all fields correctly', () {
+      final json = {
+        'label': 'תל אביב|Tel Aviv',
+        'value': 'abc123',
+        'id': '123',
+        'areaid': 5,
+        'areaname': 'תל אביב',
+      };
+
+      final location = OrefLocation.fromCitiesFallback(json);
+
+      expect(location.name, 'תל אביב');
+      expect(location.id, '123');
+      expect(location.hashId, 'abc123');
+      expect(location.areaId, 5);
+      expect(location.areaName, 'תל אביב');
+    });
+
+    test('shelterTimeSec is always null for cities fallback', () {
+      final json = {
+        'label': 'Test',
+        'value': 'hash123',
+        'id': '1',
+        'areaid': 1,
+        'areaname': 'Area',
+      };
+
+      final location = OrefLocation.fromCitiesFallback(json);
+
+      expect(location.shelterTimeSec, null);
+    });
+
+    test('handles id as int', () {
+      final json = {
+        'label': 'Test',
+        'value': 'hash123',
+        'id': 999,
+        'areaid': 1,
+        'areaname': 'Area',
+      };
+
+      final location = OrefLocation.fromCitiesFallback(json);
+
+      expect(location.id, '999');
     });
   });
 }

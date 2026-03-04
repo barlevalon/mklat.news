@@ -159,3 +159,19 @@ Full VoiceOver/TalkBack support, dynamic font sizing.
 
 ### Complexity
 Medium. Requires testing with actual assistive technologies.
+
+---
+
+## Deep Linking
+
+### Description
+Handle `mklat://` URL scheme to pre-select locations or navigate to specific screens.
+
+### Requirements (When Prioritized)
+- Configure deep link handling for `mklat://` scheme
+- Handle `mklat://location/{name}` to pre-select location
+- Test on both platforms
+- Handle edge cases: location not found, app not running
+
+### Complexity
+Medium. Platform-specific URL scheme configuration, navigation handling.

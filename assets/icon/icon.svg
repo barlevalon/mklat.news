@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- White background -->
+  <rect width="1024" height="1024" rx="224" fill="#FFFFFF"/>
+  
+  <!-- Shield shape - red-orange gradient -->
+  <defs>
+    <linearGradient id="shieldGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FF4D2A"/>
+      <stop offset="100%" stop-color="#D63B1A"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Shield body -->
+  <path d="M512 120 
+           C512 120 260 180 200 200 
+           C200 200 190 550 512 880 
+           C834 550 824 200 824 200 
+           C764 180 512 120 512 120 Z" 
+        fill="url(#shieldGrad)"/>
+  
+  <!-- Siren/alert icon inside shield - white -->
+  <!-- Siren dome -->
+  <ellipse cx="512" cy="420" rx="120" ry="80" fill="#FFFFFF" opacity="0.95"/>
+  <!-- Siren body -->
+  <rect x="462" y="420" width="100" height="140" rx="10" fill="#FFFFFF" opacity="0.95"/>
+  <!-- Siren base -->
+  <rect x="422" y="550" width="180" height="30" rx="15" fill="#FFFFFF" opacity="0.95"/>
+  
+  <!-- Alert waves left -->
+  <path d="M340 380 C320 420 320 460 340 500" 
+        stroke="#FFFFFF" stroke-width="18" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M290 350 C260 410 260 490 290 540" 
+        stroke="#FFFFFF" stroke-width="18" fill="none" stroke-linecap="round" opacity="0.5"/>
+  
+  <!-- Alert waves right -->
+  <path d="M684 380 C704 420 704 460 684 500" 
+        stroke="#FFFFFF" stroke-width="18" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M734 350 C764 410 764 490 734 540" 
+        stroke="#FFFFFF" stroke-width="18" fill="none" stroke-linecap="round" opacity="0.5"/>
+  
+  <!-- Small star/exclamation on top -->
+  <circle cx="512" cy="340" r="20" fill="#FFFFFF"/>
+  <rect x="505" y="360" width="14" height="40" rx="7" fill="#FFFFFF"/>
+</svg>

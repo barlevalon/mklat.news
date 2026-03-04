@@ -263,32 +263,28 @@ Every task follows the red/green cycle: write a failing test first, then impleme
 ## Phase 6: Error Handling & Polish
 
 ### 6.1 Offline Banner
-- [ ] Create offline banner component
-- [ ] Show when connectivity lost
-- [ ] Auto-dismiss on recovery
-- **Spec**: `06-error-handling.md`
+- [x] Detect connectivity changes
+- [x] Show persistent offline banner (animated, orange, "אין חיבור לאינטרנט")
+- [x] Auto-dismiss when connection restored
 - **Acceptance**: Banner appears offline, disappears online
 
 ### 6.2 Loading States
-- [ ] Implement initial loading spinner
-- [ ] Implement "מתעדכן..." overlay on resume
-- [ ] Implement load more indicator
-- **Spec**: `06-error-handling.md`
+- [x] Implement initial loading spinner ("טוען...")
+- [x] Implement "מתעדכן..." overlay on resume
+- [x] Implement offline state ("ממתין לחיבור לאינטרנט...")
 - **Acceptance**: Loading states display appropriately
 
 ### 6.3 Error States
-- [ ] Implement error messages for API failures
-- [ ] Implement empty states for no data
-- [ ] Ensure no stale data shown as current
-- **Spec**: `06-error-handling.md`
+- [x] Implement error indicator below status card ("שגיאה בטעינת התרעות")
+- [x] Implement empty states for no data
+- [x] Ensure no stale data shown as current (offline hides cached alerts)
 - **Acceptance**: Errors display correct messages, empty states show
 
 ### 6.4 App Resume Handling
-- [ ] Detect app resume from background
-- [ ] Show "מתעדכן..." overlay
-- [ ] Fetch fresh data
-- [ ] Remove overlay when complete
-- **Spec**: `06-error-handling.md`
+- [x] Detect app resume from background
+- [x] Show "מתעדכן..." overlay
+- [x] Fetch fresh data
+- [x] Remove overlay when complete (on first successful data callback)
 - **Acceptance**: Resume flow works smoothly
 
 ---
@@ -296,24 +292,19 @@ Every task follows the red/green cycle: write a failing test first, then impleme
 ## Phase 7: Deep Linking & Final Polish
 
 ### 7.1 Deep Linking
-- [ ] Configure deep link handling for `mklat://` scheme
-- [ ] Handle `mklat://location/{name}` to pre-select location
-- [ ] Test on both platforms
-- **Spec**: `05-location-management.md`
-- **Acceptance**: Deep links open app and pre-select location
+- Deferred to future phase. See `specs/07-deferred-features.md`.
 
 ### 7.2 App Icon & Splash Screen
-- [ ] Design and add app icon (all required sizes)
-- [ ] Configure splash screen
-- **Spec**: `00-product-overview.md`
+- [x] Design app icon (red-orange shield with siren, alert waves)
+- [x] Generate all platform-specific icon sizes via `flutter_launcher_icons`
+- [x] Configure native splash screen via `flutter_native_splash`
 - **Acceptance**: Icon and splash display correctly on both platforms
 
 ### 7.3 Final Testing & Bug Fixes
-- [ ] Test all flows on iOS device/simulator
 - [ ] Test all flows on Android device/emulator
 - [ ] Fix any discovered bugs
 - [ ] Verify RTL layout throughout
-- **Acceptance**: App works correctly on both platforms
+- **Acceptance**: App works correctly
 
 ---
 

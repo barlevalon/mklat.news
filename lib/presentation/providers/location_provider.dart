@@ -3,13 +3,18 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/app_constants.dart';
 import '../../data/models/saved_location.dart';
+import '../../data/models/oref_location.dart';
+import '../../data/services/oref_districts_service.dart';
 
 class LocationProvider extends ChangeNotifier {
   List<SavedLocation> _locations = [];
   bool _isLoaded = false;
+  List<OrefLocation> _availableLocations = [];
 
   List<SavedLocation> get locations => List.unmodifiable(_locations);
   bool get isLoaded => _isLoaded;
+  List<OrefLocation> get availableLocations =>
+      List.unmodifiable(_availableLocations);
 
   SavedLocation? get primaryLocation {
     try {
@@ -115,5 +120,25 @@ class LocationProvider extends ChangeNotifier {
     } catch (e) {
       // Persistence failure is non-fatal
     }
+  }
+
+  Future<void> loadAvailableLocations(
+    OrefDistrictsService districtsService,
+  ) async {
+    try {
+      _availableLocations = await districtsService.fetchDistricts();
+      // Sort alphabetically by Hebrew name
+      _availableLocations.sort((a, b) => a.name.compareTo(b.name));
+      notifyListeners();
+    } catch (e) {
+      // Non-fatal, list stays empty
+    }
+  }
+
+  /// Test helper to set available locations directly.
+  @visibleForTesting
+  void loadAvailableLocationsForTest(List<OrefLocation> locations) {
+    _availableLocations = locations;
+    notifyListeners();
   }
 }

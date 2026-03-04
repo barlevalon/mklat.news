@@ -141,53 +141,53 @@ Every task follows the red/green cycle: write a failing test first, then impleme
 ## Phase 4: UI - Core Components
 
 ### 4.1 App Shell & Navigation
-- [ ] Create app shell with PageView for two screens
-- [ ] Implement swipe navigation between Status and News
-- [ ] Add page indicator dots
+- [x] Create app shell with PageView for two screens
+- [x] Implement swipe navigation between Status and News
+- [x] Add page indicator dots
 - **Spec**: `03-status-screen.md`, `04-news-screen.md`
 - **Acceptance**: Swipe navigation works, indicator shows current page
 
 ### 4.2 Primary Status Card Widget
-- [ ] Create widget displaying alert state
-- [ ] Implement all 5 state variants with icons, text, instructions
-- [ ] Implement elapsed timer display
-- [ ] Implement visual styling per state (colors, animation)
+- [x] Create widget displaying alert state
+- [x] Implement all 5 state variants with icons, text, instructions
+- [x] Implement elapsed timer display
+- [x] Implement visual styling per state (colors, animation)
 - **Spec**: `03-status-screen.md`
 - **Acceptance**: Widget displays correct state, timer updates every second
 
 ### 4.3 Location Selector Button
-- [ ] Create tappable button showing primary location
-- [ ] Show "בחר אזור" when no location selected
-- [ ] Tap opens location management modal
+- [x] Create tappable button showing primary location
+- [x] Show "בחר אזור" when no location selected
+- [x] Tap opens location management modal
 - **Spec**: `03-status-screen.md`, `05-location-management.md`
 - **Acceptance**: Button displays location, tap opens modal
 
 ### 4.4 Secondary Locations Row
-- [ ] Create horizontal row of secondary locations
-- [ ] Show status indicator (colored dot) per location
-- [ ] Handle scrolling if many locations
-- [ ] Hide if only one saved location
+- [x] Create horizontal row of secondary locations
+- [x] Show status indicator (colored dot) per location
+- [x] Handle scrolling if many locations
+- [x] Hide if only one saved location
 - **Spec**: `03-status-screen.md`
 - **Acceptance**: Row shows secondary locations with correct status indicators
 
 ### 4.5 Nationwide Summary Widget
-- [ ] Create widget showing alert counts
-- [ ] Display user location count and nationwide count
-- [ ] Hide when no active alerts
+- [x] Create widget showing alert counts
+- [x] Display user location count and nationwide count
+- [x] Hide when no active alerts
 - **Spec**: `03-status-screen.md`
 - **Acceptance**: Summary shows during events, hidden otherwise
 
 ### 4.6 Alert List Item Widget
-- [ ] Create widget for single alert in list
-- [ ] Display type icon, location, time
-- [ ] Style based on alert type
+- [x] Create widget for single alert in list
+- [x] Display type icon, location, time
+- [x] Style based on alert type
 - **Spec**: `03-status-screen.md`
 - **Acceptance**: Widget displays alert data correctly
 
 ### 4.7 News List Item Widget
-- [ ] Create widget for single news item
-- [ ] Display source icon, headline, description, time
-- [ ] Tap opens URL in browser
+- [x] Create widget for single news item
+- [x] Display source icon, headline, description, time
+- [x] Tap opens URL in browser
 - **Spec**: `04-news-screen.md`
 - **Acceptance**: Widget displays news data, tap opens browser
 
@@ -196,41 +196,41 @@ Every task follows the red/green cycle: write a failing test first, then impleme
 ## Phase 5: UI - Screens
 
 ### 5.1 Status Screen
-- [ ] Assemble Status Screen with all components
-- [ ] Integrate with providers
-- [ ] Implement alerts list with pagination ("load more")
-- [ ] Implement pull to refresh (optional)
+- [x] Assemble Status Screen with all components
+- [x] Integrate with providers
+- [x] Implement alerts list with pagination ("load more")
+- [ ] Implement pull to refresh (optional) — deferred, polling handles freshness
 - **Spec**: `03-status-screen.md`
 - **Acceptance**: Screen displays all components, data updates in real-time
 
 ### 5.2 News Screen
-- [ ] Assemble News Screen with header and list
-- [ ] Integrate with NewsProvider
-- [ ] Implement pull to refresh
+- [x] Assemble News Screen with header and list
+- [x] Integrate with NewsProvider
+- [ ] Implement pull to refresh — deferred, polling handles freshness
 - **Spec**: `04-news-screen.md`
 - **Acceptance**: Screen displays news list, tap opens links
 
 ### 5.3 Location Management Modal
-- [ ] Create bottom sheet/modal for location list
-- [ ] Display saved locations with primary indicator
-- [ ] Tap to set primary
-- [ ] Long press / swipe for edit/delete
+- [x] Create bottom sheet/modal for location list
+- [x] Display saved locations with primary indicator
+- [x] Tap to set primary
+- [x] Long press / swipe for edit/delete
 - **Spec**: `05-location-management.md`
 - **Acceptance**: Modal shows locations, interactions work correctly
 
 ### 5.4 Add Location Flow
-- [ ] Create add location screen/modal
-- [ ] Implement location search
-- [ ] Implement custom label input
-- [ ] Implement "set as primary" checkbox
-- [ ] Save and close
+- [x] Create add location screen/modal
+- [x] Implement location search
+- [x] Implement custom label input
+- [x] Implement "set as primary" checkbox
+- [x] Save and close
 - **Spec**: `05-location-management.md`
 - **Acceptance**: User can search, select, label, and save location
 
 ### 5.5 Edit Location Flow
-- [ ] Create edit location screen/modal
-- [ ] Allow editing custom label
-- [ ] Allow delete with confirmation
+- [x] Create edit location screen/modal
+- [x] Allow editing custom label
+- [x] Allow delete with confirmation
 - **Spec**: `05-location-management.md`
 - **Acceptance**: User can edit label and delete location
 

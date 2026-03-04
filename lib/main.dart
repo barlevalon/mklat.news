@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'data/services/http_client.dart';
 import 'data/services/oref_alerts_service.dart';
+import 'data/services/oref_districts_service.dart';
 import 'data/services/oref_history_service.dart';
 import 'data/services/rss_news_service.dart';
 import 'data/services/polling_manager.dart';
@@ -10,6 +11,7 @@ import 'presentation/providers/location_provider.dart';
 import 'presentation/providers/alerts_provider.dart';
 import 'presentation/providers/news_provider.dart';
 import 'presentation/providers/connectivity_provider.dart';
+import 'presentation/app_shell.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +45,7 @@ class _MklatAppState extends State<MklatApp> with WidgetsBindingObserver {
     final alertsService = OrefAlertsService(_httpClient);
     final historyService = OrefHistoryService(_httpClient);
     final newsService = RssNewsService(_httpClient);
+    final districtsService = OrefDistrictsService(_httpClient);
 
     _pollingManager = PollingManager(
       alertsService: alertsService,
@@ -68,6 +71,7 @@ class _MklatAppState extends State<MklatApp> with WidgetsBindingObserver {
 
     // Initialize
     _locationProvider.loadLocations();
+    _locationProvider.loadAvailableLocations(districtsService);
     _connectivityProvider.initialize();
     _pollingManager.start();
   }
@@ -126,7 +130,7 @@ class _MklatAppState extends State<MklatApp> with WidgetsBindingObserver {
         ),
         home: const Directionality(
           textDirection: TextDirection.rtl,
-          child: Scaffold(body: Center(child: Text('mklat.news'))),
+          child: AppShell(),
         ),
       ),
     );

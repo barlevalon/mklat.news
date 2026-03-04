@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mklat/main.dart';
+import 'package:mklat/presentation/app_shell.dart';
 
 void main() {
   testWidgets('App loads with RTL layout', (WidgetTester tester) async {
     await tester.pumpWidget(const MklatApp());
+    await tester.pumpAndSettle();
 
-    // Verify app title is present
-    expect(find.text('mklat.news'), findsOneWidget);
+    // Verify AppShell is present (replaces the placeholder)
+    expect(find.byType(AppShell), findsOneWidget);
 
     // Verify at least one Directionality with RTL is present
     final directionalityFinder = find.byType(Directionality);

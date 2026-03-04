@@ -1,11 +1,15 @@
 # Implementation Plan: mklat.news Mobile App
 
-> **Status**: Initial plan generated from specs
-> **Last Updated**: 2026-01-24
+> **Status**: Updated after API validation (2026-03-04)
+> **Last Updated**: 2026-03-04
 
 ## Overview
 
 This plan breaks down the implementation into phases. Each task should result in one commit. Tasks are ordered by dependency and priority.
+
+### Development approach: Red/Green TDD
+
+Every task follows the red/green cycle: write a failing test first, then implement the minimum code to pass it, then refactor. Do not write production code without a failing test driving it. This applies to all data layer services, state machine logic, models, parsing, and business logic. UI widget tests where practical.
 
 ---
 
@@ -20,12 +24,13 @@ This plan breaks down the implementation into phases. Each task should result in
 - **Acceptance**: Project builds and runs on iOS simulator and Android emulator
 
 ### 1.2 Data Models
-- [ ] Create `Alert` model with `AlertType` enum
+- [ ] Create `Alert` model with `AlertCategory` enum (rockets, uav, clearance, imminent, other)
+- [ ] Create `OrefLocation` model (name, id, hashId, areaId, areaName, shelterTimeSec)
 - [ ] Create `NewsItem` model with `NewsSource` enum
-- [ ] Create `SavedLocation` model
+- [ ] Create `SavedLocation` model (with cached shelterTimeSec)
 - [ ] Create `AlertState` enum
 - **Spec**: `01-data-layer.md`, `02-state-management.md`
-- **Acceptance**: Models serialize/deserialize correctly, unit tests pass
+- **Acceptance**: Models serialize/deserialize correctly, unit tests pass (TDD)
 
 ### 1.3 API Constants
 - [ ] Create `api_endpoints.dart` with all OREF and RSS URLs
@@ -38,36 +43,39 @@ This plan breaks down the implementation into phases. Each task should result in
 ## Phase 2: Data Layer
 
 ### 2.1 OREF Current Alerts Service
-- [ ] Implement HTTP client with required headers
-- [ ] Fetch and parse current alerts JSON
-- [ ] Handle all response format variants (empty, array of strings, array of objects)
-- [ ] Normalize to `List<Alert>`
+- [ ] Implement HTTP client with required OREF headers
+- [ ] Fetch and parse `Alerts.json`
+- [ ] Handle BOM + `\r\n` empty response (5 bytes)
+- [ ] Handle empty string response
+- [ ] Parse JSON object response: extract `id`, `cat`, `title`, `desc`, `data` array
+- [ ] Normalize to structured result (active location list + metadata)
 - **Spec**: `01-data-layer.md`
-- **Acceptance**: Service returns normalized alerts, handles empty responses, unit tests pass
+- **Acceptance**: Service handles all response variants, unit tests pass (TDD)
 
-### 2.2 OREF Historical Alerts Service
-- [ ] Fetch historical alerts HTML
-- [ ] Parse HTML to extract alert data
-- [ ] Extract time, location, description, alert type
-- [ ] Identify clearance messages
+### 2.2 OREF Alert History Service
+- [ ] Fetch `AlertsHistory.json` (NOT the legacy HTML endpoint)
+- [ ] Parse JSON array to `List<Alert>`
+- [ ] Map `category` field to `AlertCategory` enum (1=rockets, 2=uav, 13=clearance, 14=imminent)
+- [ ] Parse `alertDate` as Israel-timezone DateTime
 - **Spec**: `01-data-layer.md`
-- **Acceptance**: Service parses HTML correctly, extracts all fields, unit tests pass
+- **Acceptance**: Service parses all categories correctly, unit tests pass (TDD)
 
 ### 2.3 OREF Districts Service
-- [ ] Fetch districts list JSON
-- [ ] Parse to `List<String>` of location names
-- [ ] Implement fallback to backup URL
-- [ ] Implement hardcoded fallback list
+- [ ] Fetch districts JSON, parse to `List<OrefLocation>` (with shelterTimeSec/migun_time)
+- [ ] Implement fallback to `cities_heb.json` (split pipe-separated labels)
+- [ ] Implement hardcoded fallback list (~1,486 locations)
 - **Spec**: `01-data-layer.md`, `05-location-management.md`
-- **Acceptance**: Service returns location list, falls back gracefully, unit tests pass
+- **Acceptance**: Service returns locations with shelter times, falls back gracefully, unit tests pass (TDD)
 
 ### 2.4 RSS News Service
 - [ ] Implement RSS XML parser
 - [ ] Fetch and parse all 4 news feeds
+- [ ] Follow redirects (Maariv returns 308)
+- [ ] Handle Walla timezone bug
 - [ ] Normalize to `List<NewsItem>`
 - [ ] Handle individual feed failures gracefully
 - **Spec**: `01-data-layer.md`
-- **Acceptance**: Service returns combined news list, handles partial failures, unit tests pass
+- **Acceptance**: Service returns combined news list, handles partial failures, unit tests pass (TDD)
 
 ### 2.5 Polling Manager
 - [ ] Create polling manager for foreground/background lifecycle
@@ -82,12 +90,21 @@ This plan breaks down the implementation into phases. Each task should result in
 ## Phase 3: State Management
 
 ### 3.1 Alert State Machine
-- [ ] Implement `AlertStateMachine` class with all states
-- [ ] Implement state transition logic
+- [ ] Implement `AlertStateMachine` class with all 5 states
+- [ ] Implement transition logic driven by active alerts + history categories
+- [ ] Implement WAITING_CLEAR as absence-based state (was in RED_ALERT, alert dropped, no cat 13 yet)
+- [ ] WAITING_CLEAR has no auto-timeout — persists until clearance or user changes location
 - [ ] Implement timer tracking (alertStartTime, clearanceTime)
-- [ ] Implement location matching for alerts
+- [ ] Implement location matching (exact match on OREF canonical names)
 - **Spec**: `02-state-management.md`
-- **Acceptance**: State machine transitions correctly through all states, unit tests pass
+- **Acceptance**: State machine transitions correctly through all paths, unit tests pass (TDD). Must cover:
+  - Full path: ALL_CLEAR → ALERT_IMMINENT → RED_ALERT → WAITING_CLEAR → JUST_CLEARED → ALL_CLEAR
+  - Direct: ALL_CLEAR → RED_ALERT (no prior imminent)
+  - Short: ALERT_IMMINENT → JUST_CLEARED (threat resolved without red alert)
+  - Re-entry: WAITING_CLEAR → RED_ALERT and JUST_CLEARED → RED_ALERT (new attack)
+  - Priority: active alert always wins → RED_ALERT regardless of current state
+  - Self-loop: RED_ALERT stays RED_ALERT without resetting alertStartTime
+  - Location change resets to ALL_CLEAR from any state
 
 ### 3.2 Location State Provider
 - [ ] Create `LocationProvider` with SavedLocation CRUD
@@ -292,4 +309,10 @@ See `specs/07-deferred-features.md` for features to be prioritized later:
 
 ## Notes
 
-_This section is for Ralph to document discoveries, blockers, and learnings during implementation._
+### API validation (2026-03-04)
+- All OREF endpoints confirmed live and functional
+- Discovered `AlertsHistory.json` — structured JSON replacement for the 10.5 MB HTML endpoint. Eliminates all HTML regex parsing.
+- Districts endpoint returns 1,486 unique locations with `migun_time` (shelter time in seconds)
+- `"ניתן לצאת מהמרחב המוגן"` string does NOT appear in real alert data — WAITING_CLEAR state redesigned as absence-based detection
+- Maariv RSS returns 308 redirect — HTTP client must follow redirects
+- Alert categories: 1=rockets, 2=UAV, 13=ended, 14=imminent

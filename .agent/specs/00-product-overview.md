@@ -43,6 +43,10 @@ Israeli residents who:
 - Want a cleaner, faster way to check alert status for their specific locations
 - Want aggregated news context during security events
 
+## Development Practices
+
+- **Red/Green TDD**: All implementation follows Acceptance Test-Driven Development. Write a failing test first (red), then write the minimum code to make it pass (green), then refactor. This applies to data layer services, state machine logic, models, and any non-trivial business logic. UI widget tests where practical.
+
 ## Success Criteria
 
 The app is successful when a user can:

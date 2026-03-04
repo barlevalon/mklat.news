@@ -8,13 +8,15 @@ Users can save multiple locations with custom labels. One location is designated
 
 ```dart
 class SavedLocation {
-  final String id;           // UUID
-  final String orefName;     // Exact OREF location name
-  final String customLabel;  // User's label (e.g., "בית")
+  final String id;              // UUID
+  final String orefName;        // Exact OREF location name (matches label_he)
+  final String customLabel;     // User's label (e.g., "בית")
   final bool isPrimary;
-  final DateTime createdAt;
+  final int? shelterTimeSec;    // Cached from OrefLocation.shelterTimeSec
 }
 ```
+
+> **Canonical definition**: See `01-data-layer.md` for the authoritative model. `shelterTimeSec` is nullable because the fallback location list may not include shelter times.
 
 ## Location Management Modal
 
@@ -164,11 +166,12 @@ When delete tapped:
 ### Source
 - Fetch from OREF Districts API on app start
 - Cache locally for offline access
-- ~1,425 locations
+- ~1,486 locations (validated 2026-03-04)
 
 ### Fallback
-- If API fails, use hardcoded fallback list
-- Fallback list in `src/config/constants.js` (FALLBACK_ALERT_AREAS)
+- If Districts API fails, try `cities_heb.json` backup (split pipe-separated labels)
+- If both fail, use hardcoded fallback list (~1,486 location names)
+- See `01-data-layer.md` for full fallback chain
 
 ### Sorting
 - Alphabetical by Hebrew name
@@ -192,7 +195,7 @@ Support deep links to pre-select a location:
       "orefName": "תל אביב - מרכז",
       "customLabel": "בית",
       "isPrimary": true,
-      "createdAt": "2024-01-15T10:30:00Z"
+      "shelterTimeSec": 90
     }
   ]
 }

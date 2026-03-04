@@ -34,10 +34,11 @@ The app must gracefully handle various error states while ensuring users are nev
 - Continue polling, auto-recover when successful
 - Do NOT show cached data as current
 
-**OREF Historical Alerts Failure**:
+**OREF Alert History Failure**:
 - Show alerts list with reduced data
 - Message in list: "היסטוריה לא זמינה"
-- Primary status still works if current alerts succeed
+- Primary status partially works (RED_ALERT via Alerts.json still works, but WAITING_CLEAR → JUST_CLEARED transition depends on history for clearance signal)
+- State machine remains in WAITING_CLEAR indefinitely until clearance arrives or user changes primary location — no auto-timeout
 
 **OREF Districts Failure**:
 - Use cached/fallback location list

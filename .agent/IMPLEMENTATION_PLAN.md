@@ -16,25 +16,25 @@ Every task follows the red/green cycle: write a failing test first, then impleme
 ## Phase 1: Project Foundation
 
 ### 1.1 Flutter Project Setup
-- [ ] Create new Flutter project with package name `news.mklat.app`
-- [ ] Configure pubspec.yaml with required dependencies
-- [ ] Set up folder structure per specs (`lib/core`, `lib/data`, `lib/domain`, `lib/presentation`)
-- [ ] Configure RTL support and Hebrew locale
+- [x] Create new Flutter project with package name `news.mklat.app`
+- [x] Configure pubspec.yaml with required dependencies
+- [x] Set up folder structure per specs (`lib/core`, `lib/data`, `lib/domain`, `lib/presentation`)
+- [x] Configure RTL support and Hebrew locale
 - **Spec**: `00-product-overview.md`
 - **Acceptance**: Project builds and runs on iOS simulator and Android emulator
 
 ### 1.2 Data Models
-- [ ] Create `Alert` model with `AlertCategory` enum (rockets, uav, clearance, imminent, other)
-- [ ] Create `OrefLocation` model (name, id, hashId, areaId, areaName, shelterTimeSec)
-- [ ] Create `NewsItem` model with `NewsSource` enum
-- [ ] Create `SavedLocation` model (with cached shelterTimeSec)
-- [ ] Create `AlertState` enum
+- [x] Create `Alert` model with `AlertCategory` enum (rockets, uav, clearance, imminent, other)
+- [x] Create `OrefLocation` model (name, id, hashId, areaId, areaName, shelterTimeSec)
+- [x] Create `NewsItem` model with `NewsSource` enum
+- [x] Create `SavedLocation` model (with cached shelterTimeSec)
+- [x] Create `AlertState` enum
 - **Spec**: `01-data-layer.md`, `02-state-management.md`
 - **Acceptance**: Models serialize/deserialize correctly, unit tests pass (TDD)
 
 ### 1.3 API Constants
-- [ ] Create `api_endpoints.dart` with all OREF and RSS URLs
-- [ ] Create `app_constants.dart` with polling intervals, timeouts
+- [x] Create `api_endpoints.dart` with all OREF and RSS URLs
+- [x] Create `app_constants.dart` with polling intervals, timeouts
 - **Spec**: `01-data-layer.md`
 - **Acceptance**: Constants accessible throughout app
 

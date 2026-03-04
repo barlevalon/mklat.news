@@ -43,45 +43,45 @@ Every task follows the red/green cycle: write a failing test first, then impleme
 ## Phase 2: Data Layer
 
 ### 2.1 OREF Current Alerts Service
-- [ ] Implement HTTP client with required OREF headers
-- [ ] Fetch and parse `Alerts.json`
-- [ ] Handle BOM + `\r\n` empty response (5 bytes)
-- [ ] Handle empty string response
-- [ ] Parse JSON object response: extract `id`, `cat`, `title`, `desc`, `data` array
-- [ ] Normalize to structured result (active location list + metadata)
+- [x] Implement HTTP client with required OREF headers
+- [x] Fetch and parse `Alerts.json`
+- [x] Handle BOM + `\r\n` empty response (5 bytes)
+- [x] Handle empty string response
+- [x] Parse JSON object response: extract `id`, `cat`, `title`, `desc`, `data` array
+- [x] Normalize to structured result (active location list + metadata)
 - **Spec**: `01-data-layer.md`
 - **Acceptance**: Service handles all response variants, unit tests pass (TDD)
 
 ### 2.2 OREF Alert History Service
-- [ ] Fetch `AlertsHistory.json` (NOT the legacy HTML endpoint)
-- [ ] Parse JSON array to `List<Alert>`
-- [ ] Map `category` field to `AlertCategory` enum (1=rockets, 2=uav, 13=clearance, 14=imminent)
-- [ ] Parse `alertDate` as Israel-timezone DateTime
+- [x] Fetch `AlertsHistory.json` (NOT the legacy HTML endpoint)
+- [x] Parse JSON array to `List<Alert>`
+- [x] Map `category` field to `AlertCategory` enum (1=rockets, 2=uav, 13=clearance, 14=imminent)
+- [x] Parse `alertDate` as Israel-timezone DateTime
 - **Spec**: `01-data-layer.md`
 - **Acceptance**: Service parses all categories correctly, unit tests pass (TDD)
 
 ### 2.3 OREF Districts Service
-- [ ] Fetch districts JSON, parse to `List<OrefLocation>` (with shelterTimeSec/migun_time)
-- [ ] Implement fallback to `cities_heb.json` (split pipe-separated labels)
-- [ ] Implement hardcoded fallback list (~1,486 locations)
+- [x] Fetch districts JSON, parse to `List<OrefLocation>` (with shelterTimeSec/migun_time)
+- [x] Implement fallback to `cities_heb.json` (split pipe-separated labels)
+- [ ] Implement hardcoded fallback list (~1,486 locations) — deferred, returns empty list as last resort
 - **Spec**: `01-data-layer.md`, `05-location-management.md`
 - **Acceptance**: Service returns locations with shelter times, falls back gracefully, unit tests pass (TDD)
 
 ### 2.4 RSS News Service
-- [ ] Implement RSS XML parser
-- [ ] Fetch and parse all 4 news feeds
-- [ ] Follow redirects (Maariv returns 308)
-- [ ] Handle Walla timezone bug
-- [ ] Normalize to `List<NewsItem>`
-- [ ] Handle individual feed failures gracefully
+- [x] Implement RSS XML parser
+- [x] Fetch and parse all 4 news feeds
+- [x] Follow redirects (Maariv returns 308)
+- [x] Handle Walla timezone bug
+- [x] Normalize to `List<NewsItem>`
+- [x] Handle individual feed failures gracefully
 - **Spec**: `01-data-layer.md`
 - **Acceptance**: Service returns combined news list, handles partial failures, unit tests pass (TDD)
 
 ### 2.5 Polling Manager
-- [ ] Create polling manager for foreground/background lifecycle
-- [ ] Implement 2-second polling for alerts
-- [ ] Implement 30-second polling for news
-- [ ] Start polling on foreground, stop on background
+- [x] Create polling manager for foreground/background lifecycle
+- [x] Implement 2-second polling for alerts
+- [x] Implement 30-second polling for news
+- [x] Start polling on foreground, stop on background
 - **Spec**: `01-data-layer.md`
 - **Acceptance**: Polling starts/stops correctly with app lifecycle
 

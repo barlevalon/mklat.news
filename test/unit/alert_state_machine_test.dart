@@ -371,7 +371,7 @@ void main() {
               id: '2',
               location: 'תל אביב - מרכז',
               title: 'האירוע הסתיים',
-              time: baseTime,
+              time: baseTime.add(Duration(minutes: 2)),
               category: 13,
             ),
           ],
@@ -387,7 +387,7 @@ void main() {
               id: '2',
               location: 'תל אביב - מרכז',
               title: 'האירוע הסתיים',
-              time: baseTime,
+              time: baseTime.add(Duration(minutes: 2)),
               category: 13,
             ),
           ],
@@ -502,6 +502,153 @@ void main() {
 
         // Should have escalated to WAITING_CLEAR because the attack
         // actually happened (cat 1 in history proves it)
+        expect(machine.currentState, AlertState.waitingClear);
+      },
+    );
+
+    test(
+      'stale cat 13 from previous attack does not trigger JUST_CLEARED for new attack',
+      () {
+        final machine = AlertStateMachine();
+        machine.setPrimaryLocation('אשדוד');
+        final baseTime = DateTime(2026, 3, 5, 22, 30, 0);
+
+        // === First attack cycle ===
+        // RED_ALERT
+        machine.evaluate(
+          activeAlertLocations: {'אשדוד'},
+          historyForPrimary: [],
+          now: baseTime,
+        );
+        expect(machine.currentState, AlertState.redAlert);
+
+        // Active drops → WAITING_CLEAR
+        machine.evaluate(
+          activeAlertLocations: {},
+          historyForPrimary: [
+            Alert(
+              id: 'attack1',
+              location: 'אשדוד',
+              title: 'ירי רקטות וטילים',
+              time: baseTime,
+              category: 1,
+            ),
+          ],
+          now: baseTime.add(Duration(minutes: 2)),
+        );
+        expect(machine.currentState, AlertState.waitingClear);
+
+        // Cat 13 clearance for first attack → JUST_CLEARED
+        machine.evaluate(
+          activeAlertLocations: {},
+          historyForPrimary: [
+            Alert(
+              id: 'attack1',
+              location: 'אשדוד',
+              title: 'ירי רקטות וטילים',
+              time: baseTime,
+              category: 1,
+            ),
+            Alert(
+              id: 'clear1',
+              location: 'אשדוד',
+              title: 'האירוע הסתיים',
+              time: baseTime.add(Duration(minutes: 5)),
+              category: 13,
+            ),
+          ],
+          now: baseTime.add(Duration(minutes: 5)),
+        );
+        expect(machine.currentState, AlertState.justCleared);
+
+        // 10 minutes pass → ALL_CLEAR
+        machine.evaluate(
+          activeAlertLocations: {},
+          historyForPrimary: [
+            Alert(
+              id: 'attack1',
+              location: 'אשדוד',
+              title: 'ירי רקטות וטילים',
+              time: baseTime,
+              category: 1,
+            ),
+            Alert(
+              id: 'clear1',
+              location: 'אשדוד',
+              title: 'האירוע הסתיים',
+              time: baseTime.add(Duration(minutes: 5)),
+              category: 13,
+            ),
+          ],
+          now: baseTime.add(Duration(minutes: 16)),
+        );
+        expect(machine.currentState, AlertState.allClear);
+
+        // === Second attack cycle (20 minutes later) ===
+        // New RED_ALERT
+        machine.evaluate(
+          activeAlertLocations: {'אשדוד'},
+          historyForPrimary: [
+            // History still contains the old cat 13 from first attack
+            Alert(
+              id: 'attack1',
+              location: 'אשדוד',
+              title: 'ירי רקטות וטילים',
+              time: baseTime,
+              category: 1,
+            ),
+            Alert(
+              id: 'clear1',
+              location: 'אשדוד',
+              title: 'האירוע הסתיים',
+              time: baseTime.add(Duration(minutes: 5)),
+              category: 13,
+            ),
+            Alert(
+              id: 'attack2',
+              location: 'אשדוד',
+              title: 'ירי רקטות וטילים',
+              time: baseTime.add(Duration(minutes: 20)),
+              category: 1,
+            ),
+          ],
+          now: baseTime.add(Duration(minutes: 20)),
+        );
+        expect(machine.currentState, AlertState.redAlert);
+
+        // Active drops, no new clearance yet → should be WAITING_CLEAR
+        // BUG: the stale cat 13 from 15 minutes ago (first attack) is still
+        // in history, causing the machine to jump to JUST_CLEARED
+        machine.evaluate(
+          activeAlertLocations: {},
+          historyForPrimary: [
+            Alert(
+              id: 'attack1',
+              location: 'אשדוד',
+              title: 'ירי רקטות וטילים',
+              time: baseTime,
+              category: 1,
+            ),
+            Alert(
+              id: 'clear1',
+              location: 'אשדוד',
+              title: 'האירוע הסתיים',
+              time: baseTime.add(Duration(minutes: 5)),
+              category: 13,
+            ),
+            Alert(
+              id: 'attack2',
+              location: 'אשדוד',
+              title: 'ירי רקטות וטילים',
+              time: baseTime.add(Duration(minutes: 20)),
+              category: 1,
+            ),
+          ],
+          now: baseTime.add(Duration(minutes: 22)),
+        );
+
+        // Should be WAITING_CLEAR (no NEW clearance for the second attack)
+        // BUG: currently goes to JUST_CLEARED because of stale cat 13
         expect(machine.currentState, AlertState.waitingClear);
       },
     );

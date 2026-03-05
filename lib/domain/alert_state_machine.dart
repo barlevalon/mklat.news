@@ -57,7 +57,11 @@ class AlertStateMachine {
       _primaryLocation!,
       activeAlertLocations,
     );
-    final hasClearance = _hasCategoryClearance(historyForPrimary, 13);
+    final hasClearance = _hasCategoryClearance(
+      historyForPrimary,
+      13,
+      after: _alertStartTime,
+    );
     final hasImminent = _hasCategoryClearance(historyForPrimary, 14);
 
     // Evaluation order (first match wins):
@@ -151,8 +155,17 @@ class AlertStateMachine {
   }
 
   /// Check if history contains a given category for the primary location.
-  bool _hasCategoryClearance(List<Alert> history, int category) {
-    return history.any((alert) => alert.category == category);
+  /// If [after] is provided, only consider alerts newer than or equal to that time.
+  bool _hasCategoryClearance(
+    List<Alert> history,
+    int category, {
+    DateTime? after,
+  }) {
+    return history.any(
+      (alert) =>
+          alert.category == category &&
+          (after == null || !alert.time.isBefore(after)),
+    );
   }
 
   /// Normalize location name for matching.

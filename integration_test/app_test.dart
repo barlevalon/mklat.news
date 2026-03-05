@@ -472,6 +472,10 @@ void main() {
       expect(find.text('אין חיבור לאינטרנט'), findsOneWidget);
       expect(find.byIcon(Icons.wifi_off), findsOneWidget);
 
+      // Status card should show offline state (grey, "אין חיבור")
+      expect(find.text('אין חיבור'), findsOneWidget);
+      expect(find.text('📡'), findsOneWidget);
+
       // Go back online
       connectivityController.add(ConnectivityResult.wifi);
       await tester.pump(const Duration(milliseconds: 500));
@@ -480,6 +484,9 @@ void main() {
       // The AnimatedSlide shifts it to Offset(0, -1) — it's offscreen
       // but still findable. Check that isOffline is now false.
       expect(connectivityProvider.isOffline, isFalse);
+
+      // Status card should return to all clear
+      expect(find.text('אין התרעות'), findsOneWidget);
 
       await connectivityController.close();
     });

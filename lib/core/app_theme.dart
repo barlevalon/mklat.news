@@ -39,6 +39,11 @@ class AppTheme {
   static const Color dotRed = Color(0xFFF44336);
   static const Color dotYellow = Color(0xFFFFC107);
 
+  // Offline state colors
+  static const Color offlineColor = Color(0xFF9E9E9E); // Grey
+  static const Color offlineBackground = Color(0xFFF5F5F5); // Light grey
+  static const Color dotGrey = Color(0xFF9E9E9E); // Grey dot for offline
+
   // News source colors
   static Color colorForNewsSource(String sourceName) {
     switch (sourceName) {

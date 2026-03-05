@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/news_provider.dart';
+import '../providers/connectivity_provider.dart';
 import '../widgets/news_list_item.dart';
 
 class NewsScreen extends StatelessWidget {
@@ -8,8 +9,10 @@ class NewsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<NewsProvider>(
-      builder: (context, newsProvider, child) {
+    return Consumer2<NewsProvider, ConnectivityProvider>(
+      builder: (context, newsProvider, connectivityProvider, child) {
+        final isOffline = connectivityProvider.isOffline;
+
         return Column(
           children: [
             // Header
@@ -34,14 +37,14 @@ class NewsScreen extends StatelessWidget {
             ),
 
             // News list or empty/error state
-            Expanded(child: _buildNewsList(newsProvider)),
+            Expanded(child: _buildNewsList(newsProvider, isOffline)),
           ],
         );
       },
     );
   }
 
-  Widget _buildNewsList(NewsProvider newsProvider) {
+  Widget _buildNewsList(NewsProvider newsProvider, bool isOffline) {
     if (newsProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -56,6 +59,23 @@ class NewsScreen extends StatelessWidget {
             Text(
               newsProvider.errorMessage!,
               style: TextStyle(color: Colors.red.shade600),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Offline and empty: show offline-specific message
+    if (isOffline && newsProvider.newsItems.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.wifi_off, size: 48, color: Colors.grey.shade400),
+            const SizedBox(height: 16),
+            Text(
+              'אין חיבור לאינטרנט',
+              style: TextStyle(color: Colors.grey.shade600),
             ),
           ],
         ),

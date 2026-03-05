@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
 import '../../domain/alert_state.dart';
 import '../providers/alerts_provider.dart';
+import '../providers/connectivity_provider.dart';
 import 'location_selector_button.dart';
 
 class PrimaryStatusCard extends StatefulWidget {
@@ -52,39 +53,56 @@ class _PrimaryStatusCardState extends State<PrimaryStatusCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AlertsProvider>(
-      builder: (context, alertsProvider, child) {
+    return Consumer2<AlertsProvider, ConnectivityProvider>(
+      builder: (context, alertsProvider, connectivityProvider, child) {
+        final isOffline = connectivityProvider.isOffline;
         final state = alertsProvider.alertState;
-        _ensureTimer(state);
+
+        // Only run timer when online
+        if (!isOffline) {
+          _ensureTimer(state);
+        } else {
+          _timer?.cancel();
+          _timer = null;
+        }
+
         final startTime = alertsProvider.alertStartTime;
         final clearanceTime = alertsProvider.clearanceTime;
+
+        // Determine display values based on connectivity
+        final displayColor = isOffline
+            ? AppTheme.offlineColor
+            : AppTheme.colorForAlertState(state);
+        final displayBg = isOffline
+            ? AppTheme.offlineBackground
+            : AppTheme.backgroundForAlertState(state);
+        final displayIcon = isOffline ? '📡' : state.icon;
+        final displayTitle = isOffline ? 'אין חיבור' : state.hebrewTitle;
 
         return Container(
           margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: AppTheme.backgroundForAlertState(state),
+            color: displayBg,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: AppTheme.colorForAlertState(state).withAlpha(77),
-              width: 2,
-            ),
+            border: Border.all(color: displayColor.withAlpha(77), width: 2),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const LocationSelectorButton(),
               const SizedBox(height: 24),
-              Text(state.icon, style: const TextStyle(fontSize: 64)),
+              Text(displayIcon, style: const TextStyle(fontSize: 64)),
               const SizedBox(height: 16),
               Text(
-                state.hebrewTitle,
+                displayTitle,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppTheme.colorForAlertState(state),
+                  color: displayColor,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              if (state.instruction != null) ...[
+              // Only show instruction when online
+              if (!isOffline && state.instruction != null) ...[
                 const SizedBox(height: 8),
                 Text(
                   state.instruction!,
@@ -94,18 +112,23 @@ class _PrimaryStatusCardState extends State<PrimaryStatusCard> {
                   textAlign: TextAlign.center,
                 ),
               ],
-              if (state.showElapsedTimer && startTime != null) ...[
+              // Only show timer when online
+              if (!isOffline &&
+                  state.showElapsedTimer &&
+                  startTime != null) ...[
                 const SizedBox(height: 16),
                 Text(
                   _formatElapsed(startTime),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: AppTheme.colorForAlertState(state),
+                    color: displayColor,
                     fontWeight: FontWeight.w500,
                     fontFamily: 'monospace',
                   ),
                 ),
               ],
-              if (state.showTimeSince && clearanceTime != null) ...[
+              if (!isOffline &&
+                  state.showTimeSince &&
+                  clearanceTime != null) ...[
                 const SizedBox(height: 16),
                 Text(
                   _formatTimeSince(clearanceTime),

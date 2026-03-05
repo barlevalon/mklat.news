@@ -89,6 +89,84 @@ void main() {
       await controller.close();
     });
 
+    test('consecutive HTTP failures trigger offline', () async {
+      final controller = StreamController<ConnectivityResult>.broadcast();
+
+      when(
+        mockConnectivity.checkConnectivity(),
+      ).thenAnswer((_) async => ConnectivityResult.wifi);
+      when(
+        mockConnectivity.onConnectivityChanged,
+      ).thenAnswer((_) => controller.stream);
+
+      provider = ConnectivityProvider(connectivity: mockConnectivity);
+      await provider.initialize();
+
+      expect(provider.isOffline, isFalse);
+
+      // One failure is not enough
+      provider.reportHttpFailure();
+      expect(provider.isOffline, isFalse);
+
+      // Two consecutive failures triggers offline
+      provider.reportHttpFailure();
+      expect(provider.isOffline, isTrue);
+
+      await controller.close();
+    });
+
+    test('HTTP success clears offline from failures', () async {
+      final controller = StreamController<ConnectivityResult>.broadcast();
+
+      when(
+        mockConnectivity.checkConnectivity(),
+      ).thenAnswer((_) async => ConnectivityResult.wifi);
+      when(
+        mockConnectivity.onConnectivityChanged,
+      ).thenAnswer((_) => controller.stream);
+
+      provider = ConnectivityProvider(connectivity: mockConnectivity);
+      await provider.initialize();
+
+      // Go offline via HTTP failures
+      provider.reportHttpFailure();
+      provider.reportHttpFailure();
+      expect(provider.isOffline, isTrue);
+
+      // One success brings us back
+      provider.reportHttpSuccess();
+      expect(provider.isOffline, isFalse);
+
+      await controller.close();
+    });
+
+    test('HTTP success does not override plugin offline', () async {
+      final controller = StreamController<ConnectivityResult>.broadcast();
+
+      when(
+        mockConnectivity.checkConnectivity(),
+      ).thenAnswer((_) async => ConnectivityResult.none);
+      when(
+        mockConnectivity.onConnectivityChanged,
+      ).thenAnswer((_) => controller.stream);
+
+      provider = ConnectivityProvider(connectivity: mockConnectivity);
+      await provider.initialize();
+
+      expect(provider.isOffline, isTrue);
+
+      // HTTP success alone can't override plugin saying offline
+      provider.reportHttpSuccess();
+      expect(provider.isOffline, isTrue);
+
+      // Plugin says online too — now we're online
+      controller.add(ConnectivityResult.wifi);
+      await Future.delayed(Duration.zero);
+      expect(provider.isOffline, isFalse);
+
+      await controller.close();
+    });
+
     test('Only notifies on actual change', () async {
       final controller = StreamController<ConnectivityResult>.broadcast();
 

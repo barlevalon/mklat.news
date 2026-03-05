@@ -112,14 +112,12 @@ void main() {
       expect(result, isEmpty);
     });
 
-    test('HTTP error returns empty list', () async {
+    test('HTTP error rethrows HttpException', () async {
       when(
         mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),
       ).thenThrow(HttpException('HTTP 500', statusCode: 500));
 
-      final result = await service.fetchCurrentAlerts();
-
-      expect(result, isEmpty);
+      expect(() => service.fetchCurrentAlerts(), throwsA(isA<HttpException>()));
     });
 
     test('response with data as empty array returns empty list', () async {

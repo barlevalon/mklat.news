@@ -26,10 +26,13 @@ class RssNewsService {
   }
 
   /// Fetch and parse a single RSS feed. Returns [] on any error.
+  /// Rethrows HttpException so polling manager can detect connectivity loss.
   Future<List<NewsItem>> _fetchFeed(String url, NewsSource source) async {
     try {
       final body = await _httpClient.get(url);
       return _parseRssFeed(body, source);
+    } on HttpException {
+      rethrow;
     } catch (e) {
       return [];
     }

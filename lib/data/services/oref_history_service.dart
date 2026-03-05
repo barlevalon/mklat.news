@@ -18,6 +18,8 @@ class OrefHistoryService {
         useOrefHeaders: true,
       );
       return _parseHistoryResponse(body);
+    } on HttpException {
+      rethrow;
     } catch (e) {
       return [];
     }

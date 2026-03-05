@@ -63,9 +63,16 @@ class _MklatAppState extends State<MklatApp> with WidgetsBindingObserver {
         widget.connectivityProvider ?? ConnectivityProvider();
 
     // Wire polling callbacks to providers
-    _pollingManager.onAlertData = _alertsProvider.onAlertData;
-    _pollingManager.onNewsData = _newsProvider.onNewsData;
+    _pollingManager.onAlertData = (currentAlerts, alertHistory) {
+      _connectivityProvider.reportHttpSuccess();
+      _alertsProvider.onAlertData(currentAlerts, alertHistory);
+    };
+    _pollingManager.onNewsData = (newsItems) {
+      _connectivityProvider.reportHttpSuccess();
+      _newsProvider.onNewsData(newsItems);
+    };
     _pollingManager.onError = (source, error) {
+      _connectivityProvider.reportHttpFailure();
       _alertsProvider.onError(source, error);
       _newsProvider.onError(source, error);
     };

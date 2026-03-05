@@ -18,9 +18,10 @@ class OrefAlertsService {
         useOrefHeaders: true,
       );
       return _parseAlertsResponse(body);
+    } on HttpException {
+      rethrow; // Network/HTTP errors propagate to polling manager
     } catch (e) {
-      // TODO: Log error
-      return [];
+      return []; // Parse errors return empty
     }
   }
 

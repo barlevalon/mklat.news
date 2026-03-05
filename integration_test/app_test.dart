@@ -491,6 +491,54 @@ void main() {
       await connectivityController.close();
     });
 
+    testWidgets('HTTP failures trigger offline state', (tester) async {
+      SharedPreferences.setMockInitialValues({
+        'mklat_saved_locations':
+            '[{"id":"test-id","orefName":"שדה בועז","customLabel":"","isPrimary":true,"shelterTimeSec":90}]',
+      });
+
+      // Start with working HTTP
+      await tester.pumpWidget(MklatApp(httpClient: mockClient));
+      await tester.pump(const Duration(seconds: 2));
+
+      // App shows online state
+      expect(find.text('אין התרעות'), findsOneWidget);
+
+      // Now return 503 for all requests (simulating server unreachable)
+      final error503 = http.Response('Service Unavailable', 503);
+      when(
+        mockClient.get(any, headers: anyNamed('headers')),
+      ).thenAnswer((_) async => error503);
+
+      // Wait for polling cycles to accumulate failures
+      await tester.pump(const Duration(seconds: 5));
+
+      // App should now show offline state
+      expect(find.text('אין חיבור'), findsOneWidget);
+
+      // Restore HTTP to working responses
+      when(
+        mockClient.get(
+          argThat(predicate<Uri>((uri) => uri.path.contains('Alerts.json'))),
+          headers: anyNamed('headers'),
+        ),
+      ).thenAnswer((_) async => TestFixtures.oref_alerts);
+      when(
+        mockClient.get(
+          argThat(
+            predicate<Uri>((uri) => uri.path.contains('AlertsHistory.json')),
+          ),
+          headers: anyNamed('headers'),
+        ),
+      ).thenAnswer((_) async => TestFixtures.oref_history);
+
+      // Wait for successful poll
+      await tester.pump(const Duration(seconds: 3));
+
+      // Should be back online
+      expect(find.text('אין התרעות'), findsOneWidget);
+    });
+
     // NOTE: Resume overlay is tested via widget tests (test/widget/resume_overlay_test.dart).
     // IntegrationTestWidgetsFlutterBinding does not dispatch handleAppLifecycleStateChanged
     // to WidgetsBindingObserver, so lifecycle-dependent flows can't be tested here.

@@ -87,14 +87,12 @@ void main() {
       expect(result, isEmpty);
     });
 
-    test('HTTP error returns empty list', () async {
+    test('HTTP error rethrows HttpException', () async {
       when(
         mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),
       ).thenThrow(HttpException('HTTP 500', statusCode: 500));
 
-      final result = await service.fetchAlertHistory();
-
-      expect(result, isEmpty);
+      expect(() => service.fetchAlertHistory(), throwsA(isA<HttpException>()));
     });
 
     test('entries with different categories are mapped correctly', () async {

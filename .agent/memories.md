@@ -38,6 +38,13 @@
 - RTL PageView: positive drag offset (`Offset(300, 0)`) swipes to next page.
 - `adb shell input text` does NOT support Hebrew — use integration test framework for Hebrew input testing.
 
+## Android permissions (2026-03-05)
+
+- `INTERNET` and `ACCESS_NETWORK_STATE` must be declared in AndroidManifest.xml
+- `connectivity_plus` silently fails without `ACCESS_NETWORK_STATE` on real devices — offline state never detected
+- Emulators don't enforce permissions strictly, so integration tests on emulator won't catch missing permissions
+- Always check manifest permissions when adding new plugins that need platform access
+
 ## Development practices
 
 - Red/green TDD for all implementation. Write failing test first, then minimum code to pass, then refactor.

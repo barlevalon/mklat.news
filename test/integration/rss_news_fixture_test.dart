@@ -9,6 +9,8 @@ import '../fixtures/fixture_helper.dart';
 
 import 'rss_news_fixture_test.mocks.dart';
 
+const emptyRss = '<?xml version="1.0"?><rss><channel></channel></rss>';
+
 @GenerateMocks([http.Client])
 void main() {
   group('RSS News Fixture Tests', () {
@@ -20,6 +22,12 @@ void main() {
       mockClient = MockClient();
       httpClient = HttpClient(client: mockClient);
       newsService = RssNewsService(httpClient);
+
+      // Default: stub all 4 feeds with empty RSS so per-feed tests don't fail
+      // on unstubbed URLs. Each per-feed test overrides the URL it cares about.
+      when(
+        mockClient.get(any, headers: anyNamed('headers')),
+      ).thenAnswer((_) async => http.Response(emptyRss, 200));
     });
 
     tearDown(() {

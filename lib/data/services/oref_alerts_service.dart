@@ -10,16 +10,16 @@ class OrefAlertsService {
 
   /// Fetch current active alerts.
   /// Returns a list of Alert objects (one per location in the alert).
-  /// Returns empty list if no active alerts or on error.
+  /// Returns empty list if no active alerts or on parse error.
+  /// Network exceptions propagate to polling manager.
   Future<List<Alert>> fetchCurrentAlerts() async {
+    // Let network exceptions (HttpException, SocketException, TimeoutException) propagate
+    final body = await _httpClient.get(
+      ApiEndpoints.orefAlerts,
+      useOrefHeaders: true,
+    );
     try {
-      final body = await _httpClient.get(
-        ApiEndpoints.orefAlerts,
-        useOrefHeaders: true,
-      );
       return _parseAlertsResponse(body);
-    } on HttpException {
-      rethrow; // Network/HTTP errors propagate to polling manager
     } catch (e) {
       return []; // Parse errors return empty
     }

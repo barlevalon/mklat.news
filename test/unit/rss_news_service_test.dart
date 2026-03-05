@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mklat/data/models/news_item.dart';
@@ -210,43 +212,65 @@ void main() {
       },
     );
 
-    test('individual feed failure returns empty for that feed only', () async {
+    test(
+      'individual feed parse failure returns empty for that feed only',
+      () async {
+        // Parse errors (not network errors) should return empty for that feed only
+        when(
+          mockHttpClient.get(ApiEndpoints.rssYnet),
+        ).thenAnswer((_) async => validYnetRss);
+        when(
+          mockHttpClient.get(ApiEndpoints.rssMaariv),
+        ).thenAnswer((_) async => 'not valid xml'); // Parse error
+        when(
+          mockHttpClient.get(ApiEndpoints.rssWalla),
+        ).thenAnswer((_) async => 'also bad xml'); // Parse error
+        when(
+          mockHttpClient.get(ApiEndpoints.rssHaaretz),
+        ).thenAnswer((_) async => 'invalid'); // Parse error
+
+        final result = await service.fetchAllNews();
+
+        expect(result.length, 2); // Only Ynet items
+        expect(result.every((item) => item.source == NewsSource.ynet), true);
+      },
+    );
+
+    test('all feeds have parse errors returns empty list', () async {
+      // Parse errors (not network errors) should return empty list
       when(
         mockHttpClient.get(ApiEndpoints.rssYnet),
-      ).thenAnswer((_) async => validYnetRss);
+      ).thenAnswer((_) async => 'not valid xml');
       when(
         mockHttpClient.get(ApiEndpoints.rssMaariv),
-      ).thenThrow(Exception('Network error'));
+      ).thenAnswer((_) async => 'also bad xml');
       when(
         mockHttpClient.get(ApiEndpoints.rssWalla),
-      ).thenThrow(Exception('Network error'));
+      ).thenAnswer((_) async => 'invalid');
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
-      ).thenThrow(Exception('Network error'));
-
-      final result = await service.fetchAllNews();
-
-      expect(result.length, 2); // Only Ynet items
-      expect(result.every((item) => item.source == NewsSource.ynet), true);
-    });
-
-    test('all feeds fail returns empty list', () async {
-      when(
-        mockHttpClient.get(ApiEndpoints.rssYnet),
-      ).thenThrow(Exception('Network error'));
-      when(
-        mockHttpClient.get(ApiEndpoints.rssMaariv),
-      ).thenThrow(Exception('Network error'));
-      when(
-        mockHttpClient.get(ApiEndpoints.rssWalla),
-      ).thenThrow(Exception('Network error'));
-      when(
-        mockHttpClient.get(ApiEndpoints.rssHaaretz),
-      ).thenThrow(Exception('Network error'));
+      ).thenAnswer((_) async => 'bad');
 
       final result = await service.fetchAllNews();
 
       expect(result, isEmpty);
+    });
+
+    test('SocketException (network error) rethrows to caller', () async {
+      when(
+        mockHttpClient.get(ApiEndpoints.rssYnet),
+      ).thenThrow(SocketException('No Internet'));
+      when(
+        mockHttpClient.get(ApiEndpoints.rssMaariv),
+      ).thenThrow(SocketException('No Internet'));
+      when(
+        mockHttpClient.get(ApiEndpoints.rssWalla),
+      ).thenThrow(SocketException('No Internet'));
+      when(
+        mockHttpClient.get(ApiEndpoints.rssHaaretz),
+      ).thenThrow(SocketException('No Internet'));
+
+      expect(() => service.fetchAllNews(), throwsA(isA<SocketException>()));
     });
 
     test('invalid XML returns empty list for that feed', () async {

@@ -38,14 +38,6 @@ void main() {
       expect(AlertState.justCleared.showElapsedTimer, false);
     });
 
-    test('showTimeSince is true for justCleared only', () {
-      expect(AlertState.allClear.showTimeSince, false);
-      expect(AlertState.alertImminent.showTimeSince, false);
-      expect(AlertState.redAlert.showTimeSince, false);
-      expect(AlertState.waitingClear.showTimeSince, false);
-      expect(AlertState.justCleared.showTimeSince, true);
-    });
-
     test('isElevated is false only for allClear', () {
       expect(AlertState.allClear.isElevated, false);
       expect(AlertState.alertImminent.isElevated, true);

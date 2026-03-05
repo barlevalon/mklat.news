@@ -118,5 +118,45 @@ void main() {
       expect(find.textContaining('לפני'), findsOneWidget);
       expect(find.textContaining('דקות'), findsOneWidget);
     });
+
+    testWidgets('singular minute: shows "לפני דקה" not "לפני 1 דקות"', (
+      WidgetTester tester,
+    ) async {
+      final newsItem = NewsItem(
+        id: '1',
+        title: 'כותרת',
+        link: 'https://ynet.co.il/article/1',
+        pubDate: DateTime.now().subtract(
+          const Duration(minutes: 1, seconds: 30),
+        ),
+        source: NewsSource.ynet,
+      );
+
+      await tester.pumpWidget(buildTestWidget(newsItem));
+
+      // Should show singular form
+      expect(find.textContaining('לפני דקה'), findsOneWidget);
+      // Should NOT show "1 דקות"
+      expect(find.textContaining('1 דקות'), findsNothing);
+    });
+
+    testWidgets('singular hour: shows "לפני שעה" not "לפני 1 שעות"', (
+      WidgetTester tester,
+    ) async {
+      final newsItem = NewsItem(
+        id: '1',
+        title: 'כותרת',
+        link: 'https://ynet.co.il/article/1',
+        pubDate: DateTime.now().subtract(const Duration(hours: 1, minutes: 30)),
+        source: NewsSource.ynet,
+      );
+
+      await tester.pumpWidget(buildTestWidget(newsItem));
+
+      // Should show singular form
+      expect(find.textContaining('לפני שעה'), findsOneWidget);
+      // Should NOT show "1 שעות"
+      expect(find.textContaining('1 שעות'), findsNothing);
+    });
   });
 }

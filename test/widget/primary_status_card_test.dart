@@ -6,6 +6,7 @@ import 'package:mklat/presentation/widgets/primary_status_card.dart';
 import 'package:mklat/presentation/providers/alerts_provider.dart';
 import 'package:mklat/presentation/providers/location_provider.dart';
 import 'package:mklat/presentation/providers/connectivity_provider.dart';
+import 'package:mklat/data/models/alert.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 void main() {
@@ -242,6 +243,57 @@ void main() {
 
         await controller.close();
       });
+    });
+
+    testWidgets('justCleared state does not show redundant timestamp', (
+      WidgetTester tester,
+    ) async {
+      final alertsProvider = AlertsProvider();
+      final locationProvider = LocationProvider();
+      final connectivityProvider = ConnectivityProvider.fromStream(
+        Stream.value(ConnectivityResult.wifi),
+      );
+      await connectivityProvider.initialize();
+
+      // Drive state machine to JUST_CLEARED
+      alertsProvider.setPrimaryLocation('רחובות');
+
+      final activeAlert = Alert(
+        id: 'test_1',
+        location: 'רחובות',
+        title: 'ירי רקטות וטילים',
+        time: DateTime.now(),
+        category: 1,
+      );
+      alertsProvider.onAlertData([activeAlert], []);
+      alertsProvider.onAlertData([], []);
+
+      final clearanceAlert = Alert(
+        id: 'test_2',
+        location: 'רחובות',
+        title: 'האירוע הסתיים',
+        time: DateTime.now(),
+        category: 13,
+      );
+      alertsProvider.onAlertData([], [clearanceAlert]);
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          alertsProvider: alertsProvider,
+          locationProvider: locationProvider,
+          connectivityProvider: connectivityProvider,
+        ),
+      );
+      await tester.pump();
+
+      // Should show "האירוע הסתיים" title
+      expect(find.text('האירוע הסתיים'), findsOneWidget);
+      // Should show clearance instruction
+      expect(find.text('ניתן לצאת מהמרחב המוגן'), findsOneWidget);
+      // Should NOT show any "דקות" timestamp (this is the bug - currently it does)
+      expect(find.textContaining('דקות'), findsNothing);
+      // Should NOT show "עכשיו" either
+      expect(find.textContaining('עכשיו'), findsNothing);
     });
   });
 }

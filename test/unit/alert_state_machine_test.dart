@@ -454,47 +454,55 @@ void main() {
     });
 
     test(
-      '14. Re-entry: WAITING_CLEAR → RED_ALERT → WAITING_CLEAR → JUST_CLEARED',
+      'ALERT_IMMINENT → WAITING_CLEAR when attack materializes in history (cat 1/2) but not caught in active alerts',
       () {
         final machine = AlertStateMachine();
-        machine.setPrimaryLocation('תל אביב - מרכז');
+        machine.setPrimaryLocation('רחובות');
+        final baseTime = DateTime(2026, 3, 5, 13, 42, 0);
 
-        // Enter RED_ALERT
+        // Cat 14 arrives → ALERT_IMMINENT
         machine.evaluate(
-          activeAlertLocations: {'תל אביב - מרכז'},
-          historyForPrimary: [],
-        );
-
-        // Enter WAITING_CLEAR
-        machine.evaluate(activeAlertLocations: {}, historyForPrimary: []);
-        expect(machine.currentState, AlertState.waitingClear);
-
-        // Re-enter RED_ALERT
-        machine.evaluate(
-          activeAlertLocations: {'תל אביב - מרכז'},
-          historyForPrimary: [],
-        );
-        expect(machine.currentState, AlertState.redAlert);
-
-        // Back to WAITING_CLEAR
-        machine.evaluate(activeAlertLocations: {}, historyForPrimary: []);
-        expect(machine.currentState, AlertState.waitingClear);
-
-        // Finally JUST_CLEARED
-        final result = machine.evaluate(
           activeAlertLocations: {},
           historyForPrimary: [
             Alert(
               id: '1',
-              location: 'תל אביב - מרכז',
-              title: 'האירוע הסתיים',
-              time: DateTime.now(),
-              category: 13,
+              location: 'רחובות',
+              title: 'בדקות הקרובות צפויות להתקבל התרעות באזורך',
+              time: baseTime,
+              category: 14,
             ),
           ],
+          now: baseTime,
+        );
+        expect(machine.currentState, AlertState.alertImminent);
+
+        // Cat 1 (rockets) appears in history — attack materialized
+        // but was never caught in active alerts (polling missed it)
+        // No cat 13 clearance yet
+        machine.evaluate(
+          activeAlertLocations: {},
+          historyForPrimary: [
+            Alert(
+              id: '1',
+              location: 'רחובות',
+              title: 'בדקות הקרובות צפויות להתקבל התרעות באזורך',
+              time: baseTime,
+              category: 14,
+            ),
+            Alert(
+              id: '2',
+              location: 'רחובות',
+              title: 'ירי רקטות וטילים',
+              time: baseTime.add(Duration(minutes: 5)),
+              category: 1,
+            ),
+          ],
+          now: baseTime.add(Duration(minutes: 6)),
         );
 
-        expect(result.state, AlertState.justCleared);
+        // Should have escalated to WAITING_CLEAR because the attack
+        // actually happened (cat 1 in history proves it)
+        expect(machine.currentState, AlertState.waitingClear);
       },
     );
   });

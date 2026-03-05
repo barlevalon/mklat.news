@@ -88,6 +88,19 @@ class AlertStateMachine {
       return _buildResult();
     }
 
+    // 3.5. ALERT_IMMINENT + actual attack in history (cat 1 or 2) + not active → WAITING_CLEAR
+    // This handles the case where the attack materialized (appears in history)
+    // but was never caught in active alerts during the 2-second polling window
+    if (_currentState == AlertState.alertImminent && !isActive) {
+      final hasActualAttack = historyForPrimary.any(
+        (alert) => alert.category == 1 || alert.category == 2,
+      );
+      if (hasActualAttack) {
+        _currentState = AlertState.waitingClear;
+        return _buildResult();
+      }
+    }
+
     // 4. Cat 14 in history → ALERT_IMMINENT (from ALL_CLEAR only)
     if (hasImminent && _currentState == AlertState.allClear) {
       _currentState = AlertState.alertImminent;

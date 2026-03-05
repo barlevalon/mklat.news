@@ -11,7 +11,7 @@ class RssNewsService {
 
   /// Fetch news from all RSS sources.
   /// Returns combined list sorted by pubDate (newest first).
-  /// Individual feed failures are silently ignored — returns whatever succeeds.
+  /// Parse errors return empty for that feed; network exceptions propagate.
   Future<List<NewsItem>> fetchAllNews() async {
     final results = await Future.wait([
       _fetchFeed(ApiEndpoints.rssYnet, NewsSource.ynet),
@@ -25,16 +25,15 @@ class RssNewsService {
     return allItems;
   }
 
-  /// Fetch and parse a single RSS feed. Returns [] on any error.
-  /// Rethrows HttpException so polling manager can detect connectivity loss.
+  /// Fetch and parse a single RSS feed. Returns [] on parse error.
+  /// Network exceptions propagate to polling manager.
   Future<List<NewsItem>> _fetchFeed(String url, NewsSource source) async {
+    // Let network exceptions (HttpException, SocketException, TimeoutException) propagate
+    final body = await _httpClient.get(url);
     try {
-      final body = await _httpClient.get(url);
       return _parseRssFeed(body, source);
-    } on HttpException {
-      rethrow;
     } catch (e) {
-      return [];
+      return []; // Parse errors return empty
     }
   }
 

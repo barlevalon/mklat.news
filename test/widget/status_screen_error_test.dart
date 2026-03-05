@@ -7,6 +7,7 @@ import 'package:mklat/presentation/screens/status_screen.dart';
 import 'package:mklat/presentation/providers/alerts_provider.dart';
 import 'package:mklat/presentation/providers/location_provider.dart';
 import 'package:mklat/presentation/providers/connectivity_provider.dart';
+import 'package:mklat/data/models/alert.dart';
 import 'package:mklat/data/models/saved_location.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
@@ -271,6 +272,51 @@ void main() {
       // Should show offline message, not loading
       expect(find.text('ממתין לחיבור לאינטרנט...'), findsOneWidget);
       expect(find.text('טוען...'), findsNothing);
+    });
+
+    testWidgets('shows "מציג שעה אחרונה" indication in alert history section', (
+      WidgetTester tester,
+    ) async {
+      final alertsProvider = AlertsProvider();
+      final locationProvider = LocationProvider();
+      final connectivityProvider = ConnectivityProvider(
+        connectivity: MockConnectivity(ConnectivityResult.wifi),
+      );
+      await connectivityProvider.initialize();
+
+      // Add a location
+      await locationProvider.addLocation(
+        SavedLocation(
+          id: '1',
+          orefName: 'תל אביב',
+          customLabel: 'תל אביב',
+          isPrimary: true,
+        ),
+      );
+
+      // Provide alert history data
+      final historyAlert = Alert(
+        id: 'hist_1',
+        location: 'תל אביב',
+        title: 'ירי רקטות וטילים',
+        time: DateTime.now().subtract(const Duration(minutes: 30)),
+        category: 1,
+      );
+      alertsProvider.onAlertData([], [historyAlert]);
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          alertsProvider: alertsProvider,
+          locationProvider: locationProvider,
+          connectivityProvider: connectivityProvider,
+        ),
+      );
+      await tester.pump();
+
+      // Should show the recent alerts header
+      expect(find.text('התרעות אחרונות'), findsOneWidget);
+      // Should show the time range indication (THIS IS THE MISSING FEATURE)
+      expect(find.text('מציג שעה אחרונה'), findsOneWidget);
     });
   });
 }

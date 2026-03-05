@@ -132,6 +132,18 @@ class _StatusScreenState extends State<StatusScreen> {
                     ],
                   ),
                 ),
+                if (!isOffline && filteredAlerts.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      'מציג שעה אחרונה',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.black38,
+                        fontSize: 11,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
 
                 // Alerts list (scrollable) - handles loading, offline, and content states
                 Expanded(

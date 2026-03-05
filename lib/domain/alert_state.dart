@@ -17,7 +17,7 @@ enum AlertState {
   waitingClear,
 
   /// Clearance received, temporary 10-minute state
-  /// Display: ✅ האירוע הסתיים + "לפני X דקות"
+  /// Display: ✅ האירוע הסתיים
   justCleared,
 }
 
@@ -73,9 +73,6 @@ extension AlertStateExtension on AlertState {
   /// Whether this state should display an elapsed timer
   bool get showElapsedTimer =>
       this == AlertState.redAlert || this == AlertState.waitingClear;
-
-  /// Whether this state should display a "time since" text
-  bool get showTimeSince => this == AlertState.justCleared;
 
   /// Whether this is an elevated alert state (not all clear)
   bool get isElevated => this != AlertState.allClear;

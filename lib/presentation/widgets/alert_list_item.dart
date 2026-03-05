@@ -26,8 +26,12 @@ class AlertListItem extends StatelessWidget {
 
     if (diff.inMinutes < 1) {
       return 'עכשיו';
+    } else if (diff.inMinutes == 1) {
+      return 'לפני דקה';
     } else if (diff.inMinutes < 60) {
       return 'לפני ${diff.inMinutes} דקות';
+    } else if (diff.inHours == 1) {
+      return 'לפני שעה';
     } else if (diff.inHours < 24) {
       return 'לפני ${diff.inHours} שעות';
     } else {

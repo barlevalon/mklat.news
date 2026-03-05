@@ -24,7 +24,7 @@ class _PrimaryStatusCardState extends State<PrimaryStatusCard> {
   }
 
   void _ensureTimer(AlertState state) {
-    if (state.showElapsedTimer || state.showTimeSince) {
+    if (state.showElapsedTimer) {
       if (_timer == null || !_timer!.isActive) {
         _timer?.cancel();
         _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -44,13 +44,6 @@ class _PrimaryStatusCardState extends State<PrimaryStatusCard> {
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  String _formatTimeSince(DateTime? clearanceTime) {
-    if (clearanceTime == null) return '';
-    final diff = DateTime.now().difference(clearanceTime);
-    if (diff.inMinutes < 1) return 'עכשיו';
-    return 'לפני ${diff.inMinutes} דקות';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Consumer2<AlertsProvider, ConnectivityProvider>(
@@ -67,7 +60,6 @@ class _PrimaryStatusCardState extends State<PrimaryStatusCard> {
         }
 
         final startTime = alertsProvider.alertStartTime;
-        final clearanceTime = alertsProvider.clearanceTime;
 
         // Determine display values based on connectivity
         final displayColor = isOffline
@@ -124,17 +116,6 @@ class _PrimaryStatusCardState extends State<PrimaryStatusCard> {
                     fontWeight: FontWeight.w500,
                     fontFamily: 'monospace',
                   ),
-                ),
-              ],
-              if (!isOffline &&
-                  state.showTimeSince &&
-                  clearanceTime != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  _formatTimeSince(clearanceTime),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(color: Colors.black54),
                 ),
               ],
             ],

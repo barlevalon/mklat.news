@@ -10,18 +10,18 @@ class OrefHistoryService {
 
   /// Fetch alert history.
   /// Returns a list of Alert objects from the last ~1 hour of events.
-  /// Returns empty list on error.
+  /// Returns empty list on parse error.
+  /// Network exceptions propagate to polling manager.
   Future<List<Alert>> fetchAlertHistory() async {
+    // Let network exceptions (HttpException, SocketException, TimeoutException) propagate
+    final body = await _httpClient.get(
+      ApiEndpoints.orefHistory,
+      useOrefHeaders: true,
+    );
     try {
-      final body = await _httpClient.get(
-        ApiEndpoints.orefHistory,
-        useOrefHeaders: true,
-      );
       return _parseHistoryResponse(body);
-    } on HttpException {
-      rethrow;
     } catch (e) {
-      return [];
+      return []; // Parse errors return empty
     }
   }
 

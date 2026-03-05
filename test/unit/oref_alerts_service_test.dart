@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -118,6 +120,17 @@ void main() {
       ).thenThrow(HttpException('HTTP 500', statusCode: 500));
 
       expect(() => service.fetchCurrentAlerts(), throwsA(isA<HttpException>()));
+    });
+
+    test('SocketException (network error) rethrows to caller', () async {
+      when(
+        mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),
+      ).thenThrow(SocketException('No Internet'));
+
+      expect(
+        () => service.fetchCurrentAlerts(),
+        throwsA(isA<SocketException>()),
+      );
     });
 
     test('response with data as empty array returns empty list', () async {

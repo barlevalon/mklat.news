@@ -16,7 +16,9 @@ class NewsListItem extends StatelessWidget {
   String _formatRelativeTime(DateTime pubDate) {
     final diff = DateTime.now().difference(pubDate);
     if (diff.inMinutes < 1) return 'עכשיו';
+    if (diff.inMinutes == 1) return 'לפני דקה';
     if (diff.inMinutes < 60) return 'לפני ${diff.inMinutes} דקות';
+    if (diff.inHours == 1) return 'לפני שעה';
     if (diff.inHours < 24) return 'לפני ${diff.inHours} שעות';
     return '${pubDate.day}/${pubDate.month} ${pubDate.hour.toString().padLeft(2, '0')}:${pubDate.minute.toString().padLeft(2, '0')}';
   }

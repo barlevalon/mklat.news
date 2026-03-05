@@ -36,7 +36,7 @@ class AppConstants {
   static const Map<String, String> rssSourceNames = {
     'ynet.co.il': 'Ynet',
     'maariv.co.il': 'Maariv',
-    'walla.co.il': 'Walla',
+    'mako.co.il': 'Mako',
     'haaretz.co.il': 'Haaretz',
   };
 }

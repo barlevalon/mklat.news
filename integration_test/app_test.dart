@@ -76,10 +76,10 @@ void main() {
 
       when(
         mockClient.get(
-          argThat(predicate<Uri>((uri) => uri.host.contains('walla'))),
+          argThat(predicate<Uri>((uri) => uri.host.contains('mako'))),
           headers: anyNamed('headers'),
         ),
-      ).thenAnswer((_) async => TestFixtures.rss_walla);
+      ).thenAnswer((_) async => TestFixtures.rss_mako);
 
       when(
         mockClient.get(
@@ -403,9 +403,9 @@ void main() {
       // Wait for news to load (longer wait for RSS feeds)
       await tester.pump(const Duration(seconds: 3));
 
-      // Verify source labels exist (Ynet, Maariv, Walla, or Haaretz)
+      // Verify source labels exist (Ynet, Maariv, Mako, or Haaretz)
       // The source name appears in the timestamp line: "SourceName • לפני X דקות"
-      final sourceLabels = ['Ynet', 'Maariv', 'Walla', 'Haaretz'];
+      final sourceLabels = ['Ynet', 'Maariv', 'Mako', 'Haaretz'];
       bool foundSource = false;
       for (final source in sourceLabels) {
         if (find.textContaining(source).evaluate().isNotEmpty) {

@@ -13,8 +13,10 @@ class NewsListItem extends StatelessWidget {
     return sourceName[0].toUpperCase();
   }
 
-  String _formatRelativeTime(DateTime pubDate) {
+  String? _formatRelativeTime(DateTime pubDate) {
     final diff = DateTime.now().difference(pubDate);
+    // Future dates or epoch sentinel (unparsable) → no timestamp
+    if (diff.isNegative || pubDate.year < 2000) return null;
     if (diff.inMinutes < 1) return 'עכשיו';
     if (diff.inMinutes == 1) return 'לפני דקה';
     if (diff.inMinutes < 60) return 'לפני ${diff.inMinutes} דקות';
@@ -106,11 +108,20 @@ class NewsListItem extends StatelessWidget {
               const SizedBox(height: 8),
               Padding(
                 padding: const EdgeInsets.only(right: 44),
-                child: Text(
-                  '$sourceName • ${_formatRelativeTime(newsItem.pubDate)}',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: Colors.black38),
+                child: Builder(
+                  builder: (context) {
+                    final timeStr = _formatRelativeTime(newsItem.pubDate);
+                    // Show "Source • time" if time available, else just "Source"
+                    final metadataText = timeStr != null
+                        ? '$sourceName • $timeStr'
+                        : sourceName;
+                    return Text(
+                      metadataText,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.black38),
+                    );
+                  },
                 ),
               ),
             ],

@@ -83,7 +83,7 @@ void main() {
       final sources = [
         (NewsSource.ynet, 'Y'),
         (NewsSource.maariv, 'M'),
-        (NewsSource.walla, 'W'),
+        (NewsSource.mako, 'M'),
         (NewsSource.haaretz, 'H'),
       ];
 
@@ -157,6 +157,50 @@ void main() {
       expect(find.textContaining('לפני שעה'), findsOneWidget);
       // Should NOT show "1 שעות"
       expect(find.textContaining('1 שעות'), findsNothing);
+    });
+
+    testWidgets('item with unparsable date does not show עכשיו', (
+      WidgetTester tester,
+    ) async {
+      // An item whose pubDate would come from an unparsable RSS date
+      // Currently _parsePubDate returns DateTime.now() as fallback,
+      // which displays as "עכשיו" — this is wrong
+      final newsItem = NewsItem(
+        id: '1',
+        title: 'כותרת',
+        link: 'https://ynet.co.il/article/1',
+        pubDate: DateTime.fromMillisecondsSinceEpoch(
+          0,
+        ), // epoch sentinel = unparsable
+        source: NewsSource.ynet,
+      );
+
+      await tester.pumpWidget(buildTestWidget(newsItem));
+
+      // Should NOT show "עכשיו" for an item with epoch sentinel date
+      expect(find.textContaining('עכשיו'), findsNothing);
+      // Should still show the source name
+      expect(find.textContaining('Ynet'), findsOneWidget);
+    });
+
+    testWidgets('item with future date does not show עכשיו', (
+      WidgetTester tester,
+    ) async {
+      // An item with a future pubDate (e.g. from Walla timezone bug)
+      final newsItem = NewsItem(
+        id: '1',
+        title: 'כותרת',
+        link: 'https://ynet.co.il/article/1',
+        pubDate: DateTime.now().add(const Duration(hours: 1)),
+        source: NewsSource.ynet,
+      );
+
+      await tester.pumpWidget(buildTestWidget(newsItem));
+
+      // Should NOT show "עכשיו" for a future-dated item
+      expect(find.textContaining('עכשיו'), findsNothing);
+      // Should still show the source name
+      expect(find.textContaining('Ynet'), findsOneWidget);
     });
   });
 }

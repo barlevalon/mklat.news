@@ -16,7 +16,7 @@ class RssNewsService {
     final results = await Future.wait([
       _fetchFeed(ApiEndpoints.rssYnet, NewsSource.ynet),
       _fetchFeed(ApiEndpoints.rssMaariv, NewsSource.maariv),
-      _fetchFeed(ApiEndpoints.rssWalla, NewsSource.walla),
+      _fetchFeed(ApiEndpoints.rssMako, NewsSource.mako),
       _fetchFeed(ApiEndpoints.rssHaaretz, NewsSource.haaretz),
     ]);
 
@@ -76,20 +76,14 @@ class RssNewsService {
   /// Example: "Thu, 04 Mar 2026 14:30:00 +0200"
   /// Example: "Thu, 04 Mar 2026 14:30:00 GMT"
   DateTime _parsePubDate(String dateStr, NewsSource source) {
-    if (dateStr.isEmpty) return DateTime.now();
+    if (dateStr.isEmpty) return DateTime.fromMillisecondsSinceEpoch(0);
 
     try {
       var cleaned = dateStr.trim();
 
-      if (source == NewsSource.walla) {
-        // Walla timezone bug: times labeled GMT are actually Israel time.
-        // Remove timezone indicator so DateTime parses as local time.
-        cleaned = cleaned.replaceAll(RegExp(r'\s*(GMT|UTC|[+-]\d{4})\s*$'), '');
-      }
-
       return _parseRfc2822(cleaned);
     } catch (e) {
-      return DateTime.now();
+      return DateTime.fromMillisecondsSinceEpoch(0);
     }
   }
 

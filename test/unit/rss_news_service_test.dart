@@ -50,15 +50,15 @@ void main() {
   </channel>
 </rss>''';
 
-    final validWallaRss = '''<?xml version="1.0" encoding="utf-8"?>
+    final validMakoRss = '''<?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0">
   <channel>
-    <title>Walla News</title>
+    <title>Mako News</title>
     <item>
-      <title><![CDATA[חדשות וואלה]]></title>
-      <link>https://www.walla.co.il/article/111</link>
-      <description><![CDATA[<b>תיאור</b>]]></description>
-      <pubDate>Thu, 04 Mar 2026 14:30:00 GMT</pubDate>
+      <title>חדשות מאקו</title>
+      <link>https://www.mako.co.il/article/111</link>
+      <description>תיאור</description>
+      <pubDate>Thu, 04 Mar 2026 14:30:00 +0200</pubDate>
     </item>
   </channel>
 </rss>''';
@@ -86,7 +86,7 @@ void main() {
   <link></link>
 </item></channel></rss>''',
       );
-      when(mockHttpClient.get(ApiEndpoints.rssWalla)).thenAnswer(
+      when(mockHttpClient.get(ApiEndpoints.rssMako)).thenAnswer(
         (_) async => '''<?xml version="1.0"?>
 <rss><channel></channel></rss>''',
       );
@@ -117,7 +117,7 @@ void main() {
         mockHttpClient.get(ApiEndpoints.rssMaariv),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
-        mockHttpClient.get(ApiEndpoints.rssWalla),
+        mockHttpClient.get(ApiEndpoints.rssMako),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
@@ -143,7 +143,7 @@ void main() {
         mockHttpClient.get(ApiEndpoints.rssMaariv),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
-        mockHttpClient.get(ApiEndpoints.rssWalla),
+        mockHttpClient.get(ApiEndpoints.rssMako),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
@@ -153,28 +153,6 @@ void main() {
 
       expect(result.length, 1);
       expect(result[0].description, 'Paragraph with bold and link');
-    });
-
-    test('Walla timezone bug - GMT dates parsed as local time', () async {
-      when(
-        mockHttpClient.get(ApiEndpoints.rssYnet),
-      ).thenAnswer((_) async => '<rss><channel></channel></rss>');
-      when(
-        mockHttpClient.get(ApiEndpoints.rssMaariv),
-      ).thenAnswer((_) async => '<rss><channel></channel></rss>');
-      when(
-        mockHttpClient.get(ApiEndpoints.rssWalla),
-      ).thenAnswer((_) async => validWallaRss);
-      when(
-        mockHttpClient.get(ApiEndpoints.rssHaaretz),
-      ).thenAnswer((_) async => '<rss><channel></channel></rss>');
-
-      final result = await service.fetchAllNews();
-
-      expect(result.length, 1);
-      // Walla date "14:30:00 GMT" should be parsed as local time (14:30), not converted
-      expect(result[0].pubDate.hour, 14);
-      expect(result[0].pubDate.minute, 30);
     });
 
     test(
@@ -187,8 +165,8 @@ void main() {
           mockHttpClient.get(ApiEndpoints.rssMaariv),
         ).thenAnswer((_) async => validMaarivRss);
         when(
-          mockHttpClient.get(ApiEndpoints.rssWalla),
-        ).thenAnswer((_) async => validWallaRss);
+          mockHttpClient.get(ApiEndpoints.rssMako),
+        ).thenAnswer((_) async => validMakoRss);
         when(
           mockHttpClient.get(ApiEndpoints.rssHaaretz),
         ).thenAnswer((_) async => validHaaretzRss);
@@ -198,14 +176,14 @@ void main() {
         expect(result.length, 5);
         // Should be sorted by pubDate descending (newest first)
         // Ynet item 1: 14:30:00 +0200
-        // Walla: 14:30:00 GMT (treated as local 14:30)
+        // Mako: 14:30:00 +0200
         // Ynet item 2: 14:00:00 +0200
         // Maariv: 13:45:00 +0200
         // Haaretz: 12:00:00 +0200
 
-        // First item should be one of the 14:30 items (Ynet or Walla)
+        // First item should be one of the 14:30 items (Ynet or Mako)
         // Note: Dates are converted to UTC, so 14:30 +0200 becomes 12:30 UTC
-        expect(result[0].source, anyOf(NewsSource.ynet, NewsSource.walla));
+        expect(result[0].source, anyOf(NewsSource.ynet, NewsSource.mako));
 
         // Last item should be Haaretz at 12:00 (10:00 UTC)
         expect(result.last.source, NewsSource.haaretz);
@@ -223,7 +201,7 @@ void main() {
           mockHttpClient.get(ApiEndpoints.rssMaariv),
         ).thenAnswer((_) async => 'not valid xml'); // Parse error
         when(
-          mockHttpClient.get(ApiEndpoints.rssWalla),
+          mockHttpClient.get(ApiEndpoints.rssMako),
         ).thenAnswer((_) async => 'also bad xml'); // Parse error
         when(
           mockHttpClient.get(ApiEndpoints.rssHaaretz),
@@ -245,7 +223,7 @@ void main() {
         mockHttpClient.get(ApiEndpoints.rssMaariv),
       ).thenAnswer((_) async => 'also bad xml');
       when(
-        mockHttpClient.get(ApiEndpoints.rssWalla),
+        mockHttpClient.get(ApiEndpoints.rssMako),
       ).thenAnswer((_) async => 'invalid');
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
@@ -264,7 +242,7 @@ void main() {
         mockHttpClient.get(ApiEndpoints.rssMaariv),
       ).thenThrow(SocketException('No Internet'));
       when(
-        mockHttpClient.get(ApiEndpoints.rssWalla),
+        mockHttpClient.get(ApiEndpoints.rssMako),
       ).thenThrow(SocketException('No Internet'));
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
@@ -281,7 +259,7 @@ void main() {
         mockHttpClient.get(ApiEndpoints.rssMaariv),
       ).thenAnswer((_) async => validMaarivRss);
       when(
-        mockHttpClient.get(ApiEndpoints.rssWalla),
+        mockHttpClient.get(ApiEndpoints.rssMako),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
@@ -318,7 +296,7 @@ void main() {
         mockHttpClient.get(ApiEndpoints.rssMaariv),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
-        mockHttpClient.get(ApiEndpoints.rssWalla),
+        mockHttpClient.get(ApiEndpoints.rssMako),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
@@ -344,7 +322,7 @@ void main() {
         mockHttpClient.get(ApiEndpoints.rssMaariv),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
-        mockHttpClient.get(ApiEndpoints.rssWalla),
+        mockHttpClient.get(ApiEndpoints.rssMako),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
@@ -369,7 +347,7 @@ void main() {
         mockHttpClient.get(ApiEndpoints.rssMaariv),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
-        mockHttpClient.get(ApiEndpoints.rssWalla),
+        mockHttpClient.get(ApiEndpoints.rssMako),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
@@ -381,7 +359,7 @@ void main() {
       expect(result[0].description, isNull);
     });
 
-    test('empty pubDate returns DateTime.now', () async {
+    test('empty pubDate returns epoch sentinel', () async {
       when(mockHttpClient.get(ApiEndpoints.rssYnet)).thenAnswer(
         (_) async => '''<?xml version="1.0"?>
 <rss><channel><item>
@@ -394,22 +372,17 @@ void main() {
         mockHttpClient.get(ApiEndpoints.rssMaariv),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
-        mockHttpClient.get(ApiEndpoints.rssWalla),
+        mockHttpClient.get(ApiEndpoints.rssMako),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
 
-      final before = DateTime.now();
       final result = await service.fetchAllNews();
-      final after = DateTime.now();
 
       expect(result.length, 1);
-      expect(
-        result[0].pubDate.isAfter(before.subtract(Duration(seconds: 1))),
-        true,
-      );
-      expect(result[0].pubDate.isBefore(after.add(Duration(seconds: 1))), true);
+      // Should be epoch (year 1970), not near DateTime.now()
+      expect(result[0].pubDate.year, 1970);
     });
 
     test('RFC 2822 date parsing with various timezone formats', () async {
@@ -437,7 +410,7 @@ void main() {
         mockHttpClient.get(ApiEndpoints.rssMaariv),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
-        mockHttpClient.get(ApiEndpoints.rssWalla),
+        mockHttpClient.get(ApiEndpoints.rssMako),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),

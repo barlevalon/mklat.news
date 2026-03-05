@@ -1,5 +1,5 @@
 /// News sources enum
-enum NewsSource { ynet, maariv, walla, haaretz }
+enum NewsSource { ynet, maariv, mako, haaretz }
 
 extension NewsSourceExtension on NewsSource {
   /// Get display name for the source
@@ -9,8 +9,8 @@ extension NewsSourceExtension on NewsSource {
         return 'Ynet';
       case NewsSource.maariv:
         return 'Maariv';
-      case NewsSource.walla:
-        return 'Walla';
+      case NewsSource.mako:
+        return 'Mako';
       case NewsSource.haaretz:
         return 'Haaretz';
     }
@@ -23,8 +23,8 @@ extension NewsSourceExtension on NewsSource {
         return 'ynet.co.il';
       case NewsSource.maariv:
         return 'maariv.co.il';
-      case NewsSource.walla:
-        return 'walla.co.il';
+      case NewsSource.mako:
+        return 'mako.co.il';
       case NewsSource.haaretz:
         return 'haaretz.co.il';
     }
@@ -35,7 +35,7 @@ extension NewsSourceExtension on NewsSource {
     final lowerDomain = domain.toLowerCase();
     if (lowerDomain.contains('ynet')) return NewsSource.ynet;
     if (lowerDomain.contains('maariv')) return NewsSource.maariv;
-    if (lowerDomain.contains('walla')) return NewsSource.walla;
+    if (lowerDomain.contains('mako')) return NewsSource.mako;
     if (lowerDomain.contains('haaretz')) return NewsSource.haaretz;
     return NewsSource.ynet; // default
   }

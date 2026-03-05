@@ -6,14 +6,14 @@ void main() {
     test('displayName returns correct names', () {
       expect(NewsSource.ynet.displayName, 'Ynet');
       expect(NewsSource.maariv.displayName, 'Maariv');
-      expect(NewsSource.walla.displayName, 'Walla');
+      expect(NewsSource.mako.displayName, 'Mako');
       expect(NewsSource.haaretz.displayName, 'Haaretz');
     });
 
     test('domain returns correct domains', () {
       expect(NewsSource.ynet.domain, 'ynet.co.il');
       expect(NewsSource.maariv.domain, 'maariv.co.il');
-      expect(NewsSource.walla.domain, 'walla.co.il');
+      expect(NewsSource.mako.domain, 'mako.co.il');
       expect(NewsSource.haaretz.domain, 'haaretz.co.il');
     });
 
@@ -23,10 +23,7 @@ void main() {
         NewsSourceExtension.fromDomain('www.maariv.co.il'),
         NewsSource.maariv,
       );
-      expect(
-        NewsSourceExtension.fromDomain('RSS.WALLA.CO.IL'),
-        NewsSource.walla,
-      );
+      expect(NewsSourceExtension.fromDomain('RSS.MAKO.CO.IL'), NewsSource.mako);
       expect(
         NewsSourceExtension.fromDomain('haaretz.co.il'),
         NewsSource.haaretz,
@@ -124,7 +121,7 @@ void main() {
         title: 'Title B', // Different title
         link: 'https://b.com', // Different link
         pubDate: DateTime(2025, 1, 1), // Different date
-        source: NewsSource.maariv, // Different source
+        source: NewsSource.mako, // Different source
       );
 
       final item3 = NewsItem(

@@ -1,0 +1,14 @@
+HTTP/2 200 
+content-type: text/xml
+last-modified: Thu, 05 Mar 2026 13:51:08 GMT
+etag: W/"58858b1ea7acdc1:0"
+access-control-allow-origin: *
+rdwr_response: allowed
+expires: Thu, 05 Mar 2026 13:51:15 GMT
+cache-control: max-age=0, no-cache, no-store, private
+pragma: no-cache
+date: Thu, 05 Mar 2026 13:51:15 GMT
+content-length: 28304
+delivery-via: Akamai
+x-cdn: Served-By-Akamai
+

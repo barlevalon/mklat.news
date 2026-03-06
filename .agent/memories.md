@@ -48,8 +48,7 @@
 ## State machine learnings (2026-03-06)
 
 - `_hasCategoryClearance` must filter by time: only cat 13 alerts newer than `_alertStartTime` count. Stale clearances from previous attack cycles (still in ~1hr history window) caused false JUST_CLEARED or blocked RED_ALERT → WAITING_CLEAR.
-- WAITING_CLEAR currently has NO timeout — stays indefinitely. This is broken: OREF doesn't always send cat 13. Needs a 30-minute timeout to ALL_CLEAR. See `test/unit/alert_state_machine_test.dart` test 18 which explicitly tests for no timeout — this test needs updating when the timeout is added.
-- Rule 3.5 (ALERT_IMMINENT + cat 1/2 in history → WAITING_CLEAR) works but combined with no WAITING_CLEAR timeout, the machine gets stuck.
+- State machine still has issues observed in real-world testing (screenshots in `~/notes/` from 2026-03-06). Need to work through these in consultation with the user — don't assume root causes, review the screenshots and discuss before implementing fixes.
 
 ## RSS feeds (2026-03-06)
 

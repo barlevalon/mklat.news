@@ -50,6 +50,10 @@
 - `_hasCategoryClearance` must filter by time: only cat 13 alerts newer than `_alertStartTime` count. Stale clearances from previous attack cycles (still in ~1hr history window) caused false JUST_CLEARED or blocked RED_ALERT → WAITING_CLEAR.
 - State machine still has issues observed in real-world testing (screenshots in `~/notes/` from 2026-03-06). Need to work through these in consultation with the user — don't assume root causes, review the screenshots and discuss before implementing fixes.
 
+## Next up (2026-03-06)
+
+State machine bugs remain. Two screenshots in `~/notes/` (`Screenshot_20260306-192137.png` and `Screenshot_20260306-204029.png`) show incorrect states during real attacks. Review them with the user before proposing fixes — previous attempt to diagnose without consultation was wrong.
+
 ## RSS feeds (2026-03-06)
 
 - Replaced Walla with Mako (N12/Channel 12). Walla's server uses IDT (UTC+3) year-round but labels times as "GMT", causing items to appear ~1 hour in the future.

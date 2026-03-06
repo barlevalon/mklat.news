@@ -45,6 +45,24 @@
 - Emulators don't enforce permissions strictly, so integration tests on emulator won't catch missing permissions
 - Always check manifest permissions when adding new plugins that need platform access
 
+## State machine learnings (2026-03-06)
+
+- `_hasCategoryClearance` must filter by time: only cat 13 alerts newer than `_alertStartTime` count. Stale clearances from previous attack cycles (still in ~1hr history window) caused false JUST_CLEARED or blocked RED_ALERT → WAITING_CLEAR.
+- WAITING_CLEAR currently has NO timeout — stays indefinitely. This is broken: OREF doesn't always send cat 13. Needs a 30-minute timeout to ALL_CLEAR. See `test/unit/alert_state_machine_test.dart` test 18 which explicitly tests for no timeout — this test needs updating when the timeout is added.
+- Rule 3.5 (ALERT_IMMINENT + cat 1/2 in history → WAITING_CLEAR) works but combined with no WAITING_CLEAR timeout, the machine gets stuck.
+
+## RSS feeds (2026-03-06)
+
+- Replaced Walla with Mako (N12/Channel 12). Walla's server uses IDT (UTC+3) year-round but labels times as "GMT", causing items to appear ~1 hour in the future.
+- Mako RSS URL: `https://rcs.mako.co.il/rss/31750a2610f26110VgnVCM1000005201000aRCRD.xml` — returns 20 items with `+0200` offset, properly formatted.
+- `_parsePubDate` fallback is now `DateTime.fromMillisecondsSinceEpoch(0)` (epoch sentinel) instead of `DateTime.now()`. The UI hides timestamps for epoch sentinels (year < 2000) and future dates.
+- Other valid Israeli RSS alternatives found: Israel Hayom (`israelhayom.co.il/rss.xml`, GMT), Now14/Channel 14 (`now14.co.il/feed/`, +0000).
+
+## Android manifest (2026-03-06)
+
+- `url_launcher` needs `<queries>` intent for `android.intent.action.VIEW` with `https` scheme on Android 11+ (API 30+). Without it, `canLaunchUrl()` returns false.
+- Portrait lock: `android:screenOrientation="portrait"` on the `<activity>` element.
+
 ## Development practices
 
 - Red/green TDD for all implementation. Write failing test first, then minimum code to pass, then refactor.

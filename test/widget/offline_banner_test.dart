@@ -101,10 +101,13 @@ void main() {
 
       // Color should be in the orange/amber family
       final color = container.color!;
+      final red = (color.r * 255.0).round().clamp(0, 255);
+      final green = (color.g * 255.0).round().clamp(0, 255);
+      final blue = (color.b * 255.0).round().clamp(0, 255);
       // Orange colors have high red, medium green, low blue
-      expect(color.red, greaterThan(200));
-      expect(color.green, greaterThan(100));
-      expect(color.blue, lessThan(100));
+      expect(red, greaterThan(200));
+      expect(green, greaterThan(100));
+      expect(blue, lessThan(100));
     });
 
     testWidgets('banner animates in and out', (WidgetTester tester) async {

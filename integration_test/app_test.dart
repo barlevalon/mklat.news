@@ -30,7 +30,7 @@ void main() {
           argThat(predicate<Uri>((uri) => uri.path.contains('Alerts.json'))),
           headers: anyNamed('headers'),
         ),
-      ).thenAnswer((_) async => TestFixtures.oref_alerts);
+      ).thenAnswer((_) async => TestFixtures.orefAlerts);
 
       when(
         mockClient.get(
@@ -39,7 +39,7 @@ void main() {
           ),
           headers: anyNamed('headers'),
         ),
-      ).thenAnswer((_) async => TestFixtures.oref_history);
+      ).thenAnswer((_) async => TestFixtures.orefHistory);
 
       when(
         mockClient.get(
@@ -48,7 +48,7 @@ void main() {
           ),
           headers: anyNamed('headers'),
         ),
-      ).thenAnswer((_) async => TestFixtures.oref_districts);
+      ).thenAnswer((_) async => TestFixtures.orefDistricts);
 
       when(
         mockClient.get(
@@ -57,7 +57,7 @@ void main() {
           ),
           headers: anyNamed('headers'),
         ),
-      ).thenAnswer((_) async => TestFixtures.oref_cities);
+      ).thenAnswer((_) async => TestFixtures.orefCities);
 
       // RSS feeds
       when(
@@ -65,28 +65,28 @@ void main() {
           argThat(predicate<Uri>((uri) => uri.host.contains('ynet'))),
           headers: anyNamed('headers'),
         ),
-      ).thenAnswer((_) async => TestFixtures.rss_ynet);
+      ).thenAnswer((_) async => TestFixtures.rssYnet);
 
       when(
         mockClient.get(
           argThat(predicate<Uri>((uri) => uri.host.contains('maariv'))),
           headers: anyNamed('headers'),
         ),
-      ).thenAnswer((_) async => TestFixtures.rss_maariv);
+      ).thenAnswer((_) async => TestFixtures.rssMaariv);
 
       when(
         mockClient.get(
           argThat(predicate<Uri>((uri) => uri.host.contains('mako'))),
           headers: anyNamed('headers'),
         ),
-      ).thenAnswer((_) async => TestFixtures.rss_mako);
+      ).thenAnswer((_) async => TestFixtures.rssMako);
 
       when(
         mockClient.get(
           argThat(predicate<Uri>((uri) => uri.host.contains('haaretz'))),
           headers: anyNamed('headers'),
         ),
-      ).thenAnswer((_) async => TestFixtures.rss_haaretz);
+      ).thenAnswer((_) async => TestFixtures.rssHaaretz);
     });
 
     tearDown(() {
@@ -419,26 +419,27 @@ void main() {
         reason: 'Expected to find at least one news source label',
       );
 
-      // Verify "לפני" appears (Hebrew relative time prefix used in timestamps)
-      // or "עכשיו" for very recent items
-      final hebrewPattern = RegExp(r'לפני|עכשיו');
+      // Verify at least one timestamp is rendered. Older fixtures may fall back
+      // to an absolute date instead of relative text.
+      final timestampPattern = RegExp(
+        r'לפני|עכשיו|\d{1,2}/\d{1,2}\s\d{2}:\d{2}',
+      );
       final allTexts = find.byType(Text);
-      bool foundRelativeTime = false;
+      bool foundTimestamp = false;
       for (var i = 0; i < allTexts.evaluate().length; i++) {
         final element = allTexts.evaluate().elementAt(i);
         final text = element.widget is Text
             ? (element.widget as Text).data ?? ''
             : '';
-        if (hebrewPattern.hasMatch(text)) {
-          foundRelativeTime = true;
+        if (timestampPattern.hasMatch(text)) {
+          foundTimestamp = true;
           break;
         }
       }
       expect(
-        foundRelativeTime,
+        foundTimestamp,
         isTrue,
-        reason:
-            'Expected to find "לפני" or "עכשיו" (time indicator) in news items',
+        reason: 'Expected to find a rendered news timestamp',
       );
     });
 
@@ -522,7 +523,7 @@ void main() {
           argThat(predicate<Uri>((uri) => uri.path.contains('Alerts.json'))),
           headers: anyNamed('headers'),
         ),
-      ).thenAnswer((_) async => TestFixtures.oref_alerts);
+      ).thenAnswer((_) async => TestFixtures.orefAlerts);
       when(
         mockClient.get(
           argThat(
@@ -530,7 +531,7 @@ void main() {
           ),
           headers: anyNamed('headers'),
         ),
-      ).thenAnswer((_) async => TestFixtures.oref_history);
+      ).thenAnswer((_) async => TestFixtures.orefHistory);
 
       // Wait for successful poll
       await tester.pump(const Duration(seconds: 3));

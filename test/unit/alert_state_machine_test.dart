@@ -233,7 +233,7 @@ void main() {
             id: '1',
             location: 'תל אביב - מרכז',
             title: 'האירוע הסתיים',
-            time: baseTime,
+            time: baseTime.add(Duration(minutes: 2)),
             category: 13,
           ),
         ],
@@ -249,7 +249,7 @@ void main() {
             id: '1',
             location: 'תל אביב - מרכז',
             title: 'האירוע הסתיים',
-            time: baseTime,
+            time: baseTime.add(Duration(minutes: 2)),
             category: 13,
           ),
         ],
@@ -265,7 +265,7 @@ void main() {
             id: '1',
             location: 'תל אביב - מרכז',
             title: 'האירוע הסתיים',
-            time: baseTime,
+            time: baseTime.add(Duration(minutes: 2)),
             category: 13,
           ),
         ],
@@ -505,6 +505,96 @@ void main() {
         expect(machine.currentState, AlertState.waitingClear);
       },
     );
+
+    test(
+      'latest imminent event overrides older attack and exits WAITING_CLEAR',
+      () {
+        final machine = AlertStateMachine();
+        machine.setPrimaryLocation('רחובות');
+        final baseTime = DateTime(2026, 3, 6, 19, 0, 0);
+
+        machine.evaluate(
+          activeAlertLocations: {},
+          historyForPrimary: [
+            Alert(
+              id: 'attack',
+              location: 'רחובות',
+              title: 'ירי רקטות וטילים',
+              time: baseTime,
+              category: 1,
+            ),
+          ],
+          now: baseTime.add(const Duration(minutes: 2)),
+        );
+        expect(machine.currentState, AlertState.waitingClear);
+
+        machine.evaluate(
+          activeAlertLocations: {},
+          historyForPrimary: [
+            Alert(
+              id: 'attack',
+              location: 'רחובות',
+              title: 'ירי רקטות וטילים',
+              time: baseTime,
+              category: 1,
+            ),
+            Alert(
+              id: 'imminent',
+              location: 'רחובות',
+              title: 'בדקות הקרובות צפויות להתקבל התרעות באזורך',
+              time: baseTime.add(const Duration(minutes: 10)),
+              category: 14,
+            ),
+          ],
+          now: baseTime.add(const Duration(minutes: 11)),
+        );
+
+        expect(machine.currentState, AlertState.alertImminent);
+      },
+    );
+
+    test('latest history event determines current state', () {
+      final machine = AlertStateMachine();
+      machine.setPrimaryLocation('רחובות');
+      final baseTime = DateTime(2026, 3, 6, 20, 0, 0);
+
+      machine.evaluate(
+        activeAlertLocations: {},
+        historyForPrimary: [
+          Alert(
+            id: 'imminent',
+            location: 'רחובות',
+            title: 'בדקות הקרובות צפויות להתקבל התרעות באזורך',
+            time: baseTime,
+            category: 14,
+          ),
+          Alert(
+            id: 'attack',
+            location: 'רחובות',
+            title: 'ירי רקטות וטילים',
+            time: baseTime.add(const Duration(minutes: 4)),
+            category: 1,
+          ),
+          Alert(
+            id: 'clear',
+            location: 'רחובות',
+            title: 'האירוע הסתיים',
+            time: baseTime.add(const Duration(minutes: 7)),
+            category: 13,
+          ),
+          Alert(
+            id: 'imminent-2',
+            location: 'רחובות',
+            title: 'בדקות הקרובות צפויות להתקבל התרעות באזורך',
+            time: baseTime.add(const Duration(minutes: 12)),
+            category: 14,
+          ),
+        ],
+        now: baseTime.add(const Duration(minutes: 13)),
+      );
+
+      expect(machine.currentState, AlertState.alertImminent);
+    });
 
     test(
       'stale cat 13 from previous attack does not trigger JUST_CLEARED for new attack',
@@ -1173,7 +1263,7 @@ void main() {
             id: '1',
             location: 'תל אביב - מרכז',
             title: 'האירוע הסתיים',
-            time: baseTime,
+            time: baseTime.add(Duration(minutes: 2)),
             category: 13,
           ),
         ],
@@ -1292,42 +1382,45 @@ void main() {
   });
 
   group('AlertStateMachine - Edge cases', () {
-    test('36. Empty active alerts + empty history → stay in current state', () {
-      final machine = AlertStateMachine();
-      machine.setPrimaryLocation('תל אביב - מרכז');
+    test(
+      '36. Empty active alerts + empty history falls back to safe baseline',
+      () {
+        final machine = AlertStateMachine();
+        machine.setPrimaryLocation('תל אביב - מרכז');
 
-      // Start in ALL_CLEAR
-      expect(machine.currentState, AlertState.allClear);
+        // Start in ALL_CLEAR
+        expect(machine.currentState, AlertState.allClear);
 
-      // Empty inputs - stays ALL_CLEAR
-      var result = machine.evaluate(
-        activeAlertLocations: {},
-        historyForPrimary: [],
-      );
-      expect(result.state, AlertState.allClear);
+        // Empty inputs - stays ALL_CLEAR
+        var result = machine.evaluate(
+          activeAlertLocations: {},
+          historyForPrimary: [],
+        );
+        expect(result.state, AlertState.allClear);
 
-      // Enter ALERT_IMMINENT
-      machine.evaluate(
-        activeAlertLocations: {},
-        historyForPrimary: [
-          Alert(
-            id: '1',
-            location: 'תל אביב - מרכז',
-            title: 'התרעה צפויה',
-            time: DateTime.now(),
-            category: 14,
-          ),
-        ],
-      );
-      expect(machine.currentState, AlertState.alertImminent);
+        // Enter ALERT_IMMINENT
+        machine.evaluate(
+          activeAlertLocations: {},
+          historyForPrimary: [
+            Alert(
+              id: '1',
+              location: 'תל אביב - מרכז',
+              title: 'התרעה צפויה',
+              time: DateTime.now(),
+              category: 14,
+            ),
+          ],
+        );
+        expect(machine.currentState, AlertState.alertImminent);
 
-      // Empty inputs - stays ALERT_IMMINENT
-      result = machine.evaluate(
-        activeAlertLocations: {},
-        historyForPrimary: [],
-      );
-      expect(result.state, AlertState.alertImminent);
-    });
+        // Empty inputs - no history means no derived state
+        result = machine.evaluate(
+          activeAlertLocations: {},
+          historyForPrimary: [],
+        );
+        expect(result.state, AlertState.allClear);
+      },
+    );
 
     test('37. Both cat 13 and cat 14 in history → cat 13 takes priority', () {
       final machine = AlertStateMachine();

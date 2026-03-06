@@ -38,7 +38,7 @@ void main() {
       continue;
     }
 
-    final constName = '_${fixture}Bytes';
+    final constName = '_${_toLowerCamelCase(fixture)}Bytes';
     byteConstants[fixture] = constName;
 
     // Extract content-type from headers
@@ -48,7 +48,7 @@ void main() {
     }
 
     // Generate getter
-    final getterName = fixture;
+    final getterName = _toLowerCamelCase(fixture);
     buffer.writeln(
       "  static http.Response get $getterName => http.Response.bytes(",
     );
@@ -71,6 +71,17 @@ void main() {
   buffer.writeln("}");
 
   outputFile.writeAsStringSync(buffer.toString());
+}
+
+String _toLowerCamelCase(String value) {
+  final parts = value.split('_');
+  if (parts.isEmpty) return value;
+
+  return parts.first +
+      parts.skip(1).map((part) {
+        if (part.isEmpty) return part;
+        return part[0].toUpperCase() + part.substring(1);
+      }).join();
 }
 
 String _bytesToDartList(List<int> bytes) {

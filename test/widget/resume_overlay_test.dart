@@ -88,8 +88,9 @@ void main() {
 
       // Color should be semi-transparent black
       final color = container.color!;
-      expect(color.alpha, lessThan(255)); // Not fully opaque
-      expect(color.alpha, greaterThan(0)); // Not fully transparent
+      final alpha = (color.a * 255.0).round().clamp(0, 255);
+      expect(alpha, lessThan(255)); // Not fully opaque
+      expect(alpha, greaterThan(0)); // Not fully transparent
     });
 
     testWidgets('overlay covers entire screen', (WidgetTester tester) async {

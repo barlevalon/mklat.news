@@ -14,6 +14,18 @@ class AlertStateResult {
   });
 }
 
+class _DerivedHistoryState {
+  final AlertState state;
+  final DateTime? alertStartTime;
+  final DateTime? clearanceTime;
+
+  const _DerivedHistoryState({
+    required this.state,
+    this.alertStartTime,
+    this.clearanceTime,
+  });
+}
+
 class AlertStateMachine {
   AlertState _currentState = AlertState.allClear;
   DateTime? _alertStartTime;
@@ -50,6 +62,8 @@ class AlertStateMachine {
 
     if (_primaryLocation == null) {
       _currentState = AlertState.allClear;
+      _alertStartTime = null;
+      _clearanceTime = null;
       return _buildResult();
     }
 
@@ -57,72 +71,39 @@ class AlertStateMachine {
       _primaryLocation!,
       activeAlertLocations,
     );
-    final hasClearance = _hasCategoryClearance(
-      historyForPrimary,
-      13,
-      after: _alertStartTime,
-    );
-    final hasImminent = _hasCategoryClearance(historyForPrimary, 14);
+    final derived = _deriveStateFromHistory(historyForPrimary, currentTime);
 
-    // Evaluation order (first match wins):
-
-    // 1. Active alert → RED_ALERT (from any state)
+    // Active alert always wins.
     if (isActive) {
       if (_currentState != AlertState.redAlert) {
-        _alertStartTime = currentTime;
+        _alertStartTime = derived.alertStartTime ?? currentTime;
       }
-      // Self-loop: don't reset alertStartTime
       _currentState = AlertState.redAlert;
       _clearanceTime = null;
       return _buildResult();
     }
 
-    // 2. Was RED_ALERT, location dropped, no cat 13 → WAITING_CLEAR
-    if (_currentState == AlertState.redAlert && !isActive && !hasClearance) {
+    // Replay the ordered history stream to establish the current non-active state.
+    if (derived.state != AlertState.allClear) {
+      _currentState = derived.state;
+      _alertStartTime = derived.alertStartTime;
+      _clearanceTime = derived.clearanceTime;
+      return _buildResult();
+    }
+
+    // If active alert just disappeared and history has not caught up yet,
+    // stay conservative and keep the user in WAITING_CLEAR.
+    if (_currentState == AlertState.redAlert ||
+        _currentState == AlertState.waitingClear) {
       _currentState = AlertState.waitingClear;
+      _alertStartTime ??= currentTime;
+      _clearanceTime = null;
       return _buildResult();
     }
 
-    // 3. Cat 13 in history → JUST_CLEARED (from ALERT_IMMINENT or WAITING_CLEAR)
-    if (hasClearance &&
-        (_currentState == AlertState.alertImminent ||
-            _currentState == AlertState.waitingClear)) {
-      _currentState = AlertState.justCleared;
-      _clearanceTime = currentTime;
-      return _buildResult();
-    }
-
-    // 3.5. ALERT_IMMINENT + actual attack in history (cat 1 or 2) + not active → WAITING_CLEAR
-    // This handles the case where the attack materialized (appears in history)
-    // but was never caught in active alerts during the 2-second polling window
-    if (_currentState == AlertState.alertImminent && !isActive) {
-      final hasActualAttack = historyForPrimary.any(
-        (alert) => alert.category == 1 || alert.category == 2,
-      );
-      if (hasActualAttack) {
-        _currentState = AlertState.waitingClear;
-        return _buildResult();
-      }
-    }
-
-    // 4. Cat 14 in history → ALERT_IMMINENT (from ALL_CLEAR only)
-    if (hasImminent && _currentState == AlertState.allClear) {
-      _currentState = AlertState.alertImminent;
-      return _buildResult();
-    }
-
-    // 5. JUST_CLEARED + 10 minutes elapsed → ALL_CLEAR
-    if (_currentState == AlertState.justCleared && _clearanceTime != null) {
-      final elapsed = currentTime.difference(_clearanceTime!);
-      if (elapsed.inMinutes >= 10) {
-        _currentState = AlertState.allClear;
-        _alertStartTime = null;
-        _clearanceTime = null;
-        return _buildResult();
-      }
-    }
-
-    // 6. Otherwise → remain in current state
+    _currentState = AlertState.allClear;
+    _alertStartTime = null;
+    _clearanceTime = null;
     return _buildResult();
   }
 
@@ -154,17 +135,59 @@ class AlertStateMachine {
     );
   }
 
-  /// Check if history contains a given category for the primary location.
-  /// If [after] is provided, only consider alerts newer than or equal to that time.
-  bool _hasCategoryClearance(
+  _DerivedHistoryState _deriveStateFromHistory(
     List<Alert> history,
-    int category, {
-    DateTime? after,
-  }) {
-    return history.any(
-      (alert) =>
-          alert.category == category &&
-          (after == null || !alert.time.isBefore(after)),
+    DateTime now,
+  ) {
+    final indexedHistory =
+        history.asMap().entries.where((entry) {
+          final category = entry.value.category;
+          return category == 1 ||
+              category == 2 ||
+              category == 13 ||
+              category == 14;
+        }).toList()..sort((a, b) {
+          final timeComparison = a.value.time.compareTo(b.value.time);
+          if (timeComparison != 0) return timeComparison;
+          return a.key.compareTo(b.key);
+        });
+
+    var state = AlertState.allClear;
+    DateTime? alertStartTime;
+    DateTime? clearanceTime;
+
+    for (final entry in indexedHistory) {
+      final alert = entry.value;
+      switch (alert.category) {
+        case 14:
+          state = AlertState.alertImminent;
+          alertStartTime = null;
+          clearanceTime = null;
+          break;
+        case 1:
+        case 2:
+          state = AlertState.waitingClear;
+          alertStartTime = alert.time;
+          clearanceTime = null;
+          break;
+        case 13:
+          state = AlertState.justCleared;
+          clearanceTime = alert.time;
+          break;
+      }
+    }
+
+    if (state == AlertState.justCleared && clearanceTime != null) {
+      final elapsed = now.difference(clearanceTime);
+      if (elapsed.inMinutes >= 10) {
+        return const _DerivedHistoryState(state: AlertState.allClear);
+      }
+    }
+
+    return _DerivedHistoryState(
+      state: state,
+      alertStartTime: alertStartTime,
+      clearanceTime: clearanceTime,
     );
   }
 

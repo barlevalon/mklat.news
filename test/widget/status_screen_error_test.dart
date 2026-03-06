@@ -191,9 +191,12 @@ void main() {
         expect(errorText.style?.color, isNotNull);
         // Should be orange-ish color
         final color = errorText.style!.color!;
-        expect(color.red, greaterThan(200));
-        expect(color.green, greaterThan(100));
-        expect(color.blue, lessThan(100));
+        final red = (color.r * 255.0).round().clamp(0, 255);
+        final green = (color.g * 255.0).round().clamp(0, 255);
+        final blue = (color.b * 255.0).round().clamp(0, 255);
+        expect(red, greaterThan(200));
+        expect(green, greaterThan(100));
+        expect(blue, lessThan(100));
       },
     );
 

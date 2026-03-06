@@ -1,7 +1,7 @@
 # Implementation Plan: mklat.news Mobile App
 
-> **Status**: Updated after API validation (2026-03-04)
-> **Last Updated**: 2026-03-04
+> **Status**: Updated after API validation and state-machine clarification
+> **Last Updated**: 2026-03-07
 
 ## Overview
 
@@ -93,6 +93,7 @@ Every task follows the red/green cycle: write a failing test first, then impleme
 - [x] Implement `AlertStateMachine` class with all 5 states
 - [x] Implement transition logic driven by active alerts + history categories
 - [x] Implement WAITING_CLEAR as absence-based state (was in RED_ALERT, alert dropped, no cat 13 yet)
+- [x] Clarify non-active state derivation by replaying ordered per-location history; latest relevant event wins unless active alerts override to RED_ALERT
 - [x] WAITING_CLEAR has no auto-timeout — persists until clearance or user changes location
 - [x] Implement timer tracking (alertStartTime, clearanceTime)
 - [x] Implement location matching (exact match on OREF canonical names)

@@ -66,7 +66,7 @@ enum AlertState {
 | ALL_CLEAR | RED_ALERT | Primary location appears in Alerts.json `data` array |
 | ALERT_IMMINENT | RED_ALERT | Primary location appears in Alerts.json `data` array |
 | ALERT_IMMINENT | JUST_CLEARED | Category 13 clearance appears for primary location (threat resolved without red alert) |
-| RED_ALERT | WAITING_CLEAR | Primary location **no longer** in Alerts.json `data` array, AND no category 13 clearance for this location in recent history |
+| RED_ALERT | WAITING_CLEAR | Primary location **no longer** in Alerts.json `data` array, and the latest relevant history signal is an actual attack (`cat 1/2`) or history has not caught up yet |
 | WAITING_CLEAR | RED_ALERT | Primary location appears in Alerts.json `data` array again (new attack while in shelter) |
 | WAITING_CLEAR | JUST_CLEARED | Category 13 entry appears in alert history for primary location |
 | JUST_CLEARED | RED_ALERT | Primary location appears in Alerts.json `data` array (new attack during cooldown) |
@@ -75,22 +75,24 @@ enum AlertState {
 
 **Priority rule**: If the primary location is in the active alerts list, the state is always `RED_ALERT`, regardless of current state. Active alert detection takes absolute precedence.
 
-**No auto-timeouts**: Neither `ALERT_IMMINENT` nor `WAITING_CLEAR` have automatic timeouts. Both persist until a definitive signal arrives (cat 13 clearance, active alert, or user location change). The app never silently downgrades a heightened state.
+**No auto-timeouts**: Neither `ALERT_IMMINENT` nor `WAITING_CLEAR` have automatic timeouts. Both persist until a definitive signal arrives (later history event, active alert, or user location change). The app never silently downgrades a heightened state.
 
 **Self-loops**: If the state machine is already in `RED_ALERT` and the location is still in active alerts, it stays in `RED_ALERT` without resetting `alertStartTime`.
 
-### Key Design: WAITING_CLEAR is absence-based
+### Key Design: Replay ordered history
 
-The `WAITING_CLEAR` state represents the real-world experience of sitting in the shelter after the siren stops, waiting for the official all-clear. It is detected by **absence**, not presence:
+The `AlertsHistory.json` response for the primary location must be treated as an **ordered event stream**, not as a bag of categories. On each poll cycle:
 
-1. The state machine tracks that we **were** in `RED_ALERT`
-2. The active alert disappears from `Alerts.json` (siren stopped)
-3. But no category 13 ("האירוע הסתיים") has appeared for this location in the history yet
-4. Therefore: stay in shelter
+1. If the primary location is currently active in `Alerts.json`, the result is always `RED_ALERT`
+2. Otherwise, replay the relevant history events for that location in timestamp order
+3. The latest meaningful history event determines the non-active state:
+   - `cat 14` → `ALERT_IMMINENT`
+   - `cat 1/2` → `WAITING_CLEAR`
+   - `cat 13` → `JUST_CLEARED`
 
-This is fundamentally different from the other transitions which are triggered by data appearing. The state machine must maintain internal memory of having been in `RED_ALERT` to correctly enter `WAITING_CLEAR`.
+This means `WAITING_CLEAR` is still a safety-oriented state, but it is not limited to "the app previously observed `RED_ALERT` in this session". A history-only attack event (`cat 1/2`) can establish `WAITING_CLEAR` when the active feed has already gone quiet.
 
-There is **no automatic timeout** for `WAITING_CLEAR`. The state persists until a category 13 clearance signal arrives or the user changes their primary location (which resets to `ALL_CLEAR`). This is a safety-critical state — silently auto-clearing could endanger users. If the clearance signal is never received due to an API issue, the user retains control by changing their location.
+There is **no automatic timeout** for `WAITING_CLEAR`. The state persists until a later history event changes it, a new active alert overrides it, or the user changes their primary location. If an active alert just disappeared and history has not caught up yet, the machine should conservatively remain in `WAITING_CLEAR`.
 
 ### Timer Tracking
 - `alertStartTime`: When RED_ALERT began (for elapsed timer display: "XX:XX במקלט")
@@ -106,14 +108,13 @@ The `AlertsHistory.json` endpoint returns roughly the last hour of events. The s
 
 ### Evaluation order
 
-The state machine evaluates in this priority order on each cycle (first match wins):
+The state machine evaluates in this priority order on each cycle:
 
 1. **Is primary location in active alerts?** → `RED_ALERT` (from any state; do not reset `alertStartTime` if already in `RED_ALERT`)
-2. **Is current state `RED_ALERT` and location no longer active, with no cat 13 in history?** → `WAITING_CLEAR`
-3. **Is there a category 13 for primary location in history?** → `JUST_CLEARED` (from `ALERT_IMMINENT` or `WAITING_CLEAR`)
-4. **Is there a category 14 for primary location in history?** → `ALERT_IMMINENT` (from `ALL_CLEAR` only)
-5. **Is current state `JUST_CLEARED` and 10 minutes elapsed?** → `ALL_CLEAR`
-6. **Otherwise** → remain in current state
+2. **Otherwise, replay the full primary-location history in timestamp order** and derive the non-active state from the latest meaningful event (`14`, `1/2`, `13`)
+3. **If replay yields `JUST_CLEARED` and 10 minutes have elapsed since the latest cat 13 event** → `ALL_CLEAR`
+4. **If there is no relevant history but the previous state was `RED_ALERT` or `WAITING_CLEAR`** → remain in `WAITING_CLEAR` until history catches up or the user changes location
+5. **Otherwise** → `ALL_CLEAR`
 
 ### Location Matching
 
@@ -194,10 +195,11 @@ providers/
 - [ ] Alert state machine transitions correctly through all 5 states
 - [ ] Active alert always produces RED_ALERT regardless of current state (priority rule)
 - [ ] RED_ALERT self-loop does not reset alertStartTime
-- [ ] WAITING_CLEAR is entered when active alert drops but no clearance received
+- [ ] WAITING_CLEAR is entered when the latest non-active signal is an attack event (`cat 1/2`) and no active alert is present
 - [ ] WAITING_CLEAR has no auto-timeout — persists until clearance, new alert, or location change
 - [ ] WAITING_CLEAR → RED_ALERT on re-entry (new attack while in shelter)
 - [ ] JUST_CLEARED is entered when category 13 appears for the location (from ALERT_IMMINENT or WAITING_CLEAR)
+- [ ] Latest relevant history event wins when categories from different phases coexist in the one-hour history window
 - [ ] JUST_CLEARED → RED_ALERT on re-entry (new attack during cooldown)
 - [ ] ALL_CLEAR → RED_ALERT works directly (no prior imminent required)
 - [ ] State persists timer values across transitions

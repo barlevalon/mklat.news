@@ -45,14 +45,14 @@
 - Emulators don't enforce permissions strictly, so integration tests on emulator won't catch missing permissions
 - Always check manifest permissions when adding new plugins that need platform access
 
-## State machine learnings (2026-03-06)
+## State machine learnings (2026-03-07)
 
-- `_hasCategoryClearance` must filter by time: only cat 13 alerts newer than `_alertStartTime` count. Stale clearances from previous attack cycles (still in ~1hr history window) caused false JUST_CLEARED or blocked RED_ALERT → WAITING_CLEAR.
-- State machine still has issues observed in real-world testing (screenshots in `~/notes/` from 2026-03-06). Need to work through these in consultation with the user — don't assume root causes, review the screenshots and discuss before implementing fixes.
-
-## Next up (2026-03-06)
-
-State machine bugs remain. Two screenshots in `~/notes/` (`Screenshot_20260306-192137.png` and `Screenshot_20260306-204029.png`) show incorrect states during real attacks. Review them with the user before proposing fixes — previous attempt to diagnose without consultation was wrong.
+- The primary location history must be treated as an ordered event stream, not as unordered presence/absence flags.
+- Current-state derivation rule: if the location is currently active in `Alerts.json`, show `RED_ALERT`; otherwise replay the relevant history events for that location in timestamp order and use the latest meaningful event to determine the non-active state.
+- Relevant history categories are: `14 -> ALERT_IMMINENT`, `1/2 -> WAITING_CLEAR`, `13 -> JUST_CLEARED`.
+- `WAITING_CLEAR` is no longer limited to "this app session previously saw RED_ALERT". If the latest history event is an actual attack (`cat 1/2`) and there is no current active alert, the state should be `WAITING_CLEAR`.
+- Conservative fallback still applies when an active alert disappears before history catches up: remain in `WAITING_CLEAR` rather than dropping directly to `ALL_CLEAR`.
+- The real-world screenshots in `~/notes/` were resolved by clarifying the rules with the user first; do that again before guessing at future safety-critical behavior changes.
 
 ## RSS feeds (2026-03-06)
 
@@ -60,6 +60,7 @@ State machine bugs remain. Two screenshots in `~/notes/` (`Screenshot_20260306-1
 - Mako RSS URL: `https://rcs.mako.co.il/rss/31750a2610f26110VgnVCM1000005201000aRCRD.xml` — returns 20 items with `+0200` offset, properly formatted.
 - `_parsePubDate` fallback is now `DateTime.fromMillisecondsSinceEpoch(0)` (epoch sentinel) instead of `DateTime.now()`. The UI hides timestamps for epoch sentinels (year < 2000) and future dates.
 - Other valid Israeli RSS alternatives found: Israel Hayom (`israelhayom.co.il/rss.xml`, GMT), Now14/Channel 14 (`now14.co.il/feed/`, +0000).
+- News integration tests should accept either relative Hebrew timestamps (`לפני`, `עכשיו`) or absolute fallback timestamps (`DD/MM HH:MM`), because older fixture items legitimately render as absolute dates.
 
 ## Android manifest (2026-03-06)
 

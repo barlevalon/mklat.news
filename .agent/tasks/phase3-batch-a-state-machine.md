@@ -82,10 +82,9 @@ class AlertStateMachine {
     final isActive = _isLocationInActiveAlerts(
       _primaryLocation!, activeAlertLocations,
     );
-    final hasClearance = _hasCategoryClearance(historyForPrimary, 13);
-    final hasImminent = _hasCategoryClearance(historyForPrimary, 14);
+    final derived = _deriveStateFromHistory(historyForPrimary, currentTime);
 
-    // Evaluation order (first match wins):
+    // Active alert always wins.
     
     // 1. Active alert → RED_ALERT (from any state)
     if (isActive) {
@@ -98,39 +97,28 @@ class AlertStateMachine {
       return _buildResult();
     }
 
-    // 2. Was RED_ALERT, location dropped, no cat 13 → WAITING_CLEAR
-    if (_currentState == AlertState.redAlert && !isActive && !hasClearance) {
+    // Replay the ordered history stream to establish the current non-active state.
+    if (derived.state != AlertState.allClear) {
+      _currentState = derived.state;
+      _alertStartTime = derived.alertStartTime;
+      _clearanceTime = derived.clearanceTime;
+      return _buildResult();
+    }
+
+    // If active alert just disappeared and history has not caught up yet,
+    // stay conservative and keep the user in WAITING_CLEAR.
+    if (_currentState == AlertState.redAlert ||
+        _currentState == AlertState.waitingClear) {
       _currentState = AlertState.waitingClear;
+      _alertStartTime ??= currentTime;
+      _clearanceTime = null;
       return _buildResult();
     }
 
-    // 3. Cat 13 in history → JUST_CLEARED (from ALERT_IMMINENT or WAITING_CLEAR)
-    if (hasClearance && 
-        (_currentState == AlertState.alertImminent || 
-         _currentState == AlertState.waitingClear)) {
-      _currentState = AlertState.justCleared;
-      _clearanceTime = currentTime;
-      return _buildResult();
-    }
-
-    // 4. Cat 14 in history → ALERT_IMMINENT (from ALL_CLEAR only)
-    if (hasImminent && _currentState == AlertState.allClear) {
-      _currentState = AlertState.alertImminent;
-      return _buildResult();
-    }
-
-    // 5. JUST_CLEARED + 10 minutes elapsed → ALL_CLEAR
-    if (_currentState == AlertState.justCleared && _clearanceTime != null) {
-      final elapsed = currentTime.difference(_clearanceTime!);
-      if (elapsed.inMinutes >= 10) {
-        _currentState = AlertState.allClear;
-        _alertStartTime = null;
-        _clearanceTime = null;
-        return _buildResult();
-      }
-    }
-
-    // 6. Otherwise → remain in current state
+    // Otherwise reset to ALL_CLEAR.
+    _currentState = AlertState.allClear;
+    _alertStartTime = null;
+    _clearanceTime = null;
     return _buildResult();
   }
 
@@ -162,9 +150,14 @@ class AlertStateMachine {
     );
   }
 
-  /// Check if history contains a given category for the primary location.
-  bool _hasCategoryClearance(List<Alert> history, int category) {
-    return history.any((alert) => alert.category == category);
+  _DerivedHistoryState _deriveStateFromHistory(
+    List<Alert> history,
+    DateTime now,
+  ) {
+    // Filter to relevant categories and replay them in timestamp order.
+    // Latest meaningful event wins for the non-active state:
+    // 14 -> ALERT_IMMINENT, 1/2 -> WAITING_CLEAR, 13 -> JUST_CLEARED.
+    // If JUST_CLEARED is older than 10 minutes, collapse to ALL_CLEAR.
   }
 
   /// Normalize location name for matching.
@@ -188,7 +181,7 @@ class AlertStateMachine {
 
 3. **`_isLocationInActiveAlerts` does set membership** — the spec says active alert takes priority. The caller extracts `data[]` from Alerts.json into a Set<String>.
 
-4. **No auto-timeout for WAITING_CLEAR** — spec is explicit: stays until cat 13, new alert, or location change.
+4. **History is an ordered stream** — do not treat `historyForPrimary` as unordered category flags. Replay it in timestamp order and let the latest meaningful event determine the non-active state.
 
 5. **`setPrimaryLocation` resets state** — changing primary location always resets to ALL_CLEAR.
 
@@ -237,8 +230,8 @@ This is the most critical test file in the app. Every state transition path must
 
 **WAITING_CLEAR specifics:**
 18. WAITING_CLEAR has NO auto-timeout (stays indefinitely)
-19. WAITING_CLEAR entered ONLY from RED_ALERT
-20. NOT entered from ALERT_IMMINENT when alert drops without cat 13
+19. WAITING_CLEAR can be established by a history-only attack event (`cat 1/2`) even if the app did not observe `RED_ALERT` in-session
+20. If an active alert just disappeared and no newer history event exists yet, keep the user in WAITING_CLEAR conservatively
 
 **Location management:**
 21. setPrimaryLocation resets to ALL_CLEAR from any state
@@ -262,8 +255,8 @@ This is the most critical test file in the app. Every state transition path must
 35. JUST_CLEARED → ALL_CLEAR at exactly 10 minutes
 
 **Edge cases:**
-36. Empty active alerts + empty history → stay in current state
-37. Both cat 13 and cat 14 in history → cat 13 takes priority (evaluation order)
+36. Empty active alerts + empty history → ALL_CLEAR, unless conservatively carrying forward WAITING_CLEAR after a just-dropped active alert
+37. Mixed cat 13/cat 14/cat 1 history → newest relevant event wins
 38. Active alert AND cat 13 in history → RED_ALERT wins (evaluation order rule 1)
 39. reset() returns to initial state
 

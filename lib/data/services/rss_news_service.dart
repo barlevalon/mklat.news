@@ -3,7 +3,7 @@ import '../../core/api_endpoints.dart';
 import '../models/news_item.dart';
 import 'http_client.dart';
 
-/// RSS news service that fetches and parses headlines from 4 Israeli news sources.
+/// RSS news service that fetches and parses headlines from 3 Israeli news sources.
 class RssNewsService {
   final HttpClient _httpClient;
 
@@ -16,7 +16,6 @@ class RssNewsService {
     final results = await Future.wait([
       _fetchFeed(ApiEndpoints.rssYnet, NewsSource.ynet),
       _fetchFeed(ApiEndpoints.rssMaariv, NewsSource.maariv),
-      _fetchFeed(ApiEndpoints.rssMako, NewsSource.mako),
       _fetchFeed(ApiEndpoints.rssHaaretz, NewsSource.haaretz),
     ]);
 

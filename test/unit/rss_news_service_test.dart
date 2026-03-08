@@ -50,19 +50,6 @@ void main() {
   </channel>
 </rss>''';
 
-    final validMakoRss = '''<?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0">
-  <channel>
-    <title>Mako News</title>
-    <item>
-      <title>חדשות מאקו</title>
-      <link>https://www.mako.co.il/article/111</link>
-      <description>תיאור</description>
-      <pubDate>Thu, 04 Mar 2026 14:30:00 +0200</pubDate>
-    </item>
-  </channel>
-</rss>''';
-
     final validHaaretzRss = '''<?xml version="1.0" encoding="utf-8"?>
 <rss version="2.0">
   <channel>
@@ -165,25 +152,21 @@ void main() {
           mockHttpClient.get(ApiEndpoints.rssMaariv),
         ).thenAnswer((_) async => validMaarivRss);
         when(
-          mockHttpClient.get(ApiEndpoints.rssMako),
-        ).thenAnswer((_) async => validMakoRss);
-        when(
           mockHttpClient.get(ApiEndpoints.rssHaaretz),
         ).thenAnswer((_) async => validHaaretzRss);
 
         final result = await service.fetchAllNews();
 
-        expect(result.length, 5);
+        expect(result.length, 4);
         // Should be sorted by pubDate descending (newest first)
         // Ynet item 1: 14:30:00 +0200
-        // Mako: 14:30:00 +0200
         // Ynet item 2: 14:00:00 +0200
         // Maariv: 13:45:00 +0200
         // Haaretz: 12:00:00 +0200
 
-        // First item should be one of the 14:30 items (Ynet or Mako)
-        // Note: Dates are converted to UTC, so 14:30 +0200 becomes 12:30 UTC
-        expect(result[0].source, anyOf(NewsSource.ynet, NewsSource.mako));
+        // First item should be Ynet at 14:30.
+        // Note: Dates are converted to UTC, so 14:30 +0200 becomes 12:30 UTC.
+        expect(result[0].source, NewsSource.ynet);
 
         // Last item should be Haaretz at 12:00 (10:00 UTC)
         expect(result.last.source, NewsSource.haaretz);

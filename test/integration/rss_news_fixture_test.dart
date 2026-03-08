@@ -23,7 +23,7 @@ void main() {
       httpClient = HttpClient(client: mockClient);
       newsService = RssNewsService(httpClient);
 
-      // Default: stub all 4 feeds with empty RSS so per-feed tests don't fail
+      // Default: stub all feeds with empty RSS so per-feed tests don't fail
       // on unstubbed URLs. Each per-feed test overrides the URL it cares about.
       when(
         mockClient.get(any, headers: anyNamed('headers')),
@@ -209,83 +209,6 @@ void main() {
       });
     });
 
-    group('Mako RSS', () {
-      test('returns non-empty list from mako fixture', () async {
-        final fixture = await FixtureHelper.loadResponse('rss_mako');
-
-        when(
-          mockClient.get(
-            argThat(predicate<Uri>((uri) => uri.toString().contains('mako'))),
-            headers: anyNamed('headers'),
-          ),
-        ).thenAnswer((_) async => fixture);
-
-        final news = await newsService.fetchAllNews();
-
-        expect(news, isNotEmpty);
-      });
-
-      test('titles contain Hebrew text', () async {
-        final fixture = await FixtureHelper.loadResponse('rss_mako');
-
-        when(
-          mockClient.get(
-            argThat(predicate<Uri>((uri) => uri.toString().contains('mako'))),
-            headers: anyNamed('headers'),
-          ),
-        ).thenAnswer((_) async => fixture);
-
-        final news = await newsService.fetchAllNews();
-
-        for (final item in news) {
-          final hasHebrew = RegExp(r'[\u0590-\u05FF]').hasMatch(item.title);
-          expect(
-            hasHebrew,
-            isTrue,
-            reason: 'Title should have Hebrew: ${item.title}',
-          );
-        }
-      });
-
-      test('no mojibake in titles', () async {
-        final fixture = await FixtureHelper.loadResponse('rss_mako');
-
-        when(
-          mockClient.get(
-            argThat(predicate<Uri>((uri) => uri.toString().contains('mako'))),
-            headers: anyNamed('headers'),
-          ),
-        ).thenAnswer((_) async => fixture);
-
-        final news = await newsService.fetchAllNews();
-
-        for (final item in news) {
-          expect(
-            item.title.contains('×'),
-            isFalse,
-            reason: 'Title has mojibake: ${item.title}',
-          );
-        }
-      });
-
-      test('source is set to mako', () async {
-        final fixture = await FixtureHelper.loadResponse('rss_mako');
-
-        when(
-          mockClient.get(
-            argThat(predicate<Uri>((uri) => uri.toString().contains('mako'))),
-            headers: anyNamed('headers'),
-          ),
-        ).thenAnswer((_) async => fixture);
-
-        final news = await newsService.fetchAllNews();
-
-        for (final item in news) {
-          expect(item.source, equals(NewsSource.mako));
-        }
-      });
-    });
-
     group('Haaretz RSS', () {
       test('returns non-empty list from haaretz fixture', () async {
         final fixture = await FixtureHelper.loadResponse('rss_haaretz');
@@ -372,10 +295,9 @@ void main() {
     });
 
     group('Combined feed test', () {
-      test('all 4 feeds combined with correct sources', () async {
+      test('all 3 feeds combined with correct sources', () async {
         final ynetFixture = await FixtureHelper.loadResponse('rss_ynet');
         final maarivFixture = await FixtureHelper.loadResponse('rss_maariv');
-        final makoFixture = await FixtureHelper.loadResponse('rss_mako');
         final haaretzFixture = await FixtureHelper.loadResponse('rss_haaretz');
 
         when(
@@ -391,13 +313,6 @@ void main() {
             headers: anyNamed('headers'),
           ),
         ).thenAnswer((_) async => maarivFixture);
-
-        when(
-          mockClient.get(
-            argThat(predicate<Uri>((uri) => uri.toString().contains('mako'))),
-            headers: anyNamed('headers'),
-          ),
-        ).thenAnswer((_) async => makoFixture);
 
         when(
           mockClient.get(
@@ -417,23 +332,18 @@ void main() {
         final maarivItems = news
             .where((n) => n.source == NewsSource.maariv)
             .toList();
-        final makoItems = news
-            .where((n) => n.source == NewsSource.mako)
-            .toList();
         final haaretzItems = news
             .where((n) => n.source == NewsSource.haaretz)
             .toList();
 
         expect(ynetItems, isNotEmpty);
         expect(maarivItems, isNotEmpty);
-        expect(makoItems, isNotEmpty);
         expect(haaretzItems, isNotEmpty);
       });
 
       test('items are sorted by pubDate descending', () async {
         final ynetFixture = await FixtureHelper.loadResponse('rss_ynet');
         final maarivFixture = await FixtureHelper.loadResponse('rss_maariv');
-        final makoFixture = await FixtureHelper.loadResponse('rss_mako');
         final haaretzFixture = await FixtureHelper.loadResponse('rss_haaretz');
 
         when(
@@ -449,13 +359,6 @@ void main() {
             headers: anyNamed('headers'),
           ),
         ).thenAnswer((_) async => maarivFixture);
-
-        when(
-          mockClient.get(
-            argThat(predicate<Uri>((uri) => uri.toString().contains('mako'))),
-            headers: anyNamed('headers'),
-          ),
-        ).thenAnswer((_) async => makoFixture);
 
         when(
           mockClient.get(
@@ -482,7 +385,6 @@ void main() {
       test('pubDate is reasonable (not fallback DateTime.now)', () async {
         final ynetFixture = await FixtureHelper.loadResponse('rss_ynet');
         final maarivFixture = await FixtureHelper.loadResponse('rss_maariv');
-        final makoFixture = await FixtureHelper.loadResponse('rss_mako');
         final haaretzFixture = await FixtureHelper.loadResponse('rss_haaretz');
 
         when(
@@ -498,13 +400,6 @@ void main() {
             headers: anyNamed('headers'),
           ),
         ).thenAnswer((_) async => maarivFixture);
-
-        when(
-          mockClient.get(
-            argThat(predicate<Uri>((uri) => uri.toString().contains('mako'))),
-            headers: anyNamed('headers'),
-          ),
-        ).thenAnswer((_) async => makoFixture);
 
         when(
           mockClient.get(

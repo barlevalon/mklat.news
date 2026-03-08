@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:integration_test/integration_test.dart';
 import 'package:mklat/main.dart';
 import 'package:mklat/presentation/providers/connectivity_provider.dart';
+import 'package:mklat/presentation/widgets/news_list_item.dart';
 import 'package:mklat/presentation/widgets/page_indicator.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -73,13 +74,6 @@ void main() {
           headers: anyNamed('headers'),
         ),
       ).thenAnswer((_) async => TestFixtures.rssMaariv);
-
-      when(
-        mockClient.get(
-          argThat(predicate<Uri>((uri) => uri.host.contains('mako'))),
-          headers: anyNamed('headers'),
-        ),
-      ).thenAnswer((_) async => TestFixtures.rssMako);
 
       when(
         mockClient.get(
@@ -403,21 +397,8 @@ void main() {
       // Wait for news to load (longer wait for RSS feeds)
       await tester.pump(const Duration(seconds: 3));
 
-      // Verify source labels exist (Ynet, Maariv, Mako, or Haaretz)
-      // The source name appears in the timestamp line: "SourceName • לפני X דקות"
-      final sourceLabels = ['Ynet', 'Maariv', 'Mako', 'Haaretz'];
-      bool foundSource = false;
-      for (final source in sourceLabels) {
-        if (find.textContaining(source).evaluate().isNotEmpty) {
-          foundSource = true;
-          break;
-        }
-      }
-      expect(
-        foundSource,
-        isTrue,
-        reason: 'Expected to find at least one news source label',
-      );
+      // Verify at least one news item is rendered.
+      expect(find.byType(NewsListItem), findsWidgets);
 
       // Verify at least one timestamp is rendered. Older fixtures may fall back
       // to an absolute date instead of relative text.

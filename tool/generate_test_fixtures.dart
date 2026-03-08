@@ -16,7 +16,6 @@ void main() {
     'oref_cities',
     'rss_ynet',
     'rss_maariv',
-    'rss_mako',
     'rss_haaretz',
   ];
 

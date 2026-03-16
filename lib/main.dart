@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
+import 'core/app_theme.dart';
 import 'data/services/http_client.dart';
 import 'data/services/oref_alerts_service.dart';
 import 'data/services/oref_districts_service.dart';
@@ -136,10 +137,9 @@ class _MklatAppState extends State<MklatApp> with WidgetsBindingObserver {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        ),
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
         home: const Directionality(
           textDirection: TextDirection.rtl,
           child: AppShell(),

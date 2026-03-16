@@ -32,4 +32,18 @@ void main() {
     final materialAppFinder = find.byType(MaterialApp);
     expect(materialAppFinder, findsOneWidget);
   });
+
+  testWidgets('MaterialApp follows system theme and exposes dark theme', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const MklatApp());
+
+    final materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
+
+    // Should follow system theme mode
+    expect(materialApp.themeMode, equals(ThemeMode.system));
+
+    // Should have a dark theme defined
+    expect(materialApp.darkTheme, isNotNull);
+  });
 }

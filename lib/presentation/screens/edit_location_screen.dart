@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/app_theme.dart';
 import '../../data/models/saved_location.dart';
 import '../providers/location_provider.dart';
 
@@ -104,13 +105,15 @@ class _EditLocationScreenState extends State<EditLocationScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(
+                    color: AppTheme.readOnlyBorderColor(context),
+                  ),
                   borderRadius: BorderRadius.circular(4),
-                  color: Colors.grey.shade50,
+                  color: AppTheme.readOnlySurfaceColor(context),
                 ),
                 child: Text(
                   widget.location.orefName,
-                  style: TextStyle(color: Colors.grey.shade700),
+                  style: TextStyle(color: AppTheme.readOnlyTextColor(context)),
                 ),
               ),
               const SizedBox(height: 16),

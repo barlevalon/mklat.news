@@ -49,7 +49,10 @@ class NewsListItem extends StatelessWidget {
         elevation: 1,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: Colors.grey.shade200, width: 1),
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.outline,
+            width: 1,
+          ),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -97,9 +100,11 @@ class NewsListItem extends StatelessWidget {
                   padding: const EdgeInsets.only(right: 44),
                   child: Text(
                     newsItem.description!,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.black54),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -117,9 +122,11 @@ class NewsListItem extends StatelessWidget {
                         : sourceName;
                     return Text(
                       metadataText,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.bodySmall?.copyWith(color: Colors.black38),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.6),
+                      ),
                     );
                   },
                 ),

@@ -2,11 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mklat/presentation/widgets/news_list_item.dart';
 import 'package:mklat/data/models/news_item.dart';
+import 'package:mklat/core/app_theme.dart';
 
 void main() {
   group('NewsListItem', () {
-    Widget buildTestWidget(NewsItem newsItem) {
+    Widget buildTestWidget(
+      NewsItem newsItem, {
+      ThemeMode themeMode = ThemeMode.light,
+    }) {
       return MaterialApp(
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: themeMode,
         home: Directionality(
           textDirection: TextDirection.rtl,
           child: Scaffold(body: NewsListItem(newsItem: newsItem)),
@@ -202,5 +209,108 @@ void main() {
       // Should still show the source name
       expect(find.textContaining('Ynet'), findsOneWidget);
     });
+
+    testWidgets(
+      'description text uses theme color in dark mode, not hardcoded black54',
+      (WidgetTester tester) async {
+        final newsItem = NewsItem(
+          id: '1',
+          title: 'כותרת החדשה',
+          description: 'תיאור מפורט של הכתבה',
+          link: 'https://ynet.co.il/article/1',
+          pubDate: DateTime.now(),
+          source: NewsSource.ynet,
+        );
+
+        await tester.pumpWidget(
+          buildTestWidget(newsItem, themeMode: ThemeMode.dark),
+        );
+
+        // Find the description text widget
+        final descriptionFinder = find.text('תיאור מפורט של הכתבה');
+        expect(descriptionFinder, findsOneWidget);
+
+        // Get the Text widget and check its style color
+        final textWidget = tester.widget<Text>(descriptionFinder);
+        final color = textWidget.style?.color;
+
+        // In dark mode, the description should NOT use hardcoded Colors.black54
+        // which would be invisible. It should use a theme-appropriate color.
+        expect(
+          color,
+          isNot(equals(Colors.black54)),
+          reason:
+              'Description text in dark mode should not use hardcoded Colors.black54',
+        );
+      },
+    );
+    testWidgets(
+      'metadata line uses theme color in dark mode, not hardcoded black38',
+      (WidgetTester tester) async {
+        final newsItem = NewsItem(
+          id: '1',
+          title: 'כותרת החדשה',
+          link: 'https://ynet.co.il/article/1',
+          pubDate: DateTime.now().subtract(const Duration(minutes: 5)),
+          source: NewsSource.ynet,
+        );
+
+        await tester.pumpWidget(
+          buildTestWidget(newsItem, themeMode: ThemeMode.dark),
+        );
+
+        // Find the metadata line containing 'Ynet' and relative time
+        final metadataFinder = find.textContaining('Ynet');
+        expect(metadataFinder, findsOneWidget);
+
+        // Get the Text widget and check its style color
+        final textWidget = tester.widget<Text>(metadataFinder);
+        final color = textWidget.style?.color;
+
+        // In dark mode, the metadata should NOT use hardcoded Colors.black38
+        // which would be invisible. It should use a theme-appropriate color.
+        expect(
+          color,
+          isNot(equals(Colors.black38)),
+          reason:
+              'Metadata line in dark mode should not use hardcoded Colors.black38',
+        );
+      },
+    );
+
+    testWidgets(
+      'card border uses theme-derived color in dark mode, not hardcoded grey.shade200',
+      (WidgetTester tester) async {
+        final newsItem = NewsItem(
+          id: '1',
+          title: 'כותרת החדשה',
+          link: 'https://ynet.co.il/article/1',
+          pubDate: DateTime.now(),
+          source: NewsSource.ynet,
+        );
+
+        await tester.pumpWidget(
+          buildTestWidget(newsItem, themeMode: ThemeMode.dark),
+        );
+
+        // Find the Card widget
+        final cardFinder = find.byType(Card);
+        expect(cardFinder, findsOneWidget);
+
+        // Get the Card and extract its shape border color
+        final cardWidget = tester.widget<Card>(cardFinder);
+        final shape = cardWidget.shape as RoundedRectangleBorder;
+        final borderColor = shape.side.color;
+
+        // In dark mode, the card border should NOT use hardcoded Colors.grey.shade200
+        // which is too light for dark backgrounds. It should use a theme-appropriate color.
+        expect(
+          borderColor,
+          isNot(equals(Colors.grey.shade200)),
+          reason:
+              'Card border in dark mode should not use hardcoded Colors.grey.shade200',
+        );
+      },
+    );
   });
 }

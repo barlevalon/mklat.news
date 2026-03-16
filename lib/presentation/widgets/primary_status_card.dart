@@ -67,7 +67,7 @@ class _PrimaryStatusCardState extends State<PrimaryStatusCard> {
             : AppTheme.colorForAlertState(state);
         final displayBg = isOffline
             ? AppTheme.offlineBackground
-            : AppTheme.backgroundForAlertState(state);
+            : AppTheme.alertBackgroundFor(context, state);
         final displayIcon = isOffline ? '📡' : state.icon;
         final displayTitle = isOffline ? 'אין חיבור' : state.hebrewTitle;
 
@@ -98,9 +98,9 @@ class _PrimaryStatusCardState extends State<PrimaryStatusCard> {
                 const SizedBox(height: 8),
                 Text(
                   state.instruction!,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(color: Colors.black87),
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],

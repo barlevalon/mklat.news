@@ -12,8 +12,12 @@ void main() {
     Widget buildTestWidget({
       required NewsProvider newsProvider,
       required ConnectivityProvider connectivityProvider,
+      ThemeMode themeMode = ThemeMode.light,
     }) {
       return MaterialApp(
+        theme: ThemeData.light(),
+        darkTheme: ThemeData.dark(),
+        themeMode: themeMode,
         home: Directionality(
           textDirection: TextDirection.rtl,
           child: MultiProvider(
@@ -169,5 +173,45 @@ void main() {
 
       await controller.close();
     });
+
+    testWidgets(
+      'offline message text does not use hardcoded light grey in dark mode',
+      (WidgetTester tester) async {
+        final controller = StreamController<ConnectivityResult>();
+        final newsProvider = NewsProvider();
+        final connectivityProvider = ConnectivityProvider.fromStream(
+          controller.stream,
+        );
+
+        // Set loading to false to show empty state
+        newsProvider.onNewsData([]);
+
+        // Start offline
+        controller.add(ConnectivityResult.none);
+        await connectivityProvider.initialize();
+
+        await tester.pumpWidget(
+          buildTestWidget(
+            newsProvider: newsProvider,
+            connectivityProvider: connectivityProvider,
+            themeMode: ThemeMode.dark,
+          ),
+        );
+        await tester.pump();
+
+        // Find the offline text widget
+        final textWidget = tester.widget<Text>(find.text('אין חיבור לאינטרנט'));
+
+        // In dark mode, the text should NOT use the hardcoded light-theme grey
+        expect(
+          textWidget.style?.color,
+          isNot(equals(Colors.grey.shade600)),
+          reason:
+              'Offline message should use theme-aware color, not hardcoded Colors.grey.shade600',
+        );
+
+        await controller.close();
+      },
+    );
   });
 }

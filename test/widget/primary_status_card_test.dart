@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:mklat/core/app_theme.dart';
 import 'package:mklat/presentation/widgets/primary_status_card.dart';
 import 'package:mklat/presentation/providers/alerts_provider.dart';
 import 'package:mklat/presentation/providers/location_provider.dart';
@@ -294,6 +295,54 @@ void main() {
       expect(find.textContaining('דקות'), findsNothing);
       // Should NOT show "עכשיו" either
       expect(find.textContaining('עכשיו'), findsNothing);
+    });
+
+    testWidgets('renders with dark-appropriate background in dark mode', (
+      WidgetTester tester,
+    ) async {
+      final alertsProvider = AlertsProvider();
+      final locationProvider = LocationProvider();
+      final connectivityProvider = ConnectivityProvider.fromStream(
+        Stream.value(ConnectivityResult.wifi),
+      );
+      await connectivityProvider.initialize();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: ThemeMode.dark,
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: MultiProvider(
+              providers: [
+                ChangeNotifierProvider.value(value: alertsProvider),
+                ChangeNotifierProvider.value(value: locationProvider),
+                ChangeNotifierProvider.value(value: connectivityProvider),
+              ],
+              child: const Scaffold(body: PrimaryStatusCard()),
+            ),
+          ),
+        ),
+      );
+
+      // Find the card container
+      final containerFinder = find.byType(Container);
+      expect(containerFinder, findsWidgets);
+
+      // Get the first Container widget (the card wrapper)
+      final container = tester.widget<Container>(containerFinder.first);
+      final decoration = container.decoration as BoxDecoration;
+
+      // In dark mode, the ALL_CLEAR background should be a dark shade, not the light pastel
+      // Light mode ALL_CLEAR background is 0xFFE8F5E9 (light green)
+      // Dark mode should use a darker shade like 0xFF1B5E20 (dark green)
+      expect(
+        decoration.color,
+        equals(const Color(0xFF1B5E20)),
+        reason:
+            'ALL_CLEAR background in dark mode should be a dark green shade',
+      );
     });
   });
 }

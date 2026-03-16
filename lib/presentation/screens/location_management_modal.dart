@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/app_theme.dart';
 import '../../data/models/saved_location.dart';
 import '../providers/location_provider.dart';
 import 'add_location_screen.dart';
@@ -111,9 +112,12 @@ class LocationManagementModal extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             'אין מיקומים שמורים',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+            style: TextStyle(
+              fontSize: 16,
+              color: AppTheme.placeholderColor(context),
+            ),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
@@ -150,7 +154,9 @@ class LocationManagementModal extends StatelessWidget {
         return ListTile(
           leading: Icon(
             isPrimary ? Icons.star : Icons.radio_button_unchecked,
-            color: isPrimary ? Colors.amber : Colors.grey,
+            color: isPrimary
+                ? Colors.amber
+                : AppTheme.placeholderColor(context),
           ),
           title: Text(
             location.displayLabel,

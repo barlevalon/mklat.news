@@ -200,6 +200,104 @@ void main() {
       },
     );
 
+    testWidgets(
+      'error text color should not use hardcoded light-only orange in dark mode',
+      (WidgetTester tester) async {
+        final alertsProvider = AlertsProvider();
+        final locationProvider = LocationProvider();
+        final connectivityProvider = ConnectivityProvider(
+          connectivity: MockConnectivity(ConnectivityResult.wifi),
+        );
+        await connectivityProvider.initialize();
+
+        // Add a location
+        await locationProvider.addLocation(
+          SavedLocation(
+            id: '1',
+            orefName: 'תל אביב',
+            customLabel: 'תל אביב',
+            isPrimary: true,
+          ),
+        );
+
+        // Simulate an error
+        alertsProvider.onError('alerts', Exception('Network error'));
+
+        // Pump with dark theme
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData.dark(),
+            home: Directionality(
+              textDirection: TextDirection.rtl,
+              child: MultiProvider(
+                providers: [
+                  ChangeNotifierProvider.value(value: alertsProvider),
+                  ChangeNotifierProvider.value(value: locationProvider),
+                  ChangeNotifierProvider.value(value: connectivityProvider),
+                ],
+                child: const Scaffold(body: StatusScreen()),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        // Verify the error text is NOT using the hardcoded light-mode orange
+        final errorText = tester.widget<Text>(find.text('שגיאה בטעינת התרעות'));
+        expect(errorText.style?.color, isNot(equals(Colors.orange.shade600)));
+      },
+    );
+
+    testWidgets(
+      'offline message text should not use hardcoded light-only grey in dark mode',
+      (WidgetTester tester) async {
+        final alertsProvider = AlertsProvider();
+        final locationProvider = LocationProvider();
+        final connectivityProvider = ConnectivityProvider(
+          connectivity: MockConnectivity(ConnectivityResult.none),
+        );
+        await connectivityProvider.initialize();
+
+        // Add a location
+        await locationProvider.addLocation(
+          SavedLocation(
+            id: '1',
+            orefName: 'תל אביב',
+            customLabel: 'תל אביב',
+            isPrimary: true,
+          ),
+        );
+
+        // Provide some data (simulating cached data)
+        alertsProvider.onAlertData([], []);
+
+        // Pump with dark theme
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData.dark(),
+            home: Directionality(
+              textDirection: TextDirection.rtl,
+              child: MultiProvider(
+                providers: [
+                  ChangeNotifierProvider.value(value: alertsProvider),
+                  ChangeNotifierProvider.value(value: locationProvider),
+                  ChangeNotifierProvider.value(value: connectivityProvider),
+                ],
+                child: const Scaffold(body: StatusScreen()),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        // Verify the offline text is NOT using the hardcoded light-mode grey
+        final offlineText = tester.widget<Text>(
+          find.text('ממתין לחיבור לאינטרנט...'),
+        );
+        expect(offlineText.style?.color, isNot(equals(Colors.grey.shade600)));
+      },
+    );
+
     testWidgets('loading state clears when data arrives', (
       WidgetTester tester,
     ) async {
@@ -321,6 +419,61 @@ void main() {
       // Should show the time range indication (THIS IS THE MISSING FEATURE)
       expect(find.text('מציג שעה אחרונה'), findsOneWidget);
     });
+
+    testWidgets(
+      '"מציג שעה אחרונה" text should not use hardcoded light-only black38 in dark mode',
+      (WidgetTester tester) async {
+        final alertsProvider = AlertsProvider();
+        final locationProvider = LocationProvider();
+        final connectivityProvider = ConnectivityProvider(
+          connectivity: MockConnectivity(ConnectivityResult.wifi),
+        );
+        await connectivityProvider.initialize();
+
+        // Add a location
+        await locationProvider.addLocation(
+          SavedLocation(
+            id: '1',
+            orefName: 'תל אביב',
+            customLabel: 'תל אביב',
+            isPrimary: true,
+          ),
+        );
+
+        // Provide alert history data
+        final historyAlert = Alert(
+          id: 'hist_1',
+          location: 'תל אביב',
+          title: 'ירי רקטות וטילים',
+          time: DateTime.now().subtract(const Duration(minutes: 30)),
+          category: 1,
+        );
+        alertsProvider.onAlertData([], [historyAlert]);
+
+        // Pump with dark theme
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData.dark(),
+            home: Directionality(
+              textDirection: TextDirection.rtl,
+              child: MultiProvider(
+                providers: [
+                  ChangeNotifierProvider.value(value: alertsProvider),
+                  ChangeNotifierProvider.value(value: locationProvider),
+                  ChangeNotifierProvider.value(value: connectivityProvider),
+                ],
+                child: const Scaffold(body: StatusScreen()),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        // Verify the helper text is NOT using the hardcoded light-mode black38
+        final helperText = tester.widget<Text>(find.text('מציג שעה אחרונה'));
+        expect(helperText.style?.color, isNot(equals(Colors.black38)));
+      },
+    );
   });
 }
 

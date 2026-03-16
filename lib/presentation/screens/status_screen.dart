@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/app_theme.dart';
 import '../../data/models/alert.dart';
 import '../../domain/alert_state_machine.dart';
 import '../providers/alerts_provider.dart';
@@ -85,14 +86,14 @@ class _StatusScreenState extends State<StatusScreen> {
                         Icon(
                           Icons.warning_amber,
                           size: 16,
-                          color: Colors.orange.shade600,
+                          color: AppTheme.errorIndicatorColor(context),
                         ),
                         const SizedBox(width: 4),
                         Text(
                           alertsProvider.errorMessage!,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.orange.shade600,
+                            color: AppTheme.errorIndicatorColor(context),
                           ),
                         ),
                       ],
@@ -116,18 +117,21 @@ class _StatusScreenState extends State<StatusScreen> {
                     children: [
                       Expanded(
                         child: Divider(
-                          color: Colors.grey.shade300,
+                          color: AppTheme.dividerColor(context),
                           endIndent: 8,
                         ),
                       ),
                       Text(
                         'התרעות אחרונות',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodySmall?.copyWith(color: Colors.black54),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppTheme.mutedTextColor(context),
+                        ),
                       ),
                       Expanded(
-                        child: Divider(color: Colors.grey.shade300, indent: 8),
+                        child: Divider(
+                          color: AppTheme.dividerColor(context),
+                          indent: 8,
+                        ),
                       ),
                     ],
                   ),
@@ -138,7 +142,7 @@ class _StatusScreenState extends State<StatusScreen> {
                     child: Text(
                       'מציג שעה אחרונה',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.black38,
+                        color: AppTheme.subtleTextColor(context),
                         fontSize: 11,
                       ),
                       textAlign: TextAlign.center,
@@ -176,13 +180,17 @@ class _StatusScreenState extends State<StatusScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.signal_wifi_off, size: 48, color: Colors.grey.shade400),
+            Icon(
+              Icons.signal_wifi_off,
+              size: 48,
+              color: AppTheme.placeholderIconColor(context),
+            ),
             const SizedBox(height: 16),
             Text(
               'ממתין לחיבור לאינטרנט...',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(color: Colors.grey.shade600),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppTheme.placeholderColor(context),
+              ),
             ),
           ],
         ),
@@ -199,9 +207,9 @@ class _StatusScreenState extends State<StatusScreen> {
             const SizedBox(height: 16),
             Text(
               'טוען...',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(color: Colors.grey.shade600),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppTheme.placeholderColor(context),
+              ),
             ),
           ],
         ),
@@ -213,13 +221,17 @@ class _StatusScreenState extends State<StatusScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.location_off, size: 48, color: Colors.grey.shade400),
+            Icon(
+              Icons.location_off,
+              size: 48,
+              color: AppTheme.placeholderIconColor(context),
+            ),
             const SizedBox(height: 16),
             Text(
               'הוסף מיקום כדי לראות התרעות',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(color: Colors.grey.shade600),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppTheme.placeholderColor(context),
+              ),
             ),
           ],
         ),
@@ -235,9 +247,9 @@ class _StatusScreenState extends State<StatusScreen> {
             const SizedBox(height: 16),
             Text(
               'אין התרעות באזורים שלך',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(color: Colors.grey.shade600),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppTheme.placeholderColor(context),
+              ),
             ),
           ],
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/app_theme.dart';
 import '../providers/news_provider.dart';
 import '../providers/connectivity_provider.dart';
 import '../widgets/news_list_item.dart';
@@ -20,7 +21,10 @@ class NewsScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(color: Colors.grey.shade200, width: 1),
+                  bottom: BorderSide(
+                    color: AppTheme.dividerColor(context),
+                    width: 1,
+                  ),
                 ),
               ),
               child: Row(
@@ -37,14 +41,18 @@ class NewsScreen extends StatelessWidget {
             ),
 
             // News list or empty/error state
-            Expanded(child: _buildNewsList(newsProvider, isOffline)),
+            Expanded(child: _buildNewsList(context, newsProvider, isOffline)),
           ],
         );
       },
     );
   }
 
-  Widget _buildNewsList(NewsProvider newsProvider, bool isOffline) {
+  Widget _buildNewsList(
+    BuildContext context,
+    NewsProvider newsProvider,
+    bool isOffline,
+  ) {
     if (newsProvider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -54,11 +62,15 @@ class NewsScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.red.shade300),
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: AppTheme.errorIndicatorColor(context),
+            ),
             const SizedBox(height: 16),
             Text(
               newsProvider.errorMessage!,
-              style: TextStyle(color: Colors.red.shade600),
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ],
         ),
@@ -71,11 +83,15 @@ class NewsScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.wifi_off, size: 48, color: Colors.grey.shade400),
+            Icon(
+              Icons.wifi_off,
+              size: 48,
+              color: AppTheme.mutedTextColor(context),
+            ),
             const SizedBox(height: 16),
             Text(
               'אין חיבור לאינטרנט',
-              style: TextStyle(color: Colors.grey.shade600),
+              style: TextStyle(color: AppTheme.mutedTextColor(context)),
             ),
           ],
         ),
@@ -87,11 +103,15 @@ class NewsScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.article_outlined, size: 48, color: Colors.grey.shade400),
+            Icon(
+              Icons.article_outlined,
+              size: 48,
+              color: AppTheme.mutedTextColor(context),
+            ),
             const SizedBox(height: 16),
             Text(
               'אין מבזקים חדשים',
-              style: TextStyle(color: Colors.grey.shade600),
+              style: TextStyle(color: AppTheme.mutedTextColor(context)),
             ),
           ],
         ),

@@ -235,5 +235,156 @@ void main() {
 
       await controller.close();
     });
+
+    testWidgets('chip background is not hardcoded white in dark mode', (
+      WidgetTester tester,
+    ) async {
+      final controller = StreamController<ConnectivityResult>();
+      final locationProvider = LocationProvider();
+      final alertsProvider = AlertsProvider();
+      final connectivityProvider = ConnectivityProvider.fromStream(
+        controller.stream,
+      );
+
+      // Add a primary location first
+      locationProvider.addLocation(
+        SavedLocation(
+          id: 'primary',
+          orefName: 'ראשון לציון',
+          customLabel: '',
+          isPrimary: true,
+          shelterTimeSec: 90,
+        ),
+      );
+
+      // Add secondary location
+      locationProvider.addLocation(
+        SavedLocation(
+          id: 'loc-1',
+          orefName: 'תל אביב',
+          customLabel: '',
+          isPrimary: false,
+          shelterTimeSec: 90,
+        ),
+      );
+
+      // Start online
+      controller.add(ConnectivityResult.wifi);
+      await connectivityProvider.initialize();
+
+      // Build with dark theme
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark(),
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: MultiProvider(
+              providers: [
+                ChangeNotifierProvider.value(value: locationProvider),
+                ChangeNotifierProvider.value(value: alertsProvider),
+                ChangeNotifierProvider.value(value: connectivityProvider),
+              ],
+              child: const Scaffold(body: SecondaryLocationsRow()),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Find the chip container (the decorated container holding the location chip)
+      final chipContainer = tester.widget<Container>(
+        find
+            .descendant(
+              of: find.byType(SecondaryLocationsRow),
+              matching: find.byType(Container),
+            )
+            .at(
+              1,
+            ), // Second container is the chip (first is the outer ListView wrapper)
+      );
+
+      final decoration = chipContainer.decoration as BoxDecoration;
+
+      // In dark mode, the chip background should NOT be hardcoded white
+      expect(decoration.color, isNot(equals(Colors.white)));
+
+      await controller.close();
+    });
+
+    testWidgets('chip border is not hardcoded black12 in dark mode', (
+      WidgetTester tester,
+    ) async {
+      final controller = StreamController<ConnectivityResult>();
+      final locationProvider = LocationProvider();
+      final alertsProvider = AlertsProvider();
+      final connectivityProvider = ConnectivityProvider.fromStream(
+        controller.stream,
+      );
+
+      // Add a primary location first
+      locationProvider.addLocation(
+        SavedLocation(
+          id: 'primary',
+          orefName: 'ראשון לציון',
+          customLabel: '',
+          isPrimary: true,
+          shelterTimeSec: 90,
+        ),
+      );
+
+      // Add secondary location
+      locationProvider.addLocation(
+        SavedLocation(
+          id: 'loc-1',
+          orefName: 'תל אביב',
+          customLabel: '',
+          isPrimary: false,
+          shelterTimeSec: 90,
+        ),
+      );
+
+      // Start online
+      controller.add(ConnectivityResult.wifi);
+      await connectivityProvider.initialize();
+
+      // Build with dark theme
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark(),
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: MultiProvider(
+              providers: [
+                ChangeNotifierProvider.value(value: locationProvider),
+                ChangeNotifierProvider.value(value: alertsProvider),
+                ChangeNotifierProvider.value(value: connectivityProvider),
+              ],
+              child: const Scaffold(body: SecondaryLocationsRow()),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Find the chip container (the decorated container holding the location chip)
+      final chipContainer = tester.widget<Container>(
+        find
+            .descendant(
+              of: find.byType(SecondaryLocationsRow),
+              matching: find.byType(Container),
+            )
+            .at(
+              1,
+            ), // Second container is the chip (first is the outer ListView wrapper)
+      );
+
+      final decoration = chipContainer.decoration as BoxDecoration;
+      final border = decoration.border as Border;
+
+      // In dark mode, the chip border should NOT be hardcoded black12
+      expect(border.top.color, isNot(equals(Colors.black12)));
+
+      await controller.close();
+    });
   });
 }

@@ -141,5 +141,32 @@ void main() {
 
       expect(find.text('הוסף מיקום'), findsOneWidget);
     });
+
+    testWidgets('empty state text uses theme color in dark mode', (
+      WidgetTester tester,
+    ) async {
+      final provider = LocationProvider();
+      await provider.loadLocations();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark(),
+          home: Directionality(
+            textDirection: TextDirection.rtl,
+            child: ChangeNotifierProvider.value(
+              value: provider,
+              child: const LocationManagementModal(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final textWidget = tester.widget<Text>(find.text('אין מיקומים שמורים'));
+      final textColor = textWidget.style?.color;
+
+      // Should NOT be hardcoded Colors.grey in dark mode
+      expect(textColor, isNot(equals(Colors.grey)));
+    });
   });
 }

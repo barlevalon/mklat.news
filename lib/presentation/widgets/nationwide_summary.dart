@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/app_theme.dart';
 import '../providers/alerts_provider.dart';
 import '../providers/location_provider.dart';
 
@@ -27,9 +28,12 @@ class NationwideSummary extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.orange.shade50,
+            color: AppTheme.nationwideSummaryBackground(context),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.orange.shade200, width: 1),
+            border: Border.all(
+              color: AppTheme.nationwideSummaryBorder(context),
+              width: 1,
+            ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -37,13 +41,13 @@ class NationwideSummary extends StatelessWidget {
               Icon(
                 Icons.warning_amber,
                 size: 16,
-                color: Colors.orange.shade700,
+                color: AppTheme.nationwideSummaryIcon(context),
               ),
               const SizedBox(width: 8),
               Text(
                 '$userLocationCount באזורים שלך • $nationwideCount ברחבי הארץ',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.orange.shade900,
+                  color: AppTheme.nationwideSummaryText(context),
                   fontWeight: FontWeight.w500,
                 ),
               ),

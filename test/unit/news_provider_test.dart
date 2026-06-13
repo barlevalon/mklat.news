@@ -48,7 +48,7 @@ void main() {
     });
 
     test('onError with no existing news: sets error', () {
-      provider.onError('news', Exception('Network error'));
+      provider.onError(Exception('Network error'));
 
       expect(provider.errorMessage, 'שגיאה בטעינת חדשות');
     });
@@ -65,7 +65,7 @@ void main() {
       ];
 
       provider.onNewsData(items);
-      provider.onError('news', Exception('Network error'));
+      provider.onError(Exception('Network error'));
 
       expect(provider.newsItems.length, 1);
       expect(provider.errorMessage, isNull);

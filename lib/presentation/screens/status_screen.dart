@@ -101,7 +101,8 @@ class _StatusScreenState extends State<StatusScreen> {
                   ),
 
                 // Secondary locations row (if >1 saved location)
-                if (locationProvider.secondaryLocations.isNotEmpty)
+                if (alertsProvider.errorMessage == null &&
+                    locationProvider.secondaryLocations.isNotEmpty)
                   const Padding(
                     padding: EdgeInsets.only(top: 8),
                     child: SecondaryLocationsRow(),
@@ -238,6 +239,20 @@ class _StatusScreenState extends State<StatusScreen> {
       );
     }
 
+    if (alertsProvider.errorMessage != null && filteredAlerts.isEmpty) {
+      return _buildCenteredMessage(
+        icon: Icons.cloud_off,
+        message: 'לא ניתן להציג התרעות כרגע',
+      );
+    }
+
+    if (alertsProvider.historyErrorMessage != null && filteredAlerts.isEmpty) {
+      return _buildCenteredMessage(
+        icon: Icons.history_toggle_off,
+        message: alertsProvider.historyErrorMessage!,
+      );
+    }
+
     if (filteredAlerts.isEmpty) {
       return Center(
         child: Column(
@@ -275,6 +290,27 @@ class _StatusScreenState extends State<StatusScreen> {
           );
         }
       },
+    );
+  }
+
+  Widget _buildCenteredMessage({
+    required IconData icon,
+    required String message,
+  }) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 48, color: AppTheme.placeholderIconColor(context)),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: AppTheme.placeholderColor(context),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

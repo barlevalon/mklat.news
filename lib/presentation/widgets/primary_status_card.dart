@@ -49,10 +49,11 @@ class _PrimaryStatusCardState extends State<PrimaryStatusCard> {
     return Consumer2<AlertsProvider, ConnectivityProvider>(
       builder: (context, alertsProvider, connectivityProvider, child) {
         final isOffline = connectivityProvider.isOffline;
+        final hasAlertError = alertsProvider.errorMessage != null;
         final state = alertsProvider.alertState;
 
-        // Only run timer when online
-        if (!isOffline) {
+        // Only run timer when online and current alert data is fresh.
+        if (!isOffline && !hasAlertError) {
           _ensureTimer(state);
         } else {
           _timer?.cancel();
@@ -61,15 +62,26 @@ class _PrimaryStatusCardState extends State<PrimaryStatusCard> {
 
         final startTime = alertsProvider.alertStartTime;
 
-        // Determine display values based on connectivity
-        final displayColor = isOffline
+        // Determine display values based on connectivity and data freshness.
+        final displayColor = isOffline || hasAlertError
             ? AppTheme.offlineColor
             : AppTheme.colorForAlertState(state);
-        final displayBg = isOffline
+        final displayBg = isOffline || hasAlertError
             ? AppTheme.offlineBackground
             : AppTheme.alertBackgroundFor(context, state);
-        final displayIcon = isOffline ? '📡' : state.icon;
-        final displayTitle = isOffline ? 'אין חיבור' : state.hebrewTitle;
+        final displayIcon = isOffline
+            ? '📡'
+            : hasAlertError
+            ? '⚠️'
+            : state.icon;
+        final displayTitle = isOffline
+            ? 'אין חיבור'
+            : hasAlertError
+            ? 'מצב לא ידוע'
+            : state.hebrewTitle;
+        final instruction = hasAlertError
+            ? 'לא ניתן לאמת התרעות כרגע'
+            : state.instruction;
 
         return Container(
           margin: const EdgeInsets.all(16),
@@ -94,10 +106,10 @@ class _PrimaryStatusCardState extends State<PrimaryStatusCard> {
                 ),
               ),
               // Only show instruction when online
-              if (!isOffline && state.instruction != null) ...[
+              if (!isOffline && instruction != null) ...[
                 const SizedBox(height: 8),
                 Text(
-                  state.instruction!,
+                  instruction,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
@@ -106,6 +118,7 @@ class _PrimaryStatusCardState extends State<PrimaryStatusCard> {
               ],
               // Only show timer when online
               if (!isOffline &&
+                  !hasAlertError &&
                   state.showElapsedTimer &&
                   startTime != null) ...[
                 const SizedBox(height: 16),

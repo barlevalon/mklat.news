@@ -11,6 +11,7 @@ class AlertsProvider extends ChangeNotifier {
   bool _isLoading = true;
   bool _isResuming = false;
   String? _errorMessage;
+  String? _historyErrorMessage;
   DateTime? _lastUpdated;
 
   // Public getters
@@ -22,6 +23,7 @@ class AlertsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isResuming => _isResuming;
   String? get errorMessage => _errorMessage;
+  String? get historyErrorMessage => _historyErrorMessage;
   DateTime? get lastUpdated => _lastUpdated;
 
   /// Active alert locations (from current Alerts.json)
@@ -71,6 +73,7 @@ class AlertsProvider extends ChangeNotifier {
     _isLoading = false;
     _isResuming = false; // Clear resume state on fresh data
     _errorMessage = null;
+    _historyErrorMessage = null;
     _lastUpdated = DateTime.now();
 
     // Run state machine evaluation
@@ -78,9 +81,20 @@ class AlertsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Called by polling manager on error.
-  void onError(String source, Object error) {
+  /// Called by polling manager when the current-alert feed fails.
+  void onError(Object error) {
+    _currentAlerts = [];
+    _alertHistory = [];
+    _isLoading = false;
     _errorMessage = 'שגיאה בטעינת התרעות';
+    _historyErrorMessage = null;
+    _lastUpdated = null;
+    notifyListeners();
+  }
+
+  /// Called by polling manager when current alerts succeeded but history failed.
+  void onHistoryError(Object error) {
+    _historyErrorMessage = 'היסטוריה לא זמינה';
     notifyListeners();
   }
 

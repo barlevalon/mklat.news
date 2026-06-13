@@ -51,6 +51,10 @@ AGENT.md
 AGENTS.md
 CLAUDE.md
 
+# Local artifacts
+/dist/
+/reviews/
+
 # Flutter/Dart
 .dart_tool/
 .flutter-plugins

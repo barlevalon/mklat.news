@@ -3,6 +3,17 @@ import '../../core/api_endpoints.dart';
 import '../models/alert.dart';
 import 'http_client.dart';
 
+class ActiveAlertFeedInvalidException implements Exception {
+  final Object cause;
+  final String bodyPreview;
+
+  const ActiveAlertFeedInvalidException(this.cause, this.bodyPreview);
+
+  @override
+  String toString() =>
+      'ActiveAlertFeedInvalidException: $cause; bodyPreview=$bodyPreview';
+}
+
 class OrefAlertsService {
   final HttpClient _httpClient;
 
@@ -10,8 +21,8 @@ class OrefAlertsService {
 
   /// Fetch current active alerts.
   /// Returns a list of Alert objects (one per location in the alert).
-  /// Returns empty list if no active alerts or on parse error.
-  /// Network exceptions propagate to polling manager.
+  /// Returns empty list if no active alerts.
+  /// Network and parse exceptions propagate to polling manager.
   Future<List<Alert>> fetchCurrentAlerts() async {
     // Let network exceptions (HttpException, SocketException, TimeoutException) propagate
     final body = await _httpClient.get(
@@ -20,8 +31,10 @@ class OrefAlertsService {
     );
     try {
       return _parseAlertsResponse(body);
+    } on ActiveAlertFeedInvalidException {
+      rethrow;
     } catch (e) {
-      return []; // Parse errors return empty
+      throw ActiveAlertFeedInvalidException(e, _bodyPreview(body));
     }
   }
 
@@ -35,17 +48,33 @@ class OrefAlertsService {
 
     try {
       final json = jsonDecode(trimmed);
-      if (json is! Map<String, dynamic>) return [];
+      if (json is! Map<String, dynamic>) {
+        throw const FormatException('Alerts.json root must be an object');
+      }
 
       final data = json['data'];
-      if (data is! List || data.isEmpty) return [];
+      if (data is! List) {
+        throw const FormatException('Alerts.json data must be a list');
+      }
+      if (data.isEmpty) return [];
+      if (data.any((location) => location is! String)) {
+        throw const FormatException('Alerts.json data entries must be strings');
+      }
 
       return data
-          .whereType<String>()
+          .cast<String>()
           .map((location) => Alert.fromOrefActive(json, location))
           .toList();
+    } on ActiveAlertFeedInvalidException {
+      rethrow;
     } catch (e) {
-      return [];
+      throw ActiveAlertFeedInvalidException(e, _bodyPreview(body));
     }
+  }
+
+  String _bodyPreview(String body) {
+    final normalized = body.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (normalized.length <= 200) return normalized;
+    return '${normalized.substring(0, 200)}…';
   }
 }

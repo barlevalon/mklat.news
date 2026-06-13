@@ -104,14 +104,15 @@ void main() {
       }
     });
 
-    test('invalid JSON returns empty list', () async {
+    test('invalid JSON throws active-alert feed error', () async {
       when(
         mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),
       ).thenAnswer((_) async => 'not valid json');
 
-      final result = await service.fetchCurrentAlerts();
-
-      expect(result, isEmpty);
+      expect(
+        () => service.fetchCurrentAlerts(),
+        throwsA(isA<ActiveAlertFeedInvalidException>()),
+      );
     });
 
     test('HTTP error rethrows HttpException', () async {
@@ -152,8 +153,10 @@ void main() {
       expect(result, isEmpty);
     });
 
-    test('response without data field returns empty list', () async {
-      final responseJson = '''
+    test(
+      'response without data field throws active-alert feed error',
+      () async {
+        final responseJson = '''
         {
           "id": "133721700000000000",
           "cat": 1,
@@ -161,17 +164,21 @@ void main() {
         }
       ''';
 
-      when(
-        mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),
-      ).thenAnswer((_) async => responseJson);
+        when(
+          mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),
+        ).thenAnswer((_) async => responseJson);
 
-      final result = await service.fetchCurrentAlerts();
+        expect(
+          () => service.fetchCurrentAlerts(),
+          throwsA(isA<ActiveAlertFeedInvalidException>()),
+        );
+      },
+    );
 
-      expect(result, isEmpty);
-    });
-
-    test('response with non-array data returns empty list', () async {
-      final responseJson = '''
+    test(
+      'response with non-array data throws active-alert feed error',
+      () async {
+        final responseJson = '''
         {
           "id": "133721700000000000",
           "cat": 1,
@@ -180,24 +187,30 @@ void main() {
         }
       ''';
 
-      when(
-        mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),
-      ).thenAnswer((_) async => responseJson);
+        when(
+          mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),
+        ).thenAnswer((_) async => responseJson);
 
-      final result = await service.fetchCurrentAlerts();
+        expect(
+          () => service.fetchCurrentAlerts(),
+          throwsA(isA<ActiveAlertFeedInvalidException>()),
+        );
+      },
+    );
 
-      expect(result, isEmpty);
-    });
+    test(
+      'response with non-object root throws active-alert feed error',
+      () async {
+        when(
+          mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),
+        ).thenAnswer((_) async => '[1, 2, 3]');
 
-    test('response with non-object root returns empty list', () async {
-      when(
-        mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),
-      ).thenAnswer((_) async => '[1, 2, 3]');
-
-      final result = await service.fetchCurrentAlerts();
-
-      expect(result, isEmpty);
-    });
+        expect(
+          () => service.fetchCurrentAlerts(),
+          throwsA(isA<ActiveAlertFeedInvalidException>()),
+        );
+      },
+    );
 
     test('UAV category (2) is mapped correctly', () async {
       final responseJson = '''

@@ -16,7 +16,9 @@ class SecondaryLocationsRow extends StatelessWidget {
     AlertsProvider alertsProvider,
     bool isOffline,
   ) {
-    if (isOffline) return AppTheme.dotGrey;
+    if (isOffline || alertsProvider.errorMessage != null) {
+      return AppTheme.dotGrey;
+    }
     if (alertsProvider.isLocationInActiveAlerts(locationName)) {
       return AppTheme.dotRed;
     }

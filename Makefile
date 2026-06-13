@@ -1,4 +1,4 @@
-.PHONY: test test-unit test-integration test-all analyze format check emulator
+.PHONY: test test-unit test-integration test-all analyze format check emulator fixtures release-apk release-check
 
 # Unit + widget tests (no emulator needed)
 test-unit:
@@ -37,6 +37,23 @@ format:
 
 # All checks (what you'd run before pushing)
 check: format analyze test-all
+
+# Build a shareable universal release APK and copy it to dist/ with a human name.
+# Override with: make release-apk BUILD_NAME=1.2.3 BUILD_NUMBER=45
+release-apk:
+	@set -e; \
+	version=$$(awk '/^version:/ { print $$2; exit }' pubspec.yaml); \
+	build_name=$${BUILD_NAME:-$${version%%+*}}; \
+	build_number=$${BUILD_NUMBER:-$${version##*+}}; \
+	echo "Building release APK $$build_name+$$build_number..."; \
+	flutter build apk --release --build-name "$$build_name" --build-number "$$build_number"; \
+	mkdir -p dist; \
+	artifact="dist/mklat-news-$$build_name+$$build_number.apk"; \
+	cp build/app/outputs/flutter-apk/app-release.apk "$$artifact"; \
+	ls -lh "$$artifact"
+
+# Fast release gate: static checks, host tests, and release APK build.
+release-check: format analyze test-unit release-apk
 
 # Start the emulator (background, headless, idempotent)
 emulator:

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mklat/data/models/alert.dart';
 import 'package:mklat/data/models/news_item.dart';
@@ -174,9 +176,144 @@ void main() {
         manager.stop();
         expect(manager.isPolling, isFalse);
       });
+
+      test('drops in-flight results after stop', () async {
+        final alertsCompleter = Completer<List<Alert>>();
+        final historyCompleter = Completer<List<Alert>>();
+        final newsCompleter = Completer<List<NewsItem>>();
+
+        when(
+          mockAlertsService.fetchCurrentAlerts(),
+        ).thenAnswer((_) => alertsCompleter.future);
+        when(
+          mockHistoryService.fetchAlertHistory(),
+        ).thenAnswer((_) => historyCompleter.future);
+        when(
+          mockNewsService.fetchAllNews(),
+        ).thenAnswer((_) => newsCompleter.future);
+
+        var alertCallbackCalled = false;
+        var newsCallbackCalled = false;
+        manager.onAlertData = (_, _) => alertCallbackCalled = true;
+        manager.onNewsData = (_) => newsCallbackCalled = true;
+
+        manager.start();
+        await Future.delayed(Duration.zero);
+        manager.stop();
+
+        alertsCompleter.complete([testAlert]);
+        historyCompleter.complete([testAlert]);
+        newsCompleter.complete([testNewsItem]);
+        await Future.delayed(Duration.zero);
+
+        expect(alertCallbackCalled, isFalse);
+        expect(newsCallbackCalled, isFalse);
+      });
+
+      test(
+        'start after stop fetches fresh data despite stale in-flight poll',
+        () async {
+          final staleAlerts = Completer<List<Alert>>();
+          final staleHistory = Completer<List<Alert>>();
+          final freshAlerts = Completer<List<Alert>>();
+          final freshHistory = Completer<List<Alert>>();
+
+          var alertFetchCount = 0;
+          var historyFetchCount = 0;
+          when(mockAlertsService.fetchCurrentAlerts()).thenAnswer((_) {
+            alertFetchCount++;
+            return alertFetchCount == 1
+                ? staleAlerts.future
+                : freshAlerts.future;
+          });
+          when(mockHistoryService.fetchAlertHistory()).thenAnswer((_) {
+            historyFetchCount++;
+            return historyFetchCount == 1
+                ? staleHistory.future
+                : freshHistory.future;
+          });
+          when(mockNewsService.fetchAllNews()).thenAnswer((_) async => []);
+
+          var alertCallbacks = 0;
+          manager.onAlertData = (_, _) => alertCallbacks++;
+
+          manager.start();
+          await Future.delayed(Duration.zero);
+          manager.stop();
+          manager.start();
+          await Future.delayed(Duration.zero);
+
+          freshAlerts.complete([testAlert]);
+          freshHistory.complete([testAlert]);
+          await Future.delayed(Duration.zero);
+
+          expect(alertCallbacks, 1);
+          verify(mockAlertsService.fetchCurrentAlerts()).called(2);
+          verify(mockHistoryService.fetchAlertHistory()).called(2);
+
+          staleAlerts.complete([testAlert]);
+          staleHistory.complete([testAlert]);
+          await Future.delayed(Duration.zero);
+
+          expect(alertCallbacks, 1);
+        },
+      );
     });
 
     group('alert poll', () {
+      test('skips overlapping alert polls', () async {
+        final alertsCompleter = Completer<List<Alert>>();
+        final historyCompleter = Completer<List<Alert>>();
+
+        when(
+          mockAlertsService.fetchCurrentAlerts(),
+        ).thenAnswer((_) => alertsCompleter.future);
+        when(
+          mockHistoryService.fetchAlertHistory(),
+        ).thenAnswer((_) => historyCompleter.future);
+        when(mockNewsService.fetchAllNews()).thenAnswer((_) async => []);
+
+        manager.start();
+        await Future.delayed(Duration.zero);
+        final refreshFuture = manager.refresh();
+        await Future.delayed(Duration.zero);
+
+        verify(mockAlertsService.fetchCurrentAlerts()).called(1);
+        verify(mockHistoryService.fetchAlertHistory()).called(1);
+
+        alertsCompleter.complete([testAlert]);
+        historyCompleter.complete([testAlert]);
+        await refreshFuture;
+      });
+
+      test('delivers current alerts when history fails', () async {
+        final historyError = Exception('History unavailable');
+        when(
+          mockAlertsService.fetchCurrentAlerts(),
+        ).thenAnswer((_) async => [testAlert]);
+        when(mockHistoryService.fetchAlertHistory()).thenThrow(historyError);
+        when(mockNewsService.fetchAllNews()).thenAnswer((_) async => []);
+
+        List<Alert>? receivedCurrentAlerts;
+        List<Alert>? receivedHistory;
+        Object? receivedHistoryError;
+
+        manager.onAlertData = (current, history) {
+          receivedCurrentAlerts = current;
+          receivedHistory = history;
+        };
+        manager.onAlertHistoryError = (error) {
+          receivedHistoryError = error;
+        };
+
+        manager.start();
+        await Future.delayed(Duration.zero);
+
+        expect(receivedCurrentAlerts, [testAlert]);
+        expect(receivedHistory, isEmpty);
+        expect(receivedHistoryError, historyError);
+      });
+
       test('fetches current alerts and history in parallel', () async {
         when(
           mockAlertsService.fetchCurrentAlerts(),
@@ -286,13 +423,15 @@ void main() {
             mockNewsService.fetchAllNews(),
           ).thenAnswer((_) async => [testNewsItem]);
 
-          String? errorSource;
           Object? receivedError;
+          List<Alert>? receivedAlerts;
           List<NewsItem>? receivedNews;
 
-          manager.onError = (source, err) {
-            errorSource = source;
+          manager.onAlertError = (err) {
             receivedError = err;
+          };
+          manager.onAlertData = (current, _) {
+            receivedAlerts = current;
           };
           manager.onNewsData = (news) {
             receivedNews = news;
@@ -301,8 +440,8 @@ void main() {
           manager.start();
           await Future.delayed(Duration.zero);
 
-          expect(errorSource, 'alerts');
           expect(receivedError, error);
+          expect(receivedAlerts, isNull);
           // News should still be delivered
           expect(receivedNews, [testNewsItem]);
 
@@ -320,18 +459,15 @@ void main() {
         ).thenAnswer((_) async => []);
         when(mockNewsService.fetchAllNews()).thenThrow(error);
 
-        String? errorSource;
         Object? receivedError;
 
-        manager.onError = (source, err) {
-          errorSource = source;
+        manager.onNewsError = (err) {
           receivedError = err;
         };
 
         manager.start();
         await Future.delayed(Duration.zero);
 
-        expect(errorSource, 'news');
         expect(receivedError, error);
 
         manager.stop();

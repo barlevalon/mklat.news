@@ -23,7 +23,15 @@ void main() {
 class MklatApp extends StatefulWidget {
   final http.Client? httpClient;
   final ConnectivityProvider? connectivityProvider;
-  const MklatApp({super.key, this.httpClient, this.connectivityProvider});
+  final bool pollingEnabled;
+  final bool bootstrapEnabled;
+  const MklatApp({
+    super.key,
+    this.httpClient,
+    this.connectivityProvider,
+    this.pollingEnabled = true,
+    this.bootstrapEnabled = true,
+  });
 
   @override
   State<MklatApp> createState() => _MklatAppState();
@@ -72,20 +80,30 @@ class _MklatAppState extends State<MklatApp> with WidgetsBindingObserver {
       _connectivityProvider.reportHttpSuccess();
       _newsProvider.onNewsData(newsItems);
     };
-    _pollingManager.onError = (source, error) {
+    _pollingManager.onAlertError = (error) {
       _connectivityProvider.reportHttpFailure();
-      _alertsProvider.onError(source, error);
-      _newsProvider.onError(source, error);
+      _alertsProvider.onError(error);
+    };
+    _pollingManager.onAlertHistoryError = (error) {
+      _alertsProvider.onHistoryError(error);
+    };
+    _pollingManager.onNewsError = (error) {
+      _connectivityProvider.reportHttpFailure();
+      _newsProvider.onError(error);
     };
 
     // Listen for location changes to update state machine
     _locationProvider.addListener(_onLocationChange);
 
     // Initialize
-    _locationProvider.loadLocations();
-    _locationProvider.loadAvailableLocations(districtsService);
-    _connectivityProvider.initialize();
-    _pollingManager.start();
+    if (widget.bootstrapEnabled) {
+      _locationProvider.loadLocations();
+      _locationProvider.loadAvailableLocations(districtsService);
+      _connectivityProvider.initialize();
+      if (widget.pollingEnabled) {
+        _pollingManager.start();
+      }
+    }
   }
 
   void _onLocationChange() {
@@ -97,8 +115,10 @@ class _MklatAppState extends State<MklatApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
-        _alertsProvider.setResuming(true);
-        _pollingManager.start();
+        if (widget.bootstrapEnabled && widget.pollingEnabled) {
+          _alertsProvider.setResuming(true);
+          _pollingManager.start();
+        }
         break;
       case AppLifecycleState.paused:
       case AppLifecycleState.inactive:

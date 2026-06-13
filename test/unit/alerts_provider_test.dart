@@ -185,10 +185,58 @@ void main() {
       expect(provider.isLocationInActiveAlerts('ירושלים'), isFalse);
     });
 
-    test('onError: sets error message', () {
-      provider.onError('alerts', Exception('Network error'));
+    test('onError: sets error message and clears current alert data', () {
+      provider.setPrimaryLocation('תל אביב');
+      provider.onAlertData(
+        [
+          Alert(
+            id: '1',
+            location: 'תל אביב',
+            title: 'ירי רקטות וטילים',
+            time: DateTime.now(),
+            category: 1,
+          ),
+        ],
+        [
+          Alert(
+            id: '2',
+            location: 'תל אביב',
+            title: 'ירי רקטות וטילים',
+            time: DateTime.now(),
+            category: 1,
+          ),
+        ],
+      );
+
+      provider.onError(Exception('Network error'));
 
       expect(provider.errorMessage, 'שגיאה בטעינת התרעות');
+      expect(provider.currentAlerts, isEmpty);
+      expect(provider.alertHistory, isEmpty);
+      expect(provider.lastUpdated, isNull);
+      expect(provider.isLoading, isFalse);
     });
+
+    test(
+      'onHistoryError: marks history unavailable without clearing current alerts',
+      () {
+        final currentAlerts = [
+          Alert(
+            id: '1',
+            location: 'תל אביב',
+            title: 'ירי רקטות וטילים',
+            time: DateTime.now(),
+            category: 1,
+          ),
+        ];
+        provider.onAlertData(currentAlerts, []);
+
+        provider.onHistoryError(Exception('History error'));
+
+        expect(provider.historyErrorMessage, 'היסטוריה לא זמינה');
+        expect(provider.currentAlerts, currentAlerts);
+        expect(provider.errorMessage, isNull);
+      },
+    );
   });
 }

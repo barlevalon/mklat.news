@@ -5,8 +5,8 @@ import 'package:mklat/presentation/app_shell.dart';
 
 void main() {
   testWidgets('App loads with RTL layout', (WidgetTester tester) async {
-    await tester.pumpWidget(const MklatApp());
-    await tester.pumpAndSettle();
+    await tester.pumpWidget(const MklatApp(bootstrapEnabled: false));
+    await tester.pump();
 
     // Verify AppShell is present (replaces the placeholder)
     expect(find.byType(AppShell), findsOneWidget);
@@ -26,7 +26,7 @@ void main() {
   });
 
   testWidgets('MultiProvider is set up', (WidgetTester tester) async {
-    await tester.pumpWidget(const MklatApp());
+    await tester.pumpWidget(const MklatApp(bootstrapEnabled: false));
 
     // Verify MaterialApp is present
     final materialAppFinder = find.byType(MaterialApp);
@@ -36,7 +36,7 @@ void main() {
   testWidgets('MaterialApp follows system theme and exposes dark theme', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MklatApp());
+    await tester.pumpWidget(const MklatApp(bootstrapEnabled: false));
 
     final materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
 

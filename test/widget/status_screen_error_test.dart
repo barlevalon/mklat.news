@@ -95,7 +95,7 @@ void main() {
       );
 
       // Simulate an error
-      alertsProvider.onError('alerts', Exception('Network error'));
+      alertsProvider.onError(Exception('Network error'));
 
       await tester.pumpWidget(
         buildTestWidget(
@@ -110,6 +110,92 @@ void main() {
       expect(find.byIcon(Icons.warning_amber), findsOneWidget);
       // Should show error message
       expect(find.text('שגיאה בטעינת התרעות'), findsOneWidget);
+    });
+
+    testWidgets('current-alert error hides stale red-alert status', (
+      WidgetTester tester,
+    ) async {
+      final alertsProvider = AlertsProvider();
+      final locationProvider = LocationProvider();
+      final connectivityProvider = ConnectivityProvider(
+        connectivity: MockConnectivity(ConnectivityResult.wifi),
+      );
+      await connectivityProvider.initialize();
+
+      await locationProvider.addLocation(
+        SavedLocation(
+          id: '1',
+          orefName: 'תל אביב',
+          customLabel: 'תל אביב',
+          isPrimary: true,
+        ),
+      );
+      await locationProvider.addLocation(
+        SavedLocation(
+          id: '2',
+          orefName: 'ירושלים',
+          customLabel: 'ירושלים',
+          isPrimary: false,
+        ),
+      );
+      alertsProvider.setPrimaryLocation('תל אביב');
+      alertsProvider.onAlertData([
+        Alert(
+          id: '1',
+          location: 'תל אביב',
+          title: 'ירי רקטות וטילים',
+          time: DateTime.now(),
+          category: 1,
+        ),
+      ], []);
+      alertsProvider.onError(Exception('Network error'));
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          alertsProvider: alertsProvider,
+          locationProvider: locationProvider,
+          connectivityProvider: connectivityProvider,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('מצב לא ידוע'), findsOneWidget);
+      expect(find.text('צבע אדום'), findsNothing);
+      expect(find.text('ירושלים'), findsNothing);
+      expect(find.text('לא ניתן להציג התרעות כרגע'), findsOneWidget);
+    });
+
+    testWidgets('history error shows reduced-data message', (
+      WidgetTester tester,
+    ) async {
+      final alertsProvider = AlertsProvider();
+      final locationProvider = LocationProvider();
+      final connectivityProvider = ConnectivityProvider(
+        connectivity: MockConnectivity(ConnectivityResult.wifi),
+      );
+      await connectivityProvider.initialize();
+
+      await locationProvider.addLocation(
+        SavedLocation(
+          id: '1',
+          orefName: 'תל אביב',
+          customLabel: 'תל אביב',
+          isPrimary: true,
+        ),
+      );
+      alertsProvider.onAlertData([], []);
+      alertsProvider.onHistoryError(Exception('History error'));
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          alertsProvider: alertsProvider,
+          locationProvider: locationProvider,
+          connectivityProvider: connectivityProvider,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('היסטוריה לא זמינה'), findsOneWidget);
     });
 
     testWidgets('offline message shown when offline', (
@@ -171,7 +257,7 @@ void main() {
         );
 
         // Simulate an error
-        alertsProvider.onError('alerts', Exception('Network error'));
+        alertsProvider.onError(Exception('Network error'));
 
         await tester.pumpWidget(
           buildTestWidget(
@@ -221,7 +307,7 @@ void main() {
         );
 
         // Simulate an error
-        alertsProvider.onError('alerts', Exception('Network error'));
+        alertsProvider.onError(Exception('Network error'));
 
         // Pump with dark theme
         await tester.pumpWidget(

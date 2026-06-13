@@ -64,7 +64,7 @@ void main() {
       expect(provider.isResuming, isTrue);
 
       // Simulate an error
-      provider.onError('alerts', Exception('Network error'));
+      provider.onError(Exception('Network error'));
 
       // isResuming should still be true (overlay stays visible)
       expect(provider.isResuming, isTrue);
@@ -74,7 +74,7 @@ void main() {
 
     test('onAlertData clears isResuming even when error was set', () {
       // Set up error state
-      provider.onError('alerts', Exception('Network error'));
+      provider.onError(Exception('Network error'));
       expect(provider.errorMessage, isNotNull);
 
       // Set resuming to true (app resumed while in error state)

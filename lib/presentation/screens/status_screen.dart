@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
-import '../../data/models/alert.dart';
-import '../../domain/alert_state_machine.dart';
+import '../models/status_history_model.dart';
 import '../providers/alerts_provider.dart';
 import '../providers/location_provider.dart';
 import '../providers/connectivity_provider.dart';
@@ -27,25 +26,6 @@ class _StatusScreenState extends State<StatusScreen> {
     });
   }
 
-  List<Alert> _getFilteredAlerts(
-    AlertsProvider alertsProvider,
-    LocationProvider locationProvider,
-  ) {
-    final savedLocationNames = locationProvider.locations
-        .map((l) => l.orefName)
-        .toSet();
-
-    if (savedLocationNames.isEmpty) {
-      return [];
-    }
-
-    return alertsProvider.alertHistory.where((alert) {
-      return savedLocationNames.any(
-        (name) => AlertStateMachine.locationsMatch(alert.location, name),
-      );
-    }).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Consumer3<AlertsProvider, LocationProvider, ConnectivityProvider>(
@@ -59,14 +39,18 @@ class _StatusScreenState extends State<StatusScreen> {
           ) {
             final hasLocations = locationProvider.locations.isNotEmpty;
             final isOffline = connectivityProvider.isOffline;
-            final filteredAlerts = _getFilteredAlerts(
-              alertsProvider,
-              locationProvider,
+            final historyModel = StatusHistoryModel.build(
+              alertHistory: alertsProvider.alertHistory,
+              savedLocationNames: locationProvider.locations
+                  .map((location) => location.orefName)
+                  .toSet(),
+              displayedItemCount: _displayedItemCount,
+              hasLocations: hasLocations,
+              isOffline: isOffline,
+              isLoading: alertsProvider.isLoading,
+              currentAlertError: alertsProvider.errorMessage,
+              historyError: alertsProvider.historyErrorMessage,
             );
-            final displayCount = filteredAlerts.length < _displayedItemCount
-                ? filteredAlerts.length
-                : _displayedItemCount;
-            final hasMore = filteredAlerts.length > displayCount;
 
             return Column(
               children: [
@@ -137,7 +121,7 @@ class _StatusScreenState extends State<StatusScreen> {
                     ],
                   ),
                 ),
-                if (!isOffline && filteredAlerts.isNotEmpty)
+                if (!isOffline && historyModel.alerts.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
@@ -151,157 +135,86 @@ class _StatusScreenState extends State<StatusScreen> {
                   ),
 
                 // Alerts list (scrollable) - handles loading, offline, and content states
-                Expanded(
-                  child: _buildAlertsList(
-                    hasLocations,
-                    isOffline,
-                    alertsProvider,
-                    filteredAlerts,
-                    displayCount,
-                    hasMore,
-                  ),
-                ),
+                Expanded(child: _buildAlertsList(historyModel)),
               ],
             );
           },
     );
   }
 
-  Widget _buildAlertsList(
-    bool hasLocations,
-    bool isOffline,
-    AlertsProvider alertsProvider,
-    List<Alert> filteredAlerts,
-    int displayCount,
-    bool hasMore,
-  ) {
-    // Offline state: show waiting message instead of cached data
-    if (isOffline) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.signal_wifi_off,
-              size: 48,
-              color: AppTheme.placeholderIconColor(context),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'ממתין לחיבור לאינטרנט...',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.placeholderColor(context),
-              ),
-            ),
-          ],
-        ),
-      );
+  Widget _buildAlertsList(StatusHistoryModel model) {
+    switch (model.state) {
+      case StatusHistoryState.loading:
+        return _buildLoadingMessage(model.message!);
+      case StatusHistoryState.empty:
+        return _buildCenteredMessage(
+          icon: model.icon!,
+          message: model.message!,
+          iconColor: Colors.green.shade300,
+        );
+      case StatusHistoryState.offline:
+      case StatusHistoryState.noLocations:
+      case StatusHistoryState.currentAlertError:
+      case StatusHistoryState.historyError:
+        return _buildCenteredMessage(
+          icon: model.icon!,
+          message: model.message!,
+        );
+      case StatusHistoryState.data:
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          itemCount: model.displayCount + (model.hasMore ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index < model.displayCount) {
+              return AlertListItem(alert: model.alerts[index]);
+            } else {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Center(
+                  child: TextButton(
+                    onPressed: _loadMore,
+                    child: const Text('טען עוד'),
+                  ),
+                ),
+              );
+            }
+          },
+        );
     }
+  }
 
-    // Loading state: show spinner when loading and no data yet
-    if (alertsProvider.isLoading && filteredAlerts.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text(
-              'טוען...',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.placeholderColor(context),
-              ),
+  Widget _buildLoadingMessage(String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: AppTheme.placeholderColor(context),
             ),
-          ],
-        ),
-      );
-    }
-
-    if (!hasLocations) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.location_off,
-              size: 48,
-              color: AppTheme.placeholderIconColor(context),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'הוסף מיקום כדי לראות התרעות',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.placeholderColor(context),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (alertsProvider.errorMessage != null && filteredAlerts.isEmpty) {
-      return _buildCenteredMessage(
-        icon: Icons.cloud_off,
-        message: 'לא ניתן להציג התרעות כרגע',
-      );
-    }
-
-    if (alertsProvider.historyErrorMessage != null && filteredAlerts.isEmpty) {
-      return _buildCenteredMessage(
-        icon: Icons.history_toggle_off,
-        message: alertsProvider.historyErrorMessage!,
-      );
-    }
-
-    if (filteredAlerts.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.check_circle, size: 48, color: Colors.green.shade300),
-            const SizedBox(height: 16),
-            Text(
-              'אין התרעות באזורים שלך',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.placeholderColor(context),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: displayCount + (hasMore ? 1 : 0),
-      itemBuilder: (context, index) {
-        if (index < displayCount) {
-          return AlertListItem(alert: filteredAlerts[index]);
-        } else {
-          // Load more button
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Center(
-              child: TextButton(
-                onPressed: _loadMore,
-                child: const Text('טען עוד'),
-              ),
-            ),
-          );
-        }
-      },
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildCenteredMessage({
     required IconData icon,
     required String message,
+    Color? iconColor,
   }) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 48, color: AppTheme.placeholderIconColor(context)),
+          Icon(
+            icon,
+            size: 48,
+            color: iconColor ?? AppTheme.placeholderIconColor(context),
+          ),
           const SizedBox(height: 16),
           Text(
             message,

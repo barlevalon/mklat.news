@@ -1,6 +1,6 @@
 /// OREF location with shelter time information
 class OrefLocation {
-  /// Location name in Hebrew (label_he from Districts)
+  /// Location name from Districts/cities data
   final String name;
 
   /// Numeric ID
@@ -12,7 +12,7 @@ class OrefLocation {
   /// Region group ID (1-37)
   final int areaId;
 
-  /// Region name (e.g., 'תל אביב', 'ירושלים')
+  /// Region name from OREF data
   final String areaName;
 
   /// Shelter time in seconds (migun_time)
@@ -49,24 +49,6 @@ class OrefLocation {
       'areaName': areaName,
       'shelterTimeSec': shelterTimeSec,
     };
-  }
-
-  /// Get formatted shelter time for display
-  String? get shelterTimeDisplay {
-    if (shelterTimeSec == null) return null;
-    if (shelterTimeSec == 0) return 'מיידי';
-    if (shelterTimeSec! < 60) return '$shelterTimeSec שניות';
-    if (shelterTimeSec == 60) return 'דקה';
-    if (shelterTimeSec == 90) return 'דקה וחצי';
-    if (shelterTimeSec! >= 120) {
-      final minutes = shelterTimeSec! ~/ 60;
-      return '$minutes דקות';
-    }
-    // Fallback for other values (unlikely given OREF data: 0, 15, 30, 45, 60, 90)
-    final minutes = shelterTimeSec! ~/ 60;
-    final seconds = shelterTimeSec! % 60;
-    if (seconds == 0) return '$minutes דקות';
-    return '$minutes:${seconds.toString().padLeft(2, '0')} דקות';
   }
 
   @override

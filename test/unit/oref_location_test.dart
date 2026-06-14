@@ -33,69 +33,6 @@ void main() {
       expect(location.shelterTimeSec, null);
     });
 
-    test('shelterTimeDisplay formats correctly', () {
-      final immediate = OrefLocation(
-        name: 'A',
-        id: '1',
-        hashId: 'h1',
-        areaId: 1,
-        areaName: 'Area',
-        shelterTimeSec: 0,
-      );
-      expect(immediate.shelterTimeDisplay, 'מיידי');
-
-      final fifteenSec = OrefLocation(
-        name: 'B',
-        id: '2',
-        hashId: 'h2',
-        areaId: 1,
-        areaName: 'Area',
-        shelterTimeSec: 15,
-      );
-      expect(fifteenSec.shelterTimeDisplay, '15 שניות');
-
-      final oneMinute = OrefLocation(
-        name: 'C',
-        id: '3',
-        hashId: 'h3',
-        areaId: 1,
-        areaName: 'Area',
-        shelterTimeSec: 60,
-      );
-      expect(oneMinute.shelterTimeDisplay, 'דקה');
-
-      final ninetySec = OrefLocation(
-        name: 'D',
-        id: '4',
-        hashId: 'h4',
-        areaId: 1,
-        areaName: 'Area',
-        shelterTimeSec: 90,
-      );
-      expect(ninetySec.shelterTimeDisplay, 'דקה וחצי');
-
-      final twoMinutes = OrefLocation(
-        name: 'E',
-        id: '5',
-        hashId: 'h5',
-        areaId: 1,
-        areaName: 'Area',
-        shelterTimeSec: 120,
-      );
-      expect(twoMinutes.shelterTimeDisplay, '2 דקות');
-    });
-
-    test('shelterTimeDisplay returns null when shelterTimeSec is null', () {
-      final location = OrefLocation(
-        name: 'A',
-        id: '1',
-        hashId: 'h1',
-        areaId: 1,
-        areaName: 'Area',
-      );
-      expect(location.shelterTimeDisplay, null);
-    });
-
     test('serialization to/from JSON', () {
       final location = OrefLocation(
         name: 'תל אביב - מרכז',

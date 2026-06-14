@@ -1,11 +1,11 @@
-name: Mobile APK
+name: Android APK
 
 on:
   push:
     branches: [main]
     tags:
       - 'v*'
-      - 'mobile-v*'
+      - 'android-v*'
     paths:
       - 'android/**'
       - 'assets/**'
@@ -18,7 +18,7 @@ on:
       - 'Makefile'
       - 'pubspec.yaml'
       - 'pubspec.lock'
-      - '.github/workflows/mobile-apk.yml'
+      - '.github/workflows/android-apk.yml'
   workflow_dispatch:
     inputs:
       publish_release:
@@ -27,7 +27,7 @@ on:
         default: false
         type: boolean
       release_tag:
-        description: 'Release tag for manual publishing, e.g. mobile-v0.1.0. Empty = mobile-<short-sha>.'
+        description: 'Release tag for manual publishing, e.g. android-v0.1.0. Empty = android-<short-sha>.'
         required: false
         default: ''
         type: string
@@ -36,7 +36,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: mobile-apk-${{ github.ref }}
+  group: android-apk-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -87,7 +87,7 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mklat-news-apk-${{ github.run_number }}
+          name: mklat-news-android-apk-${{ github.run_number }}
           path: ${{ env.APK_PATH }}
           if-no-files-found: error
           retention-days: 30
@@ -103,7 +103,7 @@ jobs:
           elif [[ -n "${{ inputs.release_tag }}" ]]; then
             tag="${{ inputs.release_tag }}"
           else
-            tag="mobile-${GITHUB_SHA::7}"
+            tag="android-${GITHUB_SHA::7}"
           fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 

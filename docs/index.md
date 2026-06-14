@@ -12,10 +12,10 @@ Download the latest APK from GitHub Releases:
 
 [Download mklat.news releases](https://github.com/barlevalon/mklat.news/releases)
 
-Choose the newest release and download the file named like:
+Choose the newest release and download the Android APK, named like:
 
 ```text
-mklat-news-...apk
+mklat-news-<version>-android-v<release>.apk
 ```
 
 ## Install on Android

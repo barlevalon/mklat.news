@@ -123,22 +123,22 @@ build/app/outputs/flutter-apk/app-release.apk
 
 ## Cut a release
 
-GitHub Actions publishes an APK to a GitHub Release when a tag matching `v*` or `mobile-v*` is pushed.
+GitHub Actions publishes an APK to a GitHub Release when a tag matching `v*` or `android-v*` is pushed.
 
 ```bash
-git tag -a mobile-v1.0.0 -m "mklat.news mobile v1.0.0"
-git push origin mobile-v1.0.0
+git tag -a android-v1.0.0 -m "mklat.news android v1.0.0"
+git push origin android-v1.0.0
 ```
 
-The `Mobile APK` workflow validates, builds, uploads an Actions artifact, and attaches the APK to the release.
+The `Android APK` workflow validates, builds, uploads an Actions artifact, and attaches the APK to the release.
 
-Manual publishing is also available from **Actions → Mobile APK → Run workflow** with `publish_release` enabled.
+Manual publishing is also available from **Actions → Android APK → Run workflow** with `publish_release` enabled.
 
 Current caveat: Android release builds use the debug signing config. That is acceptable for internal sideloading, but stable public distribution should move to a real release keystore stored in GitHub Actions secrets.
 
 ## CI workflows
 
-- `Mobile APK`: validates and builds APKs on relevant `main` pushes and release tags. Uses per-ref concurrency.
+- `Android APK`: validates and builds APKs on relevant `main` pushes and release tags. Uses per-ref concurrency.
 - GitHub Pages publishes `docs/` as the user-facing site.
 - Legacy web deployment workflows still exist for historical web-app infrastructure.
 

@@ -139,7 +139,7 @@ Current caveat: Android release builds use the debug signing config. That is acc
 ## CI workflows
 
 - `Mobile APK`: validates and builds APKs on relevant `main` pushes and release tags. Uses per-ref concurrency.
-- `Pages`: publishes `docs/` to GitHub Pages for user-facing docs.
+- GitHub Pages publishes `docs/` as the user-facing site.
 - Legacy web deployment workflows still exist for historical web-app infrastructure.
 
 ## Architecture boundaries

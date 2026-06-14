@@ -1,4 +1,4 @@
-.PHONY: test test-unit test-integration test-all analyze format check emulator fixtures release-apk release-check
+.PHONY: test test-unit test-integration test-all analyze format format-ci check emulator fixtures release-apk release-apk-ci release-check release-check-ci
 
 # Unit + widget tests (no emulator needed)
 test-unit:
@@ -35,6 +35,10 @@ analyze:
 format:
 	dart format --set-exit-if-changed .
 
+# CI format check for tracked source files only; generated mocks are ignored.
+format-ci:
+	dart format --set-exit-if-changed $$(git ls-files '*.dart')
+
 # All checks (what you'd run before pushing)
 check: format analyze test-all
 
@@ -52,8 +56,27 @@ release-apk:
 	cp build/app/outputs/flutter-apk/app-release.apk "$$artifact"; \
 	ls -lh "$$artifact"
 
+# CI variant assumes `flutter pub get` already ran.
+release-apk-ci:
+	@set -e; \
+	version=$$(awk '/^version:/ { print $$2; exit }' pubspec.yaml); \
+	build_name=$${BUILD_NAME:-$${version%%+*}}; \
+	build_number=$${BUILD_NUMBER:-$${version##*+}}; \
+	echo "Building release APK $$build_name+$$build_number..."; \
+	flutter build apk --release --build-name "$$build_name" --build-number "$$build_number"; \
+	mkdir -p dist; \
+	artifact="dist/mklat-news-$$build_name+$$build_number.apk"; \
+	cp build/app/outputs/flutter-apk/app-release.apk "$$artifact"; \
+	ls -lh "$$artifact"
+
 # Fast release gate: static checks, host tests, and release APK build.
 release-check: format analyze test-unit release-apk
+
+# CI release gate after dependency install and code generation.
+release-check-ci: format-ci
+	flutter analyze --no-pub
+	flutter test --no-pub
+	$(MAKE) release-apk-ci
 
 # Start the emulator (background, headless, idempotent)
 emulator:

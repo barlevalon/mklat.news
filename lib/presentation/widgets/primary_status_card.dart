@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
-import '../../domain/alert_state.dart';
+import '../models/primary_status_model.dart';
 import '../providers/alerts_provider.dart';
 import '../providers/connectivity_provider.dart';
 import 'location_selector_button.dart';
@@ -18,32 +18,19 @@ class PrimaryStatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<AlertsProvider, ConnectivityProvider>(
       builder: (context, alertsProvider, connectivityProvider, child) {
-        final isOffline = connectivityProvider.isOffline;
-        final hasAlertError = alertsProvider.errorMessage != null;
-        final state = alertsProvider.alertState;
+        final model = PrimaryStatusModel.build(
+          isOffline: connectivityProvider.isOffline,
+          alertErrorMessage: alertsProvider.errorMessage,
+          alertState: alertsProvider.alertState,
+          alertStartTime: alertsProvider.alertStartTime,
+        );
 
-        final startTime = alertsProvider.alertStartTime;
-
-        // Determine display values based on connectivity and data freshness.
-        final displayColor = isOffline || hasAlertError
-            ? AppTheme.offlineColor
-            : AppTheme.colorForAlertState(state);
-        final displayBg = isOffline || hasAlertError
-            ? AppTheme.offlineBackground
-            : AppTheme.alertBackgroundFor(context, state);
-        final displayIcon = isOffline
-            ? '📡'
-            : hasAlertError
-            ? '⚠️'
-            : state.icon;
-        final displayTitle = isOffline
-            ? 'אין חיבור'
-            : hasAlertError
-            ? 'מצב לא ידוע'
-            : state.hebrewTitle;
-        final instruction = hasAlertError
-            ? 'לא ניתן לאמת התרעות כרגע'
-            : state.instruction;
+        final displayColor = model.visual == PrimaryStatusVisual.normal
+            ? AppTheme.colorForAlertState(model.alertState)
+            : AppTheme.offlineColor;
+        final displayBg = model.visual == PrimaryStatusVisual.normal
+            ? AppTheme.alertBackgroundFor(context, model.alertState)
+            : AppTheme.offlineBackground;
 
         return Container(
           margin: const EdgeInsets.all(16),
@@ -58,34 +45,29 @@ class PrimaryStatusCard extends StatelessWidget {
             children: [
               const LocationSelectorButton(),
               const SizedBox(height: 24),
-              Text(displayIcon, style: const TextStyle(fontSize: 64)),
+              Text(model.icon, style: const TextStyle(fontSize: 64)),
               const SizedBox(height: 16),
               Text(
-                displayTitle,
+                model.title,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: displayColor,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              // Only show instruction when online
-              if (!isOffline && instruction != null) ...[
+              if (model.showInstruction) ...[
                 const SizedBox(height: 8),
                 Text(
-                  instruction,
+                  model.instruction!,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
                   textAlign: TextAlign.center,
                 ),
               ],
-              // Only show timer when online
-              if (!isOffline &&
-                  !hasAlertError &&
-                  state.showElapsedTimer &&
-                  startTime != null) ...[
+              if (model.showElapsedTimer) ...[
                 const SizedBox(height: 16),
                 ElapsedTimeText(
-                  startTime: startTime,
+                  startTime: model.elapsedStartTime!,
                   color: displayColor,
                   now: now,
                 ),

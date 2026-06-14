@@ -11,8 +11,8 @@ class OrefDistrictsService {
   OrefDistrictsService(this._httpClient);
 
   /// Fetch districts with fallback chain.
-  /// 1. Try Districts API (has migun_time)
-  /// 2. Fallback to cities_heb.json (no migun_time)
+  /// 1. Try authoritative Districts API (has migun_time)
+  /// 2. Fallback to degraded cities_heb.json picker data (no migun_time)
   /// 3. Return empty list as last resort (hardcoded fallback deferred)
   Future<List<OrefLocation>> fetchDistricts() async {
     // Try cache first
@@ -34,7 +34,8 @@ class OrefDistrictsService {
       // Fall through to fallback
     }
 
-    // Fallback: cities_heb.json
+    // Fallback: cities_heb.json is degraded picker data. Do not cache it as
+    // authoritative districts; a later app launch should retry the primary API.
     try {
       final body = await _httpClient.get(
         ApiEndpoints.orefCitiesFallback,
@@ -42,7 +43,6 @@ class OrefDistrictsService {
       );
       final locations = _parseCitiesFallbackResponse(body);
       if (locations.isNotEmpty) {
-        await _saveToCache(locations);
         return locations;
       }
     } catch (e) {
@@ -109,7 +109,7 @@ class OrefDistrictsService {
     }
   }
 
-  /// Save districts to SharedPreferences cache.
+  /// Save authoritative Districts API data to SharedPreferences cache.
   Future<void> _saveToCache(List<OrefLocation> locations) async {
     try {
       final prefs = await SharedPreferences.getInstance();

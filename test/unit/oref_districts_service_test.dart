@@ -99,6 +99,19 @@ void main() {
       expect(result[0].name, 'אבו גוש');
       expect(result[0].areaName, 'אזור שפלת יהודה');
       expect(result[0].shelterTimeSec, null); // Fallback has no shelter time
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(
+        prefs.getString(AppConstants.districtsCacheKey),
+        isNull,
+        reason:
+            'cities fallback is degraded picker data, not authoritative cache',
+      );
+      expect(
+        prefs.getString(AppConstants.districtsCacheTimestampKey),
+        isNull,
+        reason: 'fallback should not block a later primary Districts retry',
+      );
     });
 
     test('cache hit returns cached data without API call', () async {
@@ -193,6 +206,10 @@ void main() {
       final result = await service.fetchDistricts();
 
       expect(result.length, 1);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString(AppConstants.districtsCacheKey), isNull);
+      expect(prefs.getString(AppConstants.districtsCacheTimestampKey), isNull);
     });
 
     test('invalid JSON from both endpoints returns empty list', () async {

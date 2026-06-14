@@ -59,6 +59,8 @@ android/local.properties
 android/app/debug/
 android/app/profile/
 android/app/release/
+android/app/*.jks
+android/app/*.keystore
 ios/Pods/
 ios/.symlinks/
 ios/Flutter/Flutter.framework

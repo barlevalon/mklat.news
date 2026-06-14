@@ -69,10 +69,34 @@ jobs:
       - name: Generate test mocks
         run: dart run build_runner build --delete-conflicting-outputs
 
+      - name: Decode Android signing key
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${ANDROID_KEYSTORE_BASE64}" || -z "${ANDROID_KEYSTORE_PASSWORD}" || -z "${ANDROID_KEY_ALIAS}" || -z "${ANDROID_KEY_PASSWORD}" ]]; then
+            if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+              echo "::error::Android signing secrets are required for tagged releases."
+              exit 1
+            fi
+            echo "Android signing secrets not configured; this non-release build will use debug signing."
+            exit 0
+          fi
+          mkdir -p "${RUNNER_TEMP}/android-signing"
+          printf '%s' "${ANDROID_KEYSTORE_BASE64}" | base64 --decode > "${RUNNER_TEMP}/android-signing/upload-keystore.jks"
+          echo "ANDROID_KEYSTORE_PATH=${RUNNER_TEMP}/android-signing/upload-keystore.jks" >> "${GITHUB_ENV}"
+
       - name: Validate, test, and build release APK
         run: make release-check-ci
         env:
           BUILD_NUMBER: ${{ github.run_number }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
       - name: Rename APK artifact
         shell: bash

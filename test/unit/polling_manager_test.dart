@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mklat/data/models/alert.dart';
 import 'package:mklat/data/models/news_item.dart';
-import 'package:mklat/data/services/polling_manager.dart';
+import 'package:mklat/application/polling_manager.dart';
 import 'package:mockito/mockito.dart';
 
 import '../mocks/mock_services.dart';

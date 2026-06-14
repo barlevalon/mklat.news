@@ -5,7 +5,7 @@ import '../data/services/http_client.dart';
 import '../data/services/oref_alerts_service.dart';
 import '../data/services/oref_districts_service.dart';
 import '../data/services/oref_history_service.dart';
-import '../data/services/polling_manager.dart';
+import 'polling_manager.dart';
 import '../data/services/rss_news_service.dart';
 import '../presentation/providers/alerts_provider.dart';
 import '../presentation/providers/connectivity_provider.dart';

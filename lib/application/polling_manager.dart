@@ -1,10 +1,10 @@
 import 'dart:async';
-import '../models/alert.dart';
-import '../models/news_item.dart';
-import 'oref_alerts_service.dart';
-import 'oref_history_service.dart';
-import 'rss_news_service.dart';
-import '../../core/app_constants.dart';
+import '../core/app_constants.dart';
+import '../data/models/alert.dart';
+import '../data/models/news_item.dart';
+import '../data/services/oref_alerts_service.dart';
+import '../data/services/oref_history_service.dart';
+import '../data/services/rss_news_service.dart';
 
 /// Callback types for polling results
 typedef AlertPollCallback =

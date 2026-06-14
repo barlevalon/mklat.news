@@ -11,11 +11,15 @@ class LocationProvider extends ChangeNotifier {
   List<SavedLocation> _locations = [];
   bool _isLoaded = false;
   List<OrefLocation> _availableLocations = [];
+  bool _isLoadingAvailableLocations = true;
+  String? _availableLocationsErrorMessage;
 
   List<SavedLocation> get locations => List.unmodifiable(_locations);
   bool get isLoaded => _isLoaded;
   List<OrefLocation> get availableLocations =>
       List.unmodifiable(_availableLocations);
+  bool get isLoadingAvailableLocations => _isLoadingAvailableLocations;
+  String? get availableLocationsErrorMessage => _availableLocationsErrorMessage;
 
   SavedLocation? get primaryLocation {
     try {
@@ -117,20 +121,41 @@ class LocationProvider extends ChangeNotifier {
   Future<void> loadAvailableLocations(
     OrefDistrictsService districtsService,
   ) async {
+    _isLoadingAvailableLocations = true;
+    _availableLocationsErrorMessage = null;
+    notifyListeners();
+
     try {
-      _availableLocations = await districtsService.fetchDistricts();
-      // Sort alphabetically by Hebrew name
-      _availableLocations.sort((a, b) => a.name.compareTo(b.name));
-      notifyListeners();
+      final locations = await districtsService.fetchDistricts();
+      locations.sort((a, b) => a.name.compareTo(b.name));
+      _availableLocations = locations;
+      _availableLocationsErrorMessage = locations.isEmpty
+          ? 'שגיאה בטעינת רשימת אזורים'
+          : null;
     } catch (e) {
-      // Non-fatal, list stays empty
+      _availableLocations = [];
+      _availableLocationsErrorMessage = 'שגיאה בטעינת רשימת אזורים';
     }
+
+    _isLoadingAvailableLocations = false;
+    notifyListeners();
   }
 
   /// Test helper to set available locations directly.
   @visibleForTesting
   void loadAvailableLocationsForTest(List<OrefLocation> locations) {
     _availableLocations = locations;
+    _isLoadingAvailableLocations = false;
+    _availableLocationsErrorMessage = null;
+    notifyListeners();
+  }
+
+  /// Test helper to simulate a completed catalog load failure.
+  @visibleForTesting
+  void markAvailableLocationsFailedForTest() {
+    _availableLocations = [];
+    _isLoadingAvailableLocations = false;
+    _availableLocationsErrorMessage = 'שגיאה בטעינת רשימת אזורים';
     notifyListeners();
   }
 }

@@ -67,6 +67,69 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
     Navigator.pop(context);
   }
 
+  Widget _buildLocationList(
+    BuildContext context,
+    LocationProvider locationProvider,
+    List<OrefLocation> filteredLocations,
+  ) {
+    if (locationProvider.isLoadingAvailableLocations) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('טוען רשימת אזורים...'),
+          ],
+        ),
+      );
+    }
+
+    final errorMessage = locationProvider.availableLocationsErrorMessage;
+    if (errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(height: 16),
+            Text(errorMessage),
+            const SizedBox(height: 8),
+            const Text('נסו שוב מאוחר יותר'),
+          ],
+        ),
+      );
+    }
+
+    if (filteredLocations.isEmpty) {
+      return const Center(child: Text('לא נמצאו תוצאות'));
+    }
+
+    return ListView.builder(
+      itemCount: filteredLocations.length,
+      itemBuilder: (context, index) {
+        final location = filteredLocations[index];
+        final isSelected = _selectedLocation?.hashId == location.hashId;
+
+        return ListTile(
+          title: Text(location.name),
+          trailing: isSelected
+              ? const Icon(Icons.check, color: Colors.green)
+              : null,
+          onTap: () {
+            setState(() {
+              _selectedLocation = location;
+            });
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -126,33 +189,11 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                   const SizedBox(height: 16),
                   // Location list
                   Expanded(
-                    child: locationProvider.availableLocations.isEmpty
-                        ? const Center(child: Text('טוען רשימת אזורים...'))
-                        : filteredLocations.isEmpty
-                        ? const Center(child: Text('לא נמצאו תוצאות'))
-                        : ListView.builder(
-                            itemCount: filteredLocations.length,
-                            itemBuilder: (context, index) {
-                              final location = filteredLocations[index];
-                              final isSelected =
-                                  _selectedLocation?.hashId == location.hashId;
-
-                              return ListTile(
-                                title: Text(location.name),
-                                trailing: isSelected
-                                    ? const Icon(
-                                        Icons.check,
-                                        color: Colors.green,
-                                      )
-                                    : null,
-                                onTap: () {
-                                  setState(() {
-                                    _selectedLocation = location;
-                                  });
-                                },
-                              );
-                            },
-                          ),
+                    child: _buildLocationList(
+                      context,
+                      locationProvider,
+                      filteredLocations,
+                    ),
                   ),
                   // Set as primary checkbox
                   CheckboxListTile(

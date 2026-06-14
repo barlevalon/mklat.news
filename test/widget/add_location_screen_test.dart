@@ -120,16 +120,33 @@ void main() {
       expect(find.text('חיפה - מרכז'), findsNothing);
     });
 
-    testWidgets('shows loading state when no available locations', (
+    testWidgets('shows loading state while available locations load', (
       WidgetTester tester,
     ) async {
       final provider = LocationProvider();
       await provider.loadLocations();
 
       await tester.pumpWidget(buildTestWidget(provider));
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('טוען רשימת אזורים...'), findsOneWidget);
+    });
+
+    testWidgets('shows error when available locations fail to load', (
+      WidgetTester tester,
+    ) async {
+      final provider = LocationProvider();
+      await provider.loadLocations();
+      provider.markAvailableLocationsFailedForTest();
+
+      await tester.pumpWidget(buildTestWidget(provider));
       await tester.pumpAndSettle();
 
-      expect(find.text('טוען רשימת אזורים...'), findsOneWidget);
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(find.text('שגיאה בטעינת רשימת אזורים'), findsOneWidget);
+      expect(find.text('נסו שוב מאוחר יותר'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
     testWidgets('shows no results when search has no matches', (

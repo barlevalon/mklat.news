@@ -1,8 +1,13 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:mklat/presentation/providers/location_provider.dart';
+import 'package:mklat/data/models/oref_location.dart';
 import 'package:mklat/data/models/saved_location.dart';
+import 'package:mklat/data/services/http_client.dart';
+import 'package:mklat/data/services/oref_districts_service.dart';
+import 'package:mklat/presentation/providers/location_provider.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +29,9 @@ void main() {
       expect(provider.isLoaded, isFalse);
       expect(provider.primaryLocation, isNull);
       expect(provider.secondaryLocations, isEmpty);
+      expect(provider.availableLocations, isEmpty);
+      expect(provider.isLoadingAvailableLocations, isTrue);
+      expect(provider.availableLocationsErrorMessage, isNull);
     });
 
     test('loadLocations: loads from SharedPreferences', () async {
@@ -234,6 +242,85 @@ void main() {
       },
     );
 
+    test(
+      'loadAvailableLocations: stores sorted catalog and clears loading',
+      () async {
+        final districtsService = OrefDistrictsService(
+          HttpClient(
+            client: MockClient(
+              (_) async => http.Response.bytes(
+                utf8.encode(
+                  '[{"label_he":"ירושלים","value":"hash2","id":"2","areaid":2,"areaname":"ירושלים","migun_time":60},'
+                  '{"label_he":"אבו גוש","value":"hash1","id":"1","areaid":1,"areaname":"בית שמש","migun_time":90}]',
+                ),
+                200,
+              ),
+            ),
+          ),
+        );
+
+        await provider.loadAvailableLocations(districtsService);
+
+        expect(provider.isLoadingAvailableLocations, isFalse);
+        expect(provider.availableLocationsErrorMessage, isNull);
+        expect(provider.availableLocations.map((location) => location.name), [
+          'אבו גוש',
+          'ירושלים',
+        ]);
+      },
+    );
+
+    test(
+      'loadAvailableLocations: empty catalog stops loading and sets error',
+      () async {
+        final districtsService = OrefDistrictsService(
+          HttpClient(client: MockClient((_) async => http.Response('[]', 200))),
+        );
+
+        await provider.loadAvailableLocations(districtsService);
+
+        expect(provider.isLoadingAvailableLocations, isFalse);
+        expect(provider.availableLocations, isEmpty);
+        expect(
+          provider.availableLocationsErrorMessage,
+          'שגיאה בטעינת רשימת אזורים',
+        );
+      },
+    );
+
+    test(
+      'loadAvailableLocations: thrown error stops loading and sets error',
+      () async {
+        await provider.loadAvailableLocations(ThrowingDistrictsService());
+
+        expect(provider.isLoadingAvailableLocations, isFalse);
+        expect(provider.availableLocations, isEmpty);
+        expect(
+          provider.availableLocationsErrorMessage,
+          'שגיאה בטעינת רשימת אזורים',
+        );
+      },
+    );
+
+    test(
+      'loadAvailableLocationsForTest: marks catalog loaded successfully',
+      () {
+        provider.loadAvailableLocationsForTest([
+          const OrefLocation(
+            name: 'תל אביב',
+            id: '1',
+            hashId: 'hash1',
+            areaId: 1,
+            areaName: 'תל אביב',
+          ),
+        ]);
+
+        expect(provider.isLoadingAvailableLocations, isFalse);
+        expect(provider.availableLocationsErrorMessage, isNull);
+        expect(provider.availableLocations, hasLength(1));
+      },
+    );
+
     test('secondaryLocations: returns non-primary locations', () async {
       await provider.loadLocations();
       final location1 = SavedLocation.create(
@@ -260,4 +347,16 @@ void main() {
       );
     });
   });
+}
+
+class ThrowingDistrictsService extends OrefDistrictsService {
+  ThrowingDistrictsService()
+    : super(
+        HttpClient(client: MockClient((_) async => http.Response('', 500))),
+      );
+
+  @override
+  Future<List<OrefLocation>> fetchDistricts() async {
+    throw Exception('catalog unavailable');
+  }
 }

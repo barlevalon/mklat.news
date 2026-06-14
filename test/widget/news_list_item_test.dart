@@ -3,14 +3,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mklat/presentation/widgets/news_list_item.dart';
 import 'package:mklat/data/models/news_item.dart';
 import 'package:mklat/core/app_theme.dart';
+import 'package:mklat/core/relative_time_formatter.dart';
 import 'package:mklat/core/url_opener.dart';
 
 void main() {
   group('NewsListItem', () {
+    final fixedNow = DateTime(2026, 1, 1, 12);
+    final fixedTimeFormatter = RelativeTimeFormatter(now: () => fixedNow);
+
     Widget buildTestWidget(
       NewsItem newsItem, {
       ThemeMode themeMode = ThemeMode.light,
       UrlOpener? urlOpener,
+      RelativeTimeFormatter? timeFormatter,
     }) {
       return MaterialApp(
         theme: AppTheme.lightTheme,
@@ -22,6 +27,7 @@ void main() {
             body: NewsListItem(
               newsItem: newsItem,
               urlOpener: urlOpener ?? const UrlLauncherOpener(),
+              timeFormatter: timeFormatter ?? fixedTimeFormatter,
             ),
           ),
         ),
@@ -36,7 +42,7 @@ void main() {
         title: 'פיצוץ נשמע באזור הדרום',
         description: 'תקציר קצר של הכתבה',
         link: 'https://ynet.co.il/article/1',
-        pubDate: DateTime.now().subtract(const Duration(minutes: 5)),
+        pubDate: fixedNow.subtract(const Duration(minutes: 5)),
         source: NewsSource.ynet,
       );
 
@@ -60,7 +66,7 @@ void main() {
         title: 'כותרת החדשה',
         description: 'תיאור מפורט של הכתבה',
         link: 'https://ynet.co.il/article/1',
-        pubDate: DateTime.now(),
+        pubDate: fixedNow,
         source: NewsSource.ynet,
       );
 
@@ -78,7 +84,7 @@ void main() {
         title: 'כותרת בלי תיאור',
         description: null,
         link: 'https://ynet.co.il/article/1',
-        pubDate: DateTime.now(),
+        pubDate: fixedNow,
         source: NewsSource.ynet,
       );
 
@@ -106,7 +112,7 @@ void main() {
           id: '1',
           title: 'כותרת',
           link: 'https://example.com',
-          pubDate: DateTime.now(),
+          pubDate: fixedNow,
           source: source,
         );
 
@@ -122,7 +128,7 @@ void main() {
         id: '1',
         title: 'כותרת',
         link: 'https://ynet.co.il/article/1',
-        pubDate: DateTime.now().subtract(const Duration(minutes: 5)),
+        pubDate: fixedNow.subtract(const Duration(minutes: 5)),
         source: NewsSource.ynet,
       );
 
@@ -140,9 +146,7 @@ void main() {
         id: '1',
         title: 'כותרת',
         link: 'https://ynet.co.il/article/1',
-        pubDate: DateTime.now().subtract(
-          const Duration(minutes: 1, seconds: 30),
-        ),
+        pubDate: fixedNow.subtract(const Duration(minutes: 1, seconds: 30)),
         source: NewsSource.ynet,
       );
 
@@ -161,7 +165,7 @@ void main() {
         id: '1',
         title: 'כותרת',
         link: 'https://ynet.co.il/article/1',
-        pubDate: DateTime.now().subtract(const Duration(hours: 1, minutes: 30)),
+        pubDate: fixedNow.subtract(const Duration(hours: 1, minutes: 30)),
         source: NewsSource.ynet,
       );
 
@@ -176,9 +180,7 @@ void main() {
     testWidgets('item with unparsable date does not show עכשיו', (
       WidgetTester tester,
     ) async {
-      // An item whose pubDate would come from an unparsable RSS date
-      // Currently _parsePubDate returns DateTime.now() as fallback,
-      // which displays as "עכשיו" — this is wrong
+      // An item whose pubDate would come from an unparsable RSS date.
       final newsItem = NewsItem(
         id: '1',
         title: 'כותרת',
@@ -205,7 +207,7 @@ void main() {
         id: '1',
         title: 'כותרת',
         link: 'https://ynet.co.il/article/1',
-        pubDate: DateTime.now().add(const Duration(hours: 1)),
+        pubDate: fixedNow.add(const Duration(hours: 1)),
         source: NewsSource.ynet,
       );
 
@@ -222,7 +224,7 @@ void main() {
         id: '1',
         title: 'כותרת החדשה',
         link: 'https://ynet.co.il/article/1',
-        pubDate: DateTime.now(),
+        pubDate: fixedNow,
         source: NewsSource.ynet,
       );
       final opener = FakeUrlOpener();
@@ -242,7 +244,7 @@ void main() {
           title: 'כותרת החדשה',
           description: 'תיאור מפורט של הכתבה',
           link: 'https://ynet.co.il/article/1',
-          pubDate: DateTime.now(),
+          pubDate: fixedNow,
           source: NewsSource.ynet,
         );
 
@@ -275,7 +277,7 @@ void main() {
           id: '1',
           title: 'כותרת החדשה',
           link: 'https://ynet.co.il/article/1',
-          pubDate: DateTime.now().subtract(const Duration(minutes: 5)),
+          pubDate: fixedNow.subtract(const Duration(minutes: 5)),
           source: NewsSource.ynet,
         );
 
@@ -309,7 +311,7 @@ void main() {
           id: '1',
           title: 'כותרת החדשה',
           link: 'https://ynet.co.il/article/1',
-          pubDate: DateTime.now(),
+          pubDate: fixedNow,
           source: NewsSource.ynet,
         );
 

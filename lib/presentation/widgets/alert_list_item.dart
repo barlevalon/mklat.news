@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import '../../core/relative_time_formatter.dart';
 import '../../data/models/alert.dart';
 
 class AlertListItem extends StatelessWidget {
   final Alert alert;
+  final RelativeTimeFormatter timeFormatter;
 
-  const AlertListItem({super.key, required this.alert});
+  const AlertListItem({
+    super.key,
+    required this.alert,
+    this.timeFormatter = const RelativeTimeFormatter(),
+  });
 
   String _getCategoryIcon(AlertCategory category) {
     switch (category) {
@@ -17,25 +23,6 @@ class AlertListItem extends StatelessWidget {
         return '✅';
       case AlertCategory.other:
         return '📍';
-    }
-  }
-
-  String _formatTime(DateTime time) {
-    final now = DateTime.now();
-    final diff = now.difference(time);
-
-    if (diff.inMinutes < 1) {
-      return 'עכשיו';
-    } else if (diff.inMinutes == 1) {
-      return 'לפני דקה';
-    } else if (diff.inMinutes < 60) {
-      return 'לפני ${diff.inMinutes} דקות';
-    } else if (diff.inHours == 1) {
-      return 'לפני שעה';
-    } else if (diff.inHours < 24) {
-      return 'לפני ${diff.inHours} שעות';
-    } else {
-      return '${time.day}/${time.month} ${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
     }
   }
 
@@ -93,7 +80,7 @@ class AlertListItem extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(right: 24),
               child: Text(
-                _formatTime(alert.time),
+                timeFormatter.format(alert.time),
                 style: Theme.of(
                   context,
                 ).textTheme.bodySmall?.copyWith(color: _metadataColor(context)),

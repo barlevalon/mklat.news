@@ -1,16 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mklat/core/app_theme.dart';
+import 'package:mklat/core/relative_time_formatter.dart';
 import 'package:mklat/presentation/widgets/alert_list_item.dart';
 import 'package:mklat/data/models/alert.dart';
 
 void main() {
   group('AlertListItem', () {
-    Widget buildTestWidget(Alert alert) {
+    final fixedNow = DateTime(2026, 1, 1, 12);
+    final fixedTimeFormatter = RelativeTimeFormatter(now: () => fixedNow);
+
+    Widget buildTestWidget(
+      Alert alert, {
+      RelativeTimeFormatter? timeFormatter,
+    }) {
       return MaterialApp(
         home: Directionality(
           textDirection: TextDirection.rtl,
-          child: Scaffold(body: AlertListItem(alert: alert)),
+          child: Scaffold(
+            body: AlertListItem(
+              alert: alert,
+              timeFormatter: timeFormatter ?? fixedTimeFormatter,
+            ),
+          ),
         ),
       );
     }
@@ -22,7 +34,12 @@ void main() {
         themeMode: ThemeMode.dark,
         home: Directionality(
           textDirection: TextDirection.rtl,
-          child: Scaffold(body: AlertListItem(alert: alert)),
+          child: Scaffold(
+            body: AlertListItem(
+              alert: alert,
+              timeFormatter: fixedTimeFormatter,
+            ),
+          ),
         ),
       );
     }
@@ -34,7 +51,7 @@ void main() {
         id: 'test_1',
         location: 'רחובות',
         title: 'ירי רקטות וטילים',
-        time: DateTime.now().subtract(const Duration(minutes: 1, seconds: 30)),
+        time: fixedNow.subtract(const Duration(minutes: 1, seconds: 30)),
         category: 1,
       );
 
@@ -53,7 +70,7 @@ void main() {
         id: 'test_1',
         location: 'רחובות',
         title: 'ירי רקטות וטילים',
-        time: DateTime.now().subtract(const Duration(hours: 1, minutes: 30)),
+        time: fixedNow.subtract(const Duration(hours: 1, minutes: 30)),
         category: 1,
       );
 
@@ -72,7 +89,7 @@ void main() {
         id: 'test_1',
         location: 'רחובות',
         title: 'ירי רקטות וטילים',
-        time: DateTime.now().subtract(const Duration(minutes: 5)),
+        time: fixedNow.subtract(const Duration(minutes: 5)),
         category: 1,
       );
 
@@ -88,7 +105,7 @@ void main() {
         id: 'test_1',
         location: 'רחובות',
         title: 'ירי רקטות וטילים',
-        time: DateTime.now().subtract(const Duration(hours: 3)),
+        time: fixedNow.subtract(const Duration(hours: 3)),
         category: 1,
       );
 
@@ -104,7 +121,7 @@ void main() {
           id: 'test_dark',
           location: 'רחובות',
           title: 'ירי רקטות וטילים',
-          time: DateTime.now().subtract(const Duration(minutes: 5)),
+          time: fixedNow.subtract(const Duration(minutes: 5)),
           category: 1,
         );
 
@@ -133,7 +150,7 @@ void main() {
           id: 'test_dark_timestamp',
           location: 'רחובות',
           title: 'ירי רקטות וטילים',
-          time: DateTime.now().subtract(const Duration(minutes: 5)),
+          time: fixedNow.subtract(const Duration(minutes: 5)),
           category: 1,
         );
 
@@ -162,7 +179,7 @@ void main() {
           id: 'test_dark_border',
           location: 'רחובות',
           title: 'ירי רקטות וטילים',
-          time: DateTime.now().subtract(const Duration(minutes: 5)),
+          time: fixedNow.subtract(const Duration(minutes: 5)),
           category: 1,
         );
 

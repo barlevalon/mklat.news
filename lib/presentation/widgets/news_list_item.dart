@@ -1,33 +1,24 @@
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
+import '../../core/relative_time_formatter.dart';
 import '../../core/url_opener.dart';
 import '../../data/models/news_item.dart';
 
 class NewsListItem extends StatelessWidget {
   final NewsItem newsItem;
   final UrlOpener urlOpener;
+  final RelativeTimeFormatter timeFormatter;
 
   const NewsListItem({
     super.key,
     required this.newsItem,
     this.urlOpener = const UrlLauncherOpener(),
+    this.timeFormatter = const RelativeTimeFormatter(),
   });
 
   String _getSourceInitial(String sourceName) {
     if (sourceName.isEmpty) return '?';
     return sourceName[0].toUpperCase();
-  }
-
-  String? _formatRelativeTime(DateTime pubDate) {
-    final diff = DateTime.now().difference(pubDate);
-    // Future dates or epoch sentinel (unparsable) → no timestamp
-    if (diff.isNegative || pubDate.year < 2000) return null;
-    if (diff.inMinutes < 1) return 'עכשיו';
-    if (diff.inMinutes == 1) return 'לפני דקה';
-    if (diff.inMinutes < 60) return 'לפני ${diff.inMinutes} דקות';
-    if (diff.inHours == 1) return 'לפני שעה';
-    if (diff.inHours < 24) return 'לפני ${diff.inHours} שעות';
-    return '${pubDate.day}/${pubDate.month} ${pubDate.hour.toString().padLeft(2, '0')}:${pubDate.minute.toString().padLeft(2, '0')}';
   }
 
   Future<void> _openUrl() async {
@@ -117,7 +108,11 @@ class NewsListItem extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 44),
                 child: Builder(
                   builder: (context) {
-                    final timeStr = _formatRelativeTime(newsItem.pubDate);
+                    final timeStr = timeFormatter.formatPastOrNull(
+                      newsItem.pubDate,
+                      omitFuture: true,
+                      omitYearsBefore: 2000,
+                    );
                     // Show "Source • time" if time available, else just "Source"
                     final metadataText = timeStr != null
                         ? '$sourceName • $timeStr'

@@ -28,9 +28,9 @@ mklat-news-<version>-android-v<release>.apk
 
 ## Updating
 
-Download the APK from the newest release and install it.
+Download the APK from the newest release and install it over the existing app.
 
-Each GitHub release APK has an increasing Android build number. Current internal builds are still debug-signed release APKs, so if Android refuses to update because the signature does not match, uninstall the old app and install the new APK.
+If Android refuses to update because the signature does not match, uninstall the old app once and install the newest APK. This can happen when moving from an older pre-1.1.2 build to the stable signed GitHub release builds.
 
 ## What mklat.news shows
 
@@ -40,6 +40,23 @@ Each GitHub release APK has an increasing Android build number. Current internal
 - Nationwide active-alert summary.
 - Hebrew news updates from Ynet, Maariv, and Haaretz RSS feeds.
 - Offline and data-load error states.
+
+## Screenshots
+
+<table>
+  <tr>
+    <td><strong>Current status</strong></td>
+    <td><strong>Active alert</strong></td>
+    <td><strong>Add a location</strong></td>
+    <td><strong>News updates</strong></td>
+  </tr>
+  <tr>
+    <td><img src="screenshots/status-clear.png" alt="Current status screen showing no alerts" width="220"></td>
+    <td><img src="screenshots/status-alert.png" alt="Simulated active alert status screen" width="220"></td>
+    <td><img src="screenshots/add-location.png" alt="Add location screen with searchable OREF areas" width="220"></td>
+    <td><img src="screenshots/news-feed.png" alt="News feed screen with Hebrew RSS updates" width="220"></td>
+  </tr>
+</table>
 
 ## Data sources
 

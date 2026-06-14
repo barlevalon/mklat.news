@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/relative_time_formatter.dart';
 import '../../data/models/alert.dart';
+import '../models/alert_category_presentation.dart';
 
 class AlertListItem extends StatelessWidget {
   final Alert alert;
@@ -12,26 +13,16 @@ class AlertListItem extends StatelessWidget {
     this.timeFormatter = const RelativeTimeFormatter(),
   });
 
-  String _getCategoryIcon(AlertCategory category) {
-    switch (category) {
-      case AlertCategory.rockets:
-      case AlertCategory.uav:
-        return '🚨';
-      case AlertCategory.imminent:
-        return '⚠️';
-      case AlertCategory.clearance:
-        return '✅';
-      case AlertCategory.other:
-        return '📍';
-    }
-  }
-
   Color _metadataColor(BuildContext context) {
     return Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7);
   }
 
   @override
   Widget build(BuildContext context) {
+    final categoryPresentation = AlertCategoryPresentation.fromCategory(
+      alert.type,
+    );
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       elevation: 1,
@@ -50,7 +41,7 @@ class AlertListItem extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  _getCategoryIcon(alert.type),
+                  categoryPresentation.icon,
                   style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(width: 8),
@@ -58,7 +49,7 @@ class AlertListItem extends StatelessWidget {
                   child: Text(
                     alert.title.isNotEmpty
                         ? alert.title
-                        : alert.type.hebrewTitle,
+                        : categoryPresentation.title,
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),

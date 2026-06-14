@@ -1,15 +1,15 @@
 /// Categories for alert types
 enum AlertCategory {
-  /// Category 1 - ירי רקטות וטילים (rockets/missiles)
+  /// Category 1 - rockets/missiles
   rockets,
 
-  /// Category 2 - חדירת כלי טיס עוין (hostile UAV)
+  /// Category 2 - hostile UAV
   uav,
 
-  /// Category 13 - האירוע הסתיים (event ended/clearance)
+  /// Category 13 - event ended/clearance
   clearance,
 
-  /// Category 14 - התרעה צפויה (imminent warning)
+  /// Category 14 - imminent warning
   imminent,
 
   /// Other categories (earthquake, tsunami, hazmat, etc.)
@@ -48,37 +48,6 @@ extension AlertCategoryExtension on AlertCategory {
         return AlertCategory.other;
     }
   }
-
-  /// Get Hebrew display title
-  String get hebrewTitle {
-    switch (this) {
-      case AlertCategory.rockets:
-        return 'ירי רקטות וטילים';
-      case AlertCategory.uav:
-        return 'חדירת כלי טיס עוין';
-      case AlertCategory.clearance:
-        return 'האירוע הסתיים';
-      case AlertCategory.imminent:
-        return 'התרעה צפויה';
-      case AlertCategory.other:
-        return 'התרעה';
-    }
-  }
-
-  /// Get instruction text for this alert type
-  String? get instruction {
-    switch (this) {
-      case AlertCategory.rockets:
-      case AlertCategory.uav:
-        return 'היכנסו למרחב המוגן';
-      case AlertCategory.clearance:
-        return 'ניתן לצאת מהמרחב המוגן';
-      case AlertCategory.imminent:
-        return 'התרעות צפויות בדקות הקרובות';
-      case AlertCategory.other:
-        return null;
-    }
-  }
 }
 
 /// Alert model representing an OREF alert event
@@ -86,13 +55,13 @@ class Alert {
   /// Unique alert identifier
   final String id;
 
-  /// Location name in Hebrew (from `data` field)
+  /// Location name from the OREF `data` field
   final String location;
 
-  /// Alert type title in Hebrew
+  /// Alert type title from the feed
   final String title;
 
-  /// Instruction text from OREF (e.g., "היכנסו למרחב המוגן")
+  /// Instruction text from OREF
   final String? desc;
 
   /// Timestamp of the alert

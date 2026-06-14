@@ -30,22 +30,6 @@ void main() {
       expect(AlertCategory.imminent.categoryNumber, 14);
       expect(AlertCategory.other.categoryNumber, 0);
     });
-
-    test('hebrewTitle returns correct Hebrew text', () {
-      expect(AlertCategory.rockets.hebrewTitle, 'ירי רקטות וטילים');
-      expect(AlertCategory.uav.hebrewTitle, 'חדירת כלי טיס עוין');
-      expect(AlertCategory.clearance.hebrewTitle, 'האירוע הסתיים');
-      expect(AlertCategory.imminent.hebrewTitle, 'התרעה צפויה');
-      expect(AlertCategory.other.hebrewTitle, 'התרעה');
-    });
-
-    test('instruction returns correct text', () {
-      expect(AlertCategory.rockets.instruction, 'היכנסו למרחב המוגן');
-      expect(AlertCategory.uav.instruction, 'היכנסו למרחב המוגן');
-      expect(AlertCategory.clearance.instruction, 'ניתן לצאת מהמרחב המוגן');
-      expect(AlertCategory.imminent.instruction, 'התרעות צפויות בדקות הקרובות');
-      expect(AlertCategory.other.instruction, null);
-    });
   });
 
   group('Alert', () {

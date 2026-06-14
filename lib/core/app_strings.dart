@@ -1,6 +1,12 @@
 class AppStrings {
   const AppStrings._();
 
+  static const alertCategoryRockets = 'ירי רקטות וטילים';
+  static const alertCategoryUav = 'חדירת כלי טיס עוין';
+  static const alertCategoryClearance = 'האירוע הסתיים';
+  static const alertCategoryImminent = 'התרעה צפויה';
+  static const alertCategoryOther = 'התרעה';
+
   static const alertStateAllClear = 'אין התרעות';
   static const alertStateImminent = 'התרעה צפויה';
   static const alertStateRedAlert = 'צבע אדום';

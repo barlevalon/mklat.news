@@ -1,5 +1,6 @@
 import '../../core/app_strings.dart';
 import '../../domain/alert_state.dart';
+import 'alert_state_presentation.dart';
 
 enum PrimaryStatusVisual { normal, offline, error }
 
@@ -48,12 +49,13 @@ class PrimaryStatusModel {
       );
     }
 
+    final presentation = AlertStatePresentation.fromState(alertState);
     return PrimaryStatusModel._(
       visual: PrimaryStatusVisual.normal,
       alertState: alertState,
-      icon: alertState.icon,
-      title: alertState.hebrewTitle,
-      instruction: alertState.instruction,
+      icon: presentation.icon,
+      title: presentation.title,
+      instruction: presentation.instruction,
       elapsedStartTime: alertState.showElapsedTimer ? alertStartTime : null,
     );
   }

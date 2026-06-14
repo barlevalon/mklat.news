@@ -1,6 +1,16 @@
 class AppStrings {
   const AppStrings._();
 
+  static const alertStateAllClear = 'אין התרעות';
+  static const alertStateImminent = 'התרעה צפויה';
+  static const alertStateRedAlert = 'צבע אדום';
+  static const alertStateWaitingClear = 'המתינו במרחב המוגן';
+  static const alertStateJustCleared = 'האירוע הסתיים';
+  static const alertInstructionImminent = 'התרעות צפויות בדקות הקרובות';
+  static const alertInstructionTakeShelter = 'היכנסו למרחב המוגן';
+  static const alertInstructionWaitClear = 'ממתינים לאישור יציאה';
+  static const alertInstructionCleared = 'ניתן לצאת מהמרחב המוגן';
+
   static const noConnection = 'אין חיבור';
   static const noInternetConnection = 'אין חיבור לאינטרנט';
   static const unknownStatus = 'מצב לא ידוע';

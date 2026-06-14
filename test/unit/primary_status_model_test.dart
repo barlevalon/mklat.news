@@ -48,7 +48,7 @@ void main() {
 
       expect(model.visual, PrimaryStatusVisual.normal);
       expect(model.alertState, AlertState.redAlert);
-      expect(model.icon, AlertState.redAlert.icon);
+      expect(model.icon, '🚨');
       expect(model.title, 'צבע אדום');
       expect(model.instruction, 'היכנסו למרחב המוגן');
       expect(model.elapsedStartTime, startTime);

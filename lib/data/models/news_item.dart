@@ -1,19 +1,6 @@
 /// News sources enum
 enum NewsSource { ynet, maariv, haaretz }
 
-extension NewsSourceExtension on NewsSource {
-  /// Serialize to string
-  String toJson() => name;
-
-  /// Deserialize from string
-  static NewsSource fromJson(String json) {
-    return NewsSource.values.firstWhere(
-      (e) => e.name == json,
-      orElse: () => NewsSource.ynet,
-    );
-  }
-}
-
 /// News item from RSS feed
 class NewsItem {
   /// Unique identifier (often derived from URL)
@@ -42,28 +29,6 @@ class NewsItem {
     required this.pubDate,
     required this.source,
   });
-
-  factory NewsItem.fromJson(Map<String, dynamic> json) {
-    return NewsItem(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      description: json['description'] as String?,
-      link: json['link'] as String,
-      pubDate: DateTime.parse(json['pubDate'] as String),
-      source: NewsSourceExtension.fromJson(json['source'] as String),
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'description': description,
-      'link': link,
-      'pubDate': pubDate.toIso8601String(),
-      'source': source.toJson(),
-    };
-  }
 
   @override
   bool operator ==(Object other) =>

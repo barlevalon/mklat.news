@@ -2,22 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mklat/data/models/news_item.dart';
 
 void main() {
-  group('NewsSource', () {
-    test('serialization to/from JSON', () {
-      for (final source in NewsSource.values) {
-        final json = source.toJson();
-        expect(json, source.name);
-
-        final fromJson = NewsSourceExtension.fromJson(json);
-        expect(fromJson, source);
-      }
-    });
-
-    test('fromJson defaults to ynet for unknown value', () {
-      expect(NewsSourceExtension.fromJson('unknown'), NewsSource.ynet);
-    });
-  });
-
   group('NewsItem', () {
     final testTime = DateTime(2026, 3, 4, 14, 30, 0);
 
@@ -49,31 +33,6 @@ void main() {
       );
 
       expect(item.description, null);
-    });
-
-    test('serialization to/from JSON', () {
-      final item = NewsItem(
-        id: 'news-123',
-        title: 'פיצוץ נשמע באזור הדרום',
-        description: 'תקציר קצר',
-        link: 'https://ynet.co.il/article/123',
-        pubDate: testTime,
-        source: NewsSource.ynet,
-      );
-
-      final json = item.toJson();
-      expect(json['id'], 'news-123');
-      expect(json['title'], 'פיצוץ נשמע באזור הדרום');
-      expect(json['description'], 'תקציר קצר');
-      expect(json['link'], 'https://ynet.co.il/article/123');
-      expect(json['source'], 'ynet');
-      expect(json['pubDate'], testTime.toIso8601String());
-
-      final fromJson = NewsItem.fromJson(json);
-      expect(fromJson.id, item.id);
-      expect(fromJson.title, item.title);
-      expect(fromJson.description, item.description);
-      expect(fromJson.source, item.source);
     });
 
     test('equality based on id', () {

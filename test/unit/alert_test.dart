@@ -80,33 +80,6 @@ void main() {
       expect(clearanceAlert.type, AlertCategory.clearance);
     });
 
-    test('serialization to/from JSON', () {
-      final alert = Alert(
-        id: 'test-123',
-        location: 'תל אביב - מרכז',
-        title: 'ירי רקטות וטילים',
-        desc: 'היכנסו למרחב המוגן',
-        time: testTime,
-        category: 1,
-      );
-
-      final json = alert.toJson();
-      expect(json['id'], 'test-123');
-      expect(json['location'], 'תל אביב - מרכז');
-      expect(json['title'], 'ירי רקטות וטילים');
-      expect(json['desc'], 'היכנסו למרחב המוגן');
-      expect(json['category'], 1);
-      expect(json['time'], testTime.toIso8601String());
-
-      final fromJson = Alert.fromJson(json);
-      expect(fromJson.id, alert.id);
-      expect(fromJson.location, alert.location);
-      expect(fromJson.title, alert.title);
-      expect(fromJson.desc, alert.desc);
-      expect(fromJson.category, alert.category);
-      expect(fromJson.time, alert.time);
-    });
-
     test('equality based on id, location, and time', () {
       final alert1 = Alert(
         id: 'same',

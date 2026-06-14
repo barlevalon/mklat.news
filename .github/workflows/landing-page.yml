@@ -16,25 +16,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy-cloudflare-pages:
-    name: Deploy mklat.news landing page
+  sync-cloudflare-dns:
+    name: Point mklat.news at GitHub Pages
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: github.ref == 'refs/heads/main'
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_PROJECT_NAME: mklat-news
       CLOUDFLARE_DOMAIN: mklat.news
+      GITHUB_PAGES_HOST: barlevalon.github.io
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Discover Cloudflare account
+      - name: Discover Cloudflare zone
         id: cloudflare
         shell: bash
         run: |
@@ -49,69 +44,50 @@ jobs:
             -H "Content-Type: application/json" \
             "https://api.cloudflare.com/client/v4/zones?name=${CLOUDFLARE_DOMAIN}")
 
-          account_id=$(jq -r '.result[0].account.id // empty' <<<"${zone_json}")
           zone_id=$(jq -r '.result[0].id // empty' <<<"${zone_json}")
-
-          if [[ -z "${account_id}" || -z "${zone_id}" ]]; then
-            echo "::error::Could not find Cloudflare zone/account for ${CLOUDFLARE_DOMAIN}."
+          if [[ -z "${zone_id}" ]]; then
+            echo "::error::Could not find Cloudflare zone for ${CLOUDFLARE_DOMAIN}."
             exit 1
           fi
 
-          echo "account_id=${account_id}" >> "$GITHUB_OUTPUT"
           echo "zone_id=${zone_id}" >> "$GITHUB_OUTPUT"
-          echo "CLOUDFLARE_ACCOUNT_ID=${account_id}" >> "$GITHUB_ENV"
 
-      - name: Ensure Cloudflare Pages project exists
+      - name: Sync DNS records for GitHub Pages
         shell: bash
         run: |
           set -euo pipefail
-          account_id="${{ steps.cloudflare.outputs.account_id }}"
-          project_url="https://api.cloudflare.com/client/v4/accounts/${account_id}/pages/projects/${CLOUDFLARE_PROJECT_NAME}"
+          zone_id="${{ steps.cloudflare.outputs.zone_id }}"
+          api="https://api.cloudflare.com/client/v4/zones/${zone_id}/dns_records"
+          auth=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json")
 
-          status=$(curl -sS -o /tmp/cf-project.json -w '%{http_code}' \
-            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
-            -H "Content-Type: application/json" \
-            "${project_url}")
+          delete_records_for_name() {
+            local name="$1"
+            records=$(curl -fsS "${auth[@]}" "${api}?name=${name}")
+            jq -r '.result[] | select(.type == "A" or .type == "AAAA" or .type == "CNAME") | .id' <<<"${records}" |
+              while read -r id; do
+                [[ -z "${id}" ]] && continue
+                curl -fsS -X DELETE "${auth[@]}" "${api}/${id}" >/dev/null
+              done
+          }
 
-          if [[ "${status}" == "200" ]]; then
-            echo "Cloudflare Pages project exists: ${CLOUDFLARE_PROJECT_NAME}"
-            exit 0
-          fi
+          create_record() {
+            local type="$1"
+            local name="$2"
+            local content="$3"
+            jq -n \
+              --arg type "${type}" \
+              --arg name "${name}" \
+              --arg content "${content}" \
+              '{type:$type,name:$name,content:$content,ttl:1,proxied:false}' |
+              curl -fsS -X POST "${auth[@]}" --data @- "${api}" >/dev/null
+          }
 
-          if [[ "${status}" != "404" ]]; then
-            cat /tmp/cf-project.json
-            echo "::error::Unexpected Cloudflare project lookup status: ${status}"
-            exit 1
-          fi
+          delete_records_for_name "${CLOUDFLARE_DOMAIN}"
+          for ip in 185.199.108.153 185.199.109.153 185.199.110.153 185.199.111.153; do
+            create_record A "${CLOUDFLARE_DOMAIN}" "${ip}"
+          done
 
-          curl -fsS -X POST \
-            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
-            -H "Content-Type: application/json" \
-            --data "{\"name\":\"${CLOUDFLARE_PROJECT_NAME}\",\"production_branch\":\"main\"}" \
-            "https://api.cloudflare.com/client/v4/accounts/${account_id}/pages/projects" >/dev/null
+          delete_records_for_name "www.${CLOUDFLARE_DOMAIN}"
+          create_record CNAME "www.${CLOUDFLARE_DOMAIN}" "${GITHUB_PAGES_HOST}"
 
-      - name: Deploy docs to Cloudflare Pages
-        run: npx --yes wrangler@latest pages deploy docs --project-name "${CLOUDFLARE_PROJECT_NAME}" --branch main
-
-      - name: Ensure custom domain is attached
-        shell: bash
-        run: |
-          set -euo pipefail
-          account_id="${{ steps.cloudflare.outputs.account_id }}"
-          domains_url="https://api.cloudflare.com/client/v4/accounts/${account_id}/pages/projects/${CLOUDFLARE_PROJECT_NAME}/domains"
-
-          domains_json=$(curl -fsS \
-            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
-            -H "Content-Type: application/json" \
-            "${domains_url}")
-
-          if jq -e --arg domain "${CLOUDFLARE_DOMAIN}" '.result[]? | select(.name == $domain)' <<<"${domains_json}" >/dev/null; then
-            echo "Custom domain already attached: ${CLOUDFLARE_DOMAIN}"
-            exit 0
-          fi
-
-          curl -fsS -X POST \
-            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
-            -H "Content-Type: application/json" \
-            --data "{\"name\":\"${CLOUDFLARE_DOMAIN}\"}" \
-            "${domains_url}" >/dev/null
+          echo "${CLOUDFLARE_DOMAIN} now points to GitHub Pages."

@@ -1,113 +1,237 @@
-# mklat.news - חדשות והתרעות בזמן אמת
+# mklat.news — מקלט / emergency status companion
 
-> **🚧 MOBILE APP REWRITE IN PROGRESS**  
-> The web app is being replaced by a Flutter mobile app. The web app code remains in this repo for reference but is no longer maintained.  
-> See [`.agent/`](.agent/) for product specs and implementation plan.
+> **Important safety disclaimer**
+>
+> This app is for educational and development use. Do **not** rely on it as your primary source for life-safety alerts. Use official Israeli Home Front Command channels and approved emergency alert applications.
 
-> **⚠️ IMPORTANT DISCLAIMER**  
-> **This project is for educational and development purposes only. Do NOT use this as your primary source for emergency alerts. Always rely on official government channels and approved alert applications for life-safety information.**
+mklat.news is a Hebrew-first Flutter mobile app for checking Israeli emergency-alert status after you have already received an official alert. It tracks the current alert state for your primary location, shows alerts in your saved areas, and gives nearby news context.
 
-A "situation room" companion app for Israeli emergency alerts - the app you open *after* being alerted to check status, track the event lifecycle, and get news context.
+The original web app is still present in this repository as legacy reference code. Active development is the Flutter mobile app under `lib/`, `test/`, `integration_test/`, `android/`, and `ios/`.
 
-![mklat.news Screenshot](mklat-news-screenshot.png)
+## What the app does
 
-## Features
+- Tracks active OREF / Home Front Command alerts.
+- Lets you save locations and choose one primary location.
+- Runs the alert state machine for the primary location.
+- Shows secondary saved locations with active/inactive/offline status chips.
+- Shows a recent alert-history feed and nationwide active-alert summary.
+- Shows Hebrew news updates from RSS sources.
+- Handles offline/error/degraded states explicitly.
+- Uses RTL-first Hebrew UI.
 
-- **Real-time Updates**: WebSocket connections with instant push updates (2-second server polling)
-- **Alert History**: Comprehensive timeline showing both active alerts (🚨) and historical events (📍)
-- **Location Filtering**: Dynamic location selector with search and bulk operations
-- **Dual Data Sources**:
-  - Ynet breaking news RSS feed
-  - Israeli Homefront Command current alerts
-  - OREF historical alerts with event timeline
-- **Modern UI**: Responsive design with Hebrew RTL support and status indicators
-- **Smart UX**: Clear active alert status, intuitive location picker with OK button
-- **Caching**: Server-side caching to reduce API calls
-- **Error Handling**: Graceful fallbacks and error messages
+## Downloading APK builds
 
-## Quick Start
+GitHub Actions builds a release APK on every relevant push to `main`.
 
-1. **Install dependencies**:
-   ```bash
-   npm install
-   ```
+- For quick internal builds: open the latest **Mobile APK** workflow run and download the `mklat-news-apk-*` artifact.
+- For phone-friendly downloads: use GitHub **Releases**. Release assets are accessible from mobile browsers.
 
-2. **Start the server**:
-   ```bash
-   npm start
-   ```
+### Cut a GitHub release
 
-3. **Open in browser**:
-   ```
-   http://localhost:3000
-   ```
+The workflow publishes an APK to a GitHub Release when a tag matching `v*` or `mobile-v*` is pushed.
 
-## Development
+Example:
 
-Run with auto-reload:
 ```bash
-npm run dev
+git tag mobile-v1.0.0
+git push origin mobile-v1.0.0
 ```
 
-## API Endpoints
+The `Mobile APK` workflow will validate, build, and attach the APK to the release.
 
-- `GET /api/ynet` - Fetch latest Ynet breaking news
-- `GET /api/alerts` - Fetch current and historical alerts (combined timeline)
-- `GET /api/alert-areas` - Fetch available alert locations
-- `GET /api/health` - Health check endpoint
+You can also publish manually from GitHub Actions:
+
+1. Open **Actions → Mobile APK**.
+2. Choose **Run workflow**.
+3. Enable `publish_release`.
+4. Optionally set `release_tag`, for example `mobile-v1.0.0`.
+
+> Note: Android release signing is currently configured with the debug signing config in `android/app/build.gradle.kts`. This is fine for internal sideloading, but public/stable distribution should use a real release keystore in GitHub secrets so future APKs install as updates instead of requiring uninstall/reinstall.
+
+## Development setup
+
+Tool versions are managed by [`mise`](https://mise.jdx.dev/) in `mise.toml`.
+
+```bash
+mise install
+flutter --version
+flutter doctor
+flutter pub get
+```
+
+Required versions at time of writing:
+
+- Flutter `3.38.7` stable
+- Dart `3.10.7`
+- Java 21 for Android builds
+
+Android SDK is not managed by `mise`. For Android builds, install Android Studio or Android command-line tools, then run:
+
+```bash
+flutter doctor --android-licenses
+```
+
+## Running locally
+
+```bash
+flutter run
+```
+
+Run on a specific connected device:
+
+```bash
+flutter devices
+flutter run -d <device-id>
+```
+
+## Building APKs locally
+
+Build and copy a named APK into `dist/`:
+
+```bash
+make release-apk
+```
+
+Override version metadata:
+
+```bash
+make release-apk BUILD_NAME=1.0.1 BUILD_NUMBER=2
+```
+
+Raw Flutter build command:
+
+```bash
+flutter build apk --release
+```
+
+The raw APK is written to:
+
+```text
+build/app/outputs/flutter-apk/app-release.apk
+```
+
+## Validation
+
+Fast host-side validation:
+
+```bash
+make release-check
+```
+
+Full pre-push validation, including emulator integration tests:
+
+```bash
+make check
+```
+
+Useful individual commands:
+
+```bash
+dart format --set-exit-if-changed .
+flutter analyze
+flutter test
+make test-unit
+make test-integration
+```
+
+Regenerate generated Mockito mocks when needed:
+
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
+
+Regenerate fixture constants after changing binary fixtures:
+
+```bash
+make fixtures
+```
+
+## Emulator integration tests
+
+An Android emulator configuration is expected locally for `make test-integration`.
+
+```bash
+make emulator
+make test-integration
+```
+
+Expected AVD name: `mklat_test`.
 
 ## Architecture
 
+```text
+lib/
+├── application/        # App session and polling orchestration
+├── core/               # Constants, endpoints, theme, strings, utility seams
+├── data/               # Models, codecs, mappers, services
+├── domain/             # Alert state machine and domain rules
+└── presentation/       # Providers, screens, widgets, presentation models
 ```
-├── server.js          # Express + WebSocket server with real-time data polling
-├── public/
-│   ├── index.html     # Main HTML page
-│   ├── style.css      # Styles with RTL support
-│   └── script.js      # Frontend with WebSocket client + fallback polling
-└── package.json       # Dependencies and scripts
-```
 
-## Real-time Architecture
+Key boundaries:
 
-- **Backend**: Polls OREF/Ynet APIs every 2 seconds, broadcasts changes via WebSocket
-- **Frontend**: Receives instant WebSocket updates with automatic fallback to 3-second polling
-- **Connection Status**: Visual indicator shows real-time/polling/offline status
-- **Resilience**: Automatic reconnection with exponential backoff
+- Data services fetch and parse remote data; they do not own polling timers.
+- Mappers/codecs translate OREF/RSS/cache shapes into app values.
+- Domain code owns alert-state rules.
+- Presentation models own Hebrew display copy and UI projection.
+- Providers expose app state to widgets through `provider` / `ChangeNotifier`.
+- `AppSession` wires services, providers, and polling together.
 
-## Data Sources
+## Data sources
 
-- **Ynet RSS**: `https://www.ynet.co.il/Integration/StoryRss1854.xml`
-- **Current Alerts**: `https://www.oref.org.il/warningMessages/alert/Alerts.json`
-- **Historical Alerts**: `https://alerts-history.oref.org.il/Shared/Ajax/GetAlerts.aspx?lang=he`
-- **Alert Areas**: `https://alerts-history.oref.org.il/Shared/Ajax/GetDistricts.aspx?lang=he`
-- **Fallback Alerts**: `https://api.tzevaadom.co.il/notifications`
+Configured sources are in `lib/core/api_endpoints.dart`.
 
-All data comes directly from official Israeli government sources with real-time updates.
+- OREF current alerts: `https://www.oref.org.il/warningMessages/alert/Alerts.json`
+- OREF alert history: `https://www.oref.org.il/WarningMessages/alert/History/AlertsHistory.json`
+- OREF districts / shelter times: `https://alerts-history.oref.org.il/Shared/Ajax/GetDistricts.aspx?lang=he`
+- OREF cities fallback: `https://www.oref.org.il/districts/cities_heb.json`
+- RSS news: Ynet, Maariv, Haaretz
 
-## Implementation Status
+OREF requests require browser-like headers. See `HttpClient` and the OREF services before changing API calls.
 
-- ✅ Real-time WebSocket updates with fallback polling
-- ✅ Historical alert timeline with OREF integration
-- ✅ Location-based alert filtering with intuitive UI
-- ✅ Active alert status indicators
-- ✅ Responsive design with Hebrew RTL support
-- ✅ Comprehensive test coverage (90% success rate)
-- ✅ CI/CD pipeline with automated testing
-- ✅ Error handling and graceful degradation
+## Testing strategy
 
-## Contributing
+The mobile app uses three test layers:
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+1. **Unit and widget tests** under `test/unit/` and `test/widget/`.
+2. **Fixture-based integration tests** under `test/integration/`, using captured HTTP response bytes and mocked `http.Client`.
+3. **Flutter integration tests** under `integration_test/`, running the app on an emulator with fixture-backed HTTP responses.
 
-- 🐛 **Bug Reports**: Use our [issue templates](.github/ISSUE_TEMPLATE/)
-- ✨ **Feature Requests**: Check [existing issues](https://github.com/barlevalon/mklat.news/issues) first
-- 🤝 **Pull Requests**: Follow our [PR template](.github/pull_request_template.md)
-- 🆘 **Good First Issues**: Look for [`good first issue`](https://github.com/barlevalon/mklat.news/labels/good%20first%20issue) label
+Fixtures live under `test/fixtures/responses/`. Keep raw response bytes when testing decoding, charset, BOM, or Hebrew mojibake behavior.
+
+## CI
+
+The `Mobile APK` GitHub Actions workflow:
+
+- runs on relevant pushes to `main` and on `v*` / `mobile-v*` tags;
+- can be run manually;
+- installs Flutter and Java;
+- runs `flutter pub get`;
+- generates test mocks with `build_runner`;
+- runs `make release-check-ci`;
+- uploads the APK as a workflow artifact;
+- publishes the APK to a GitHub Release on tag or manual release runs.
+
+The workflow uses per-ref concurrency so a new `main` push cancels an older in-progress APK build for `main`.
+
+## Legacy web app
+
+Legacy web code remains in `src/`, `public/`, `landing/`, and related Node/Vite files. It is reference-only for the mobile rewrite and should not be treated as the active product.
+
+Useful legacy reference files:
+
+- `src/utils/alert-state-machine.js`
+- `src/utils/location-matcher.js`
+- `src/services/oref.service.js`
+- `src/utils/html-parser.util.js`
+- `src/config/constants.js`
+
+## Repository notes
+
+- Product specs and implementation notes live under `.agent/`.
+- Scratch review outputs may appear under `reviews/`; they are not release artifacts.
+- Local APK copies in `dist/` are ignored by git.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## Browser Support
-
-Modern browsers with ES6+ support.
+MIT License. See [`LICENSE`](LICENSE).

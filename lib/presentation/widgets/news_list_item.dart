@@ -3,6 +3,7 @@ import '../../core/app_theme.dart';
 import '../../core/relative_time_formatter.dart';
 import '../../core/url_opener.dart';
 import '../../data/models/news_item.dart';
+import '../models/news_source_presentation.dart';
 
 class NewsListItem extends StatelessWidget {
   final NewsItem newsItem;
@@ -31,7 +32,9 @@ class NewsListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sourceName = newsItem.source.displayName;
+    final sourceName = NewsSourcePresentation.fromSource(
+      newsItem.source,
+    ).displayName;
     final sourceColor = AppTheme.colorForNewsSource(newsItem.source);
     final sourceInitial = _getSourceInitial(sourceName);
 

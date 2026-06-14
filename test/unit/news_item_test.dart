@@ -3,34 +3,6 @@ import 'package:mklat/data/models/news_item.dart';
 
 void main() {
   group('NewsSource', () {
-    test('displayName returns correct names', () {
-      expect(NewsSource.ynet.displayName, 'Ynet');
-      expect(NewsSource.maariv.displayName, 'Maariv');
-      expect(NewsSource.haaretz.displayName, 'Haaretz');
-    });
-
-    test('domain returns correct domains', () {
-      expect(NewsSource.ynet.domain, 'ynet.co.il');
-      expect(NewsSource.maariv.domain, 'maariv.co.il');
-      expect(NewsSource.haaretz.domain, 'haaretz.co.il');
-    });
-
-    test('fromDomain parses domains correctly', () {
-      expect(NewsSourceExtension.fromDomain('ynet.co.il'), NewsSource.ynet);
-      expect(
-        NewsSourceExtension.fromDomain('www.maariv.co.il'),
-        NewsSource.maariv,
-      );
-      expect(
-        NewsSourceExtension.fromDomain('haaretz.co.il'),
-        NewsSource.haaretz,
-      );
-    });
-
-    test('fromDomain defaults to ynet for unknown domains', () {
-      expect(NewsSourceExtension.fromDomain('unknown.com'), NewsSource.ynet);
-    });
-
     test('serialization to/from JSON', () {
       for (final source in NewsSource.values) {
         final json = source.toJson();

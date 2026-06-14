@@ -2,39 +2,6 @@
 enum NewsSource { ynet, maariv, haaretz }
 
 extension NewsSourceExtension on NewsSource {
-  /// Get display name for the source
-  String get displayName {
-    switch (this) {
-      case NewsSource.ynet:
-        return 'Ynet';
-      case NewsSource.maariv:
-        return 'Maariv';
-      case NewsSource.haaretz:
-        return 'Haaretz';
-    }
-  }
-
-  /// Get domain for favicon
-  String get domain {
-    switch (this) {
-      case NewsSource.ynet:
-        return 'ynet.co.il';
-      case NewsSource.maariv:
-        return 'maariv.co.il';
-      case NewsSource.haaretz:
-        return 'haaretz.co.il';
-    }
-  }
-
-  /// Get source from domain string
-  static NewsSource fromDomain(String domain) {
-    final lowerDomain = domain.toLowerCase();
-    if (lowerDomain.contains('ynet')) return NewsSource.ynet;
-    if (lowerDomain.contains('maariv')) return NewsSource.maariv;
-    if (lowerDomain.contains('haaretz')) return NewsSource.haaretz;
-    return NewsSource.ynet; // default
-  }
-
   /// Serialize to string
   String toJson() => name;
 
@@ -108,6 +75,6 @@ class NewsItem {
 
   @override
   String toString() =>
-      'NewsItem(title: $title, source: ${source.displayName}, '
+      'NewsItem(title: $title, source: ${source.name}, '
       'pubDate: $pubDate)';
 }

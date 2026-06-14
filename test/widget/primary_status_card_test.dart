@@ -16,6 +16,7 @@ void main() {
       required AlertsProvider alertsProvider,
       required LocationProvider locationProvider,
       required ConnectivityProvider connectivityProvider,
+      DateTime Function()? now,
     }) {
       return MaterialApp(
         home: Directionality(
@@ -26,7 +27,7 @@ void main() {
               ChangeNotifierProvider.value(value: locationProvider),
               ChangeNotifierProvider.value(value: connectivityProvider),
             ],
-            child: const Scaffold(body: PrimaryStatusCard()),
+            child: Scaffold(body: PrimaryStatusCard(now: now ?? DateTime.now)),
           ),
         ),
       );
@@ -103,7 +104,47 @@ void main() {
       expect(find.text('אין התרעות'), findsOneWidget);
     });
 
-    testWidgets('timer updates when state changes to show elapsed', (
+    testWidgets('timer updates while red alert is visible', (
+      WidgetTester tester,
+    ) async {
+      final alertsProvider = AlertsProvider();
+      final locationProvider = LocationProvider();
+      final connectivityProvider = ConnectivityProvider.fromStream(
+        Stream.value(ConnectivityResult.wifi),
+      );
+      await connectivityProvider.initialize();
+
+      final startTime = DateTime(2026, 1, 1, 12);
+      final clock = FakeClock(startTime);
+      alertsProvider.setPrimaryLocation('רחובות');
+      final activeAlert = Alert(
+        id: 'active_1',
+        location: 'רחובות',
+        title: 'ירי רקטות וטילים',
+        time: startTime,
+        category: 1,
+      );
+      alertsProvider.onAlertData([activeAlert], [activeAlert]);
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          alertsProvider: alertsProvider,
+          locationProvider: locationProvider,
+          connectivityProvider: connectivityProvider,
+          now: clock.now,
+        ),
+      );
+
+      expect(find.text('00:00'), findsOneWidget);
+      expect(find.byType(ElapsedTimeText), findsOneWidget);
+
+      clock.advance(const Duration(seconds: 2));
+      await tester.pump(const Duration(seconds: 2));
+
+      expect(find.text('00:02'), findsOneWidget);
+    });
+
+    testWidgets('does not mount elapsed timer outside active states', (
       WidgetTester tester,
     ) async {
       final alertsProvider = AlertsProvider();
@@ -121,11 +162,8 @@ void main() {
         ),
       );
 
-      // Initially no timer shown in ALL_CLEAR
       expect(find.text('אין התרעות'), findsOneWidget);
-
-      // Widget should be a StatefulWidget to handle timers
-      expect(find.byType(PrimaryStatusCard), findsOneWidget);
+      expect(find.byType(ElapsedTimeText), findsNothing);
     });
 
     group('offline state', () {
@@ -203,6 +241,7 @@ void main() {
 
         // Should still show offline state, no timer
         expect(find.text('אין חיבור'), findsOneWidget);
+        expect(find.byType(ElapsedTimeText), findsNothing);
 
         await controller.close();
       });
@@ -345,4 +384,16 @@ void main() {
       );
     });
   });
+}
+
+class FakeClock {
+  DateTime _now;
+
+  FakeClock(this._now);
+
+  DateTime now() => _now;
+
+  void advance(Duration duration) {
+    _now = _now.add(duration);
+  }
 }

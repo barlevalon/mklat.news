@@ -7,42 +7,12 @@ import '../providers/alerts_provider.dart';
 import '../providers/connectivity_provider.dart';
 import 'location_selector_button.dart';
 
-class PrimaryStatusCard extends StatefulWidget {
-  const PrimaryStatusCard({super.key});
+DateTime _defaultNow() => DateTime.now();
 
-  @override
-  State<PrimaryStatusCard> createState() => _PrimaryStatusCardState();
-}
+class PrimaryStatusCard extends StatelessWidget {
+  final DateTime Function() now;
 
-class _PrimaryStatusCardState extends State<PrimaryStatusCard> {
-  Timer? _timer;
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  void _ensureTimer(AlertState state) {
-    if (state.showElapsedTimer) {
-      if (_timer == null || !_timer!.isActive) {
-        _timer?.cancel();
-        _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-          if (mounted) setState(() {});
-        });
-      }
-    } else {
-      _timer?.cancel();
-      _timer = null;
-    }
-  }
-
-  String _formatElapsed(DateTime startTime) {
-    final elapsed = DateTime.now().difference(startTime);
-    final minutes = elapsed.inMinutes;
-    final seconds = elapsed.inSeconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-  }
+  const PrimaryStatusCard({super.key, this.now = _defaultNow});
 
   @override
   Widget build(BuildContext context) {
@@ -51,14 +21,6 @@ class _PrimaryStatusCardState extends State<PrimaryStatusCard> {
         final isOffline = connectivityProvider.isOffline;
         final hasAlertError = alertsProvider.errorMessage != null;
         final state = alertsProvider.alertState;
-
-        // Only run timer when online and current alert data is fresh.
-        if (!isOffline && !hasAlertError) {
-          _ensureTimer(state);
-        } else {
-          _timer?.cancel();
-          _timer = null;
-        }
 
         final startTime = alertsProvider.alertStartTime;
 
@@ -122,19 +84,69 @@ class _PrimaryStatusCardState extends State<PrimaryStatusCard> {
                   state.showElapsedTimer &&
                   startTime != null) ...[
                 const SizedBox(height: 16),
-                Text(
-                  _formatElapsed(startTime),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: displayColor,
-                    fontWeight: FontWeight.w500,
-                    fontFamily: 'monospace',
-                  ),
+                ElapsedTimeText(
+                  startTime: startTime,
+                  color: displayColor,
+                  now: now,
                 ),
               ],
             ],
           ),
         );
       },
+    );
+  }
+}
+
+class ElapsedTimeText extends StatefulWidget {
+  final DateTime startTime;
+  final Color color;
+  final DateTime Function() now;
+
+  const ElapsedTimeText({
+    super.key,
+    required this.startTime,
+    required this.color,
+    this.now = _defaultNow,
+  });
+
+  @override
+  State<ElapsedTimeText> createState() => _ElapsedTimeTextState();
+}
+
+class _ElapsedTimeTextState extends State<ElapsedTimeText> {
+  late final Timer _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  String _formatElapsed() {
+    final elapsed = widget.now().difference(widget.startTime);
+    final minutes = elapsed.inMinutes;
+    final seconds = elapsed.inSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      _formatElapsed(),
+      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+        color: widget.color,
+        fontWeight: FontWeight.w500,
+        fontFamily: 'monospace',
+      ),
     );
   }
 }

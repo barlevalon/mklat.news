@@ -164,6 +164,35 @@ void main() {
       expect(find.byIcon(Icons.check), findsOneWidget);
     });
 
+    testWidgets('tapping selected location deselects it', (
+      WidgetTester tester,
+    ) async {
+      final provider = LocationProvider();
+      await provider.loadLocations();
+
+      provider.loadAvailableLocationsForTest([
+        const OrefLocation(
+          name: 'אשדוד - א',
+          id: '1',
+          hashId: 'hash1',
+          areaId: 1,
+          areaName: 'אשדוד',
+          shelterTimeSec: 45,
+        ),
+      ]);
+
+      await tester.pumpWidget(buildTestWidget(provider));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('אשדוד - א'));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.check), findsOneWidget);
+
+      await tester.tap(find.text('אשדוד - א'));
+      await tester.pumpAndSettle();
+      expect(find.byIcon(Icons.check), findsNothing);
+    });
+
     testWidgets('shows loading state while available locations load', (
       WidgetTester tester,
     ) async {

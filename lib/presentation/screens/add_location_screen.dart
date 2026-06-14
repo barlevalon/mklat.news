@@ -116,7 +116,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
               : null,
           onTap: () {
             setState(() {
-              _selectedLocation = location;
+              _selectedLocation = isSelected ? null : location;
             });
           },
         );

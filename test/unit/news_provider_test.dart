@@ -47,13 +47,16 @@ void main() {
       expect(provider.hasNews, isTrue);
     });
 
-    test('onError with no existing news: sets error', () {
+    test('onError with no existing news: stops loading and sets error', () {
       provider.onError(Exception('Network error'));
 
+      expect(provider.isLoading, isFalse);
       expect(provider.errorMessage, 'שגיאה בטעינת חדשות');
+      expect(provider.newsItems, isEmpty);
+      expect(provider.hasNews, isFalse);
     });
 
-    test('onError with existing news: keeps news, no error message', () {
+    test('onError with existing news: stops loading, keeps news, no error', () {
       final items = [
         NewsItem(
           id: '1',
@@ -67,8 +70,38 @@ void main() {
       provider.onNewsData(items);
       provider.onError(Exception('Network error'));
 
+      expect(provider.isLoading, isFalse);
       expect(provider.newsItems.length, 1);
       expect(provider.errorMessage, isNull);
+    });
+
+    test('onNewsData with partial RSS success clears prior all-feed error', () {
+      provider.onError(Exception('All RSS feeds failed'));
+      expect(provider.errorMessage, 'שגיאה בטעינת חדשות');
+
+      final items = [
+        NewsItem(
+          id: 'maariv-1',
+          title: 'חדשות ממעריב',
+          link: 'https://example.com/maariv',
+          pubDate: DateTime.now(),
+          source: NewsSource.maariv,
+        ),
+        NewsItem(
+          id: 'haaretz-1',
+          title: 'חדשות מהארץ',
+          link: 'https://example.com/haaretz',
+          pubDate: DateTime.now(),
+          source: NewsSource.haaretz,
+        ),
+      ];
+
+      provider.onNewsData(items);
+
+      expect(provider.isLoading, isFalse);
+      expect(provider.newsItems, items);
+      expect(provider.errorMessage, isNull);
+      expect(provider.hasNews, isTrue);
     });
 
     test('hasNews: true when items exist', () {

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:mklat/data/models/news_item.dart';
 import 'package:mklat/presentation/screens/news_screen.dart';
 import 'package:mklat/presentation/providers/news_provider.dart';
 import 'package:mklat/presentation/providers/connectivity_provider.dart';
@@ -25,7 +26,7 @@ void main() {
               ChangeNotifierProvider.value(value: newsProvider),
               ChangeNotifierProvider.value(value: connectivityProvider),
             ],
-            child: const NewsScreen(),
+            child: const Scaffold(body: NewsScreen()),
           ),
         ),
       );
@@ -94,6 +95,72 @@ void main() {
 
       // Should NOT show offline message
       expect(find.text('אין חיבור לאינטרנט'), findsNothing);
+
+      await controller.close();
+    });
+
+    testWidgets('shows all-feed failure error instead of loading spinner', (
+      WidgetTester tester,
+    ) async {
+      final controller = StreamController<ConnectivityResult>();
+      final newsProvider = NewsProvider();
+      final connectivityProvider = ConnectivityProvider.fromStream(
+        controller.stream,
+      );
+
+      newsProvider.onError(Exception('All RSS feeds failed'));
+
+      controller.add(ConnectivityResult.wifi);
+      await connectivityProvider.initialize();
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          newsProvider: newsProvider,
+          connectivityProvider: connectivityProvider,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('שגיאה בטעינת חדשות'), findsOneWidget);
+      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+
+      await controller.close();
+    });
+
+    testWidgets('partial RSS success shows news without error', (
+      WidgetTester tester,
+    ) async {
+      final controller = StreamController<ConnectivityResult>();
+      final newsProvider = NewsProvider();
+      final connectivityProvider = ConnectivityProvider.fromStream(
+        controller.stream,
+      );
+
+      newsProvider.onNewsData([
+        NewsItem(
+          id: 'maariv-1',
+          title: 'חדשות ממעריב',
+          link: 'https://example.com/maariv',
+          pubDate: DateTime.now(),
+          source: NewsSource.maariv,
+        ),
+      ]);
+
+      controller.add(ConnectivityResult.wifi);
+      await connectivityProvider.initialize();
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          newsProvider: newsProvider,
+          connectivityProvider: connectivityProvider,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text('חדשות ממעריב'), findsOneWidget);
+      expect(find.text('שגיאה בטעינת חדשות'), findsNothing);
+      expect(find.byIcon(Icons.error_outline), findsNothing);
 
       await controller.close();
     });

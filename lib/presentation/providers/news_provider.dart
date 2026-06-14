@@ -21,6 +21,7 @@ class NewsProvider extends ChangeNotifier {
 
   /// Called by polling manager on error.
   void onError(Object error) {
+    _isLoading = false;
     if (_newsItems.isEmpty) {
       _errorMessage = 'שגיאה בטעינת חדשות';
     }

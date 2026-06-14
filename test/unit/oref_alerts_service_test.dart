@@ -199,6 +199,73 @@ void main() {
     );
 
     test(
+      'response with non-string data entry throws active-alert feed error',
+      () async {
+        final responseJson = '''
+        {
+          "id": "133721700000000000",
+          "cat": 1,
+          "title": "ירי רקטות וטילים",
+          "data": ["רחובות", 42]
+        }
+      ''';
+
+        when(
+          mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),
+        ).thenAnswer((_) async => responseJson);
+
+        expect(
+          () => service.fetchCurrentAlerts(),
+          throwsA(isA<ActiveAlertFeedInvalidException>()),
+        );
+      },
+    );
+
+    test(
+      'response with missing active alert category throws active-alert feed error',
+      () async {
+        final responseJson = '''
+        {
+          "id": "133721700000000000",
+          "title": "ירי רקטות וטילים",
+          "data": ["רחובות"]
+        }
+      ''';
+
+        when(
+          mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),
+        ).thenAnswer((_) async => responseJson);
+
+        expect(
+          () => service.fetchCurrentAlerts(),
+          throwsA(isA<ActiveAlertFeedInvalidException>()),
+        );
+      },
+    );
+
+    test(
+      'response with missing active alert title throws active-alert feed error',
+      () async {
+        final responseJson = '''
+        {
+          "id": "133721700000000000",
+          "cat": 1,
+          "data": ["רחובות"]
+        }
+      ''';
+
+        when(
+          mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),
+        ).thenAnswer((_) async => responseJson);
+
+        expect(
+          () => service.fetchCurrentAlerts(),
+          throwsA(isA<ActiveAlertFeedInvalidException>()),
+        );
+      },
+    );
+
+    test(
       'response with non-object root throws active-alert feed error',
       () async {
         when(

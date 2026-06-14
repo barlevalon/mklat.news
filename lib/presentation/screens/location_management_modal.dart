@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
 import '../../data/models/saved_location.dart';
 import '../providers/location_provider.dart';
+import '../widgets/content_state_placeholder.dart';
 import 'add_location_screen.dart';
 import 'edit_location_screen.dart';
 
@@ -51,15 +52,7 @@ class LocationManagementModal extends StatelessWidget {
                           ),
                         ),
                         IconButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const AddLocationScreen(),
-                              ),
-                            );
-                          },
+                          onPressed: () => _openAddLocation(context),
                           icon: const Icon(Icons.add),
                         ),
                       ],
@@ -84,15 +77,7 @@ class LocationManagementModal extends StatelessWidget {
                       child: SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const AddLocationScreen(),
-                              ),
-                            );
-                          },
+                          onPressed: () => _openAddLocation(context),
                           child: const Text('הוסף מיקום'),
                         ),
                       ),
@@ -106,30 +91,23 @@ class LocationManagementModal extends StatelessWidget {
     );
   }
 
+  void _openAddLocation(BuildContext context) {
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AddLocationScreen()),
+    );
+  }
+
   Widget _buildEmptyState(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: ContentStatePlaceholder(
+        message: 'אין מיקומים שמורים',
         children: [
-          Text(
-            'אין מיקומים שמורים',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppTheme.placeholderColor(context),
-            ),
-          ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddLocationScreen(),
-                ),
-              );
-            },
+            onPressed: () => _openAddLocation(context),
             child: const Text('הוסף מיקום ראשון'),
           ),
         ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../data/models/news_item.dart';
 import '../domain/alert_state.dart';
 
 /// App-level theme definitions for light and dark modes.
@@ -84,16 +85,14 @@ class AppTheme {
   static const Color dotGrey = Color(0xFF9E9E9E); // Grey dot for offline
 
   // News source colors
-  static Color colorForNewsSource(String sourceName) {
-    switch (sourceName) {
-      case 'Ynet':
+  static Color colorForNewsSource(NewsSource source) {
+    switch (source) {
+      case NewsSource.ynet:
         return const Color(0xFFE53935);
-      case 'Maariv':
+      case NewsSource.maariv:
         return const Color(0xFF1565C0);
-      case 'Haaretz':
+      case NewsSource.haaretz:
         return const Color(0xFF2E7D32);
-      default:
-        return const Color(0xFF757575);
     }
   }
 

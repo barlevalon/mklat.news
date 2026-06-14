@@ -32,7 +32,7 @@ class NewsListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sourceName = newsItem.source.displayName;
-    final sourceColor = AppTheme.colorForNewsSource(sourceName);
+    final sourceColor = AppTheme.colorForNewsSource(newsItem.source);
     final sourceInitial = _getSourceInitial(sourceName);
 
     return InkWell(

@@ -81,8 +81,9 @@ void main() {
         customLabel: 'בית',
       );
 
-      await provider.addLocation(location);
+      final result = await provider.addLocation(location);
 
+      expect(result, LocationCommandResult.success);
       expect(provider.locations.length, 1);
       expect(provider.locations.first.orefName, 'תל אביב');
 
@@ -98,9 +99,11 @@ void main() {
       final location1 = SavedLocation.create(orefName: 'תל אביב');
       final location2 = SavedLocation.create(orefName: 'תל אביב');
 
-      await provider.addLocation(location1);
-      await provider.addLocation(location2);
+      final result1 = await provider.addLocation(location1);
+      final result2 = await provider.addLocation(location2);
 
+      expect(result1, LocationCommandResult.success);
+      expect(result2, LocationCommandResult.duplicate);
       expect(provider.locations.length, 1);
     });
 
@@ -144,11 +147,22 @@ void main() {
       await provider.addLocation(location);
 
       final updated = location.copyWith(customLabel: 'עבודה');
-      await provider.updateLocation(updated);
+      final result = await provider.updateLocation(updated);
 
+      expect(result, LocationCommandResult.success);
       expect(provider.locations.first.customLabel, 'עבודה');
       expect(provider.locations.where((l) => l.isPrimary), hasLength(1));
       expect(provider.primaryLocation?.id, location.id);
+    });
+
+    test('updateLocation: missing id reports not found', () async {
+      await provider.loadLocations();
+      final missing = SavedLocation.create(orefName: 'תל אביב');
+
+      final result = await provider.updateLocation(missing);
+
+      expect(result, LocationCommandResult.notFound);
+      expect(provider.locations, isEmpty);
     });
 
     test('deleteLocation: removes and persists', () async {
@@ -156,8 +170,18 @@ void main() {
       final location = SavedLocation.create(orefName: 'תל אביב');
       await provider.addLocation(location);
 
-      await provider.deleteLocation(location.id);
+      final result = await provider.deleteLocation(location.id);
 
+      expect(result, LocationCommandResult.success);
+      expect(provider.locations, isEmpty);
+    });
+
+    test('deleteLocation: missing id reports not found', () async {
+      await provider.loadLocations();
+
+      final result = await provider.deleteLocation('missing');
+
+      expect(result, LocationCommandResult.notFound);
       expect(provider.locations, isEmpty);
     });
 
@@ -196,8 +220,9 @@ void main() {
 
       await provider.addLocation(location1);
       await provider.addLocation(location2);
-      await provider.setPrimary(location2.id);
+      final result = await provider.setPrimary(location2.id);
 
+      expect(result, LocationCommandResult.success);
       expect(provider.primaryLocation?.id, location2.id);
       expect(provider.locations.where((l) => l.isPrimary).length, 1);
     });
@@ -215,8 +240,9 @@ void main() {
 
       await provider.addLocation(location1);
       await provider.addLocation(location2);
-      await provider.setPrimary('missing');
+      final result = await provider.setPrimary('missing');
 
+      expect(result, LocationCommandResult.notFound);
       expect(provider.primaryLocation?.id, location1.id);
       expect(provider.locations.where((l) => l.isPrimary), hasLength(1));
     });

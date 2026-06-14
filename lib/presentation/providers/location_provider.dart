@@ -8,6 +8,8 @@ import '../../data/models/oref_location.dart';
 import '../../data/services/oref_districts_service.dart';
 import '../../domain/saved_locations.dart';
 
+enum LocationCommandResult { success, duplicate, notFound, persistFailed }
+
 class LocationProvider extends ChangeNotifier {
   List<SavedLocation> _locations = [];
   bool _isLoaded = false;
@@ -60,53 +62,60 @@ class LocationProvider extends ChangeNotifier {
   }
 
   /// Add a new location.
-  Future<void> addLocation(SavedLocation location) async {
+  Future<LocationCommandResult> addLocation(SavedLocation location) async {
     // Prevent duplicates by orefName
-    if (_locations.any((l) => l.orefName == location.orefName)) return;
+    if (_locations.any((l) => l.orefName == location.orefName)) {
+      return LocationCommandResult.duplicate;
+    }
 
     final existing = location.isPrimary
         ? _locations.map((l) => l.copyWith(isPrimary: false)).toList()
         : _locations;
-    await _saveAndPublish([...existing, location]);
+    return _saveAndPublish([...existing, location]);
   }
 
   /// Update an existing location.
-  Future<void> updateLocation(SavedLocation updated) async {
+  Future<LocationCommandResult> updateLocation(SavedLocation updated) async {
     final index = _locations.indexWhere((l) => l.id == updated.id);
-    if (index == -1) return;
+    if (index == -1) return LocationCommandResult.notFound;
 
     final next = updated.isPrimary
         ? _locations.map((l) => l.copyWith(isPrimary: false)).toList()
         : [..._locations];
     next[index] = updated;
-    await _saveAndPublish(next);
+    return _saveAndPublish(next);
   }
 
   /// Delete a location by ID.
-  Future<void> deleteLocation(String id) async {
+  Future<LocationCommandResult> deleteLocation(String id) async {
     final next = _locations.where((l) => l.id != id).toList();
-    if (next.length == _locations.length) return;
+    if (next.length == _locations.length) return LocationCommandResult.notFound;
 
-    await _saveAndPublish(next);
+    return _saveAndPublish(next);
   }
 
   /// Set a location as primary by ID.
-  Future<void> setPrimary(String id) async {
-    if (!_locations.any((l) => l.id == id)) return;
+  Future<LocationCommandResult> setPrimary(String id) async {
+    if (!_locations.any((l) => l.id == id)) {
+      return LocationCommandResult.notFound;
+    }
 
     final next = _locations
         .map((l) => l.copyWith(isPrimary: l.id == id))
         .toList();
-    await _saveAndPublish(next);
+    return _saveAndPublish(next);
   }
 
-  Future<void> _saveAndPublish(List<SavedLocation> next) async {
+  Future<LocationCommandResult> _saveAndPublish(
+    List<SavedLocation> next,
+  ) async {
     final normalized = normalizeSavedLocations(next);
     final didPersist = await _persistLocations(normalized);
-    if (!didPersist) return;
+    if (!didPersist) return LocationCommandResult.persistFailed;
 
     _locations = normalized;
     notifyListeners();
+    return LocationCommandResult.success;
   }
 
   Future<bool> _persistLocations(List<SavedLocation> locations) async {

@@ -3,10 +3,9 @@ import '../../core/app_strings.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
 import '../../data/models/saved_location.dart';
+import '../navigation/location_management_routes.dart';
 import '../providers/location_provider.dart';
 import '../widgets/content_state_placeholder.dart';
-import 'add_location_screen.dart';
-import 'edit_location_screen.dart';
 
 void showLocationManagementModal(BuildContext context) {
   showModalBottomSheet(
@@ -53,7 +52,8 @@ class LocationManagementModal extends StatelessWidget {
                           ),
                         ),
                         IconButton(
-                          onPressed: () => _openAddLocation(context),
+                          onPressed: () =>
+                              LocationManagementRoutes.openAddLocation(context),
                           icon: const Icon(Icons.add),
                         ),
                       ],
@@ -78,7 +78,8 @@ class LocationManagementModal extends StatelessWidget {
                       child: SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () => _openAddLocation(context),
+                          onPressed: () =>
+                              LocationManagementRoutes.openAddLocation(context),
                           child: const Text(AppStrings.addLocation),
                         ),
                       ),
@@ -92,14 +93,6 @@ class LocationManagementModal extends StatelessWidget {
     );
   }
 
-  void _openAddLocation(BuildContext context) {
-    Navigator.pop(context);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const AddLocationScreen()),
-    );
-  }
-
   Widget _buildEmptyState(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(32),
@@ -108,7 +101,7 @@ class LocationManagementModal extends StatelessWidget {
         children: [
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => _openAddLocation(context),
+            onPressed: () => LocationManagementRoutes.openAddLocation(context),
             child: const Text(AppStrings.addFirstLocation),
           ),
         ],
@@ -144,19 +137,29 @@ class LocationManagementModal extends StatelessWidget {
             ),
           ),
           subtitle: Text(location.orefName),
-          onTap: () {
-            locationProvider.setPrimary(location.id);
-            Navigator.pop(context);
+          onTap: () async {
+            final result = await locationProvider.setPrimary(location.id);
+            if (!context.mounted) return;
+
+            switch (result) {
+              case LocationCommandResult.success:
+                Navigator.pop(context);
+                break;
+              case LocationCommandResult.duplicate:
+              case LocationCommandResult.notFound:
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text(AppStrings.locationNotFound)),
+                );
+                break;
+              case LocationCommandResult.persistFailed:
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text(AppStrings.saveLocationFailed)),
+                );
+                break;
+            }
           },
-          onLongPress: () {
-            Navigator.pop(context);
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => EditLocationScreen(location: location),
-              ),
-            );
-          },
+          onLongPress: () =>
+              LocationManagementRoutes.openEditLocation(context, location),
         );
       },
     );

@@ -38,7 +38,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
     }).toList();
   }
 
-  void _saveLocation(BuildContext context) {
+  Future<void> _saveLocation(BuildContext context) async {
     if (_selectedLocation == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text(AppStrings.chooseAreaRequired)),
@@ -47,17 +47,6 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
     }
 
     final locationProvider = context.read<LocationProvider>();
-
-    // Check for duplicate
-    if (locationProvider.locations.any(
-      (l) => l.orefName == _selectedLocation!.name,
-    )) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(AppStrings.duplicateLocation)),
-      );
-      return;
-    }
-
     final savedLocation = SavedLocation.create(
       orefName: _selectedLocation!.name,
       customLabel: _labelController.text.trim(),
@@ -65,8 +54,25 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
       shelterTimeSec: _selectedLocation!.shelterTimeSec,
     );
 
-    locationProvider.addLocation(savedLocation);
-    Navigator.pop(context);
+    final result = await locationProvider.addLocation(savedLocation);
+    if (!context.mounted) return;
+
+    switch (result) {
+      case LocationCommandResult.success:
+        Navigator.pop(context);
+        break;
+      case LocationCommandResult.duplicate:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.duplicateLocation)),
+        );
+        break;
+      case LocationCommandResult.notFound:
+      case LocationCommandResult.persistFailed:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.saveLocationFailed)),
+        );
+        break;
+    }
   }
 
   Widget _buildLocationList(

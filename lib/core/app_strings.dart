@@ -43,6 +43,8 @@ class AppStrings {
   static const chooseArea = 'בחר אזור';
   static const chooseAreaRequired = 'יש לבחור אזור';
   static const duplicateLocation = 'מיקום זה כבר קיים ברשימה';
+  static const saveLocationFailed = 'שמירת המיקום נכשלה';
+  static const locationNotFound = 'המיקום לא נמצא';
   static const customLabelOptional = 'שם מותאם (לא חובה)';
   static const customLabelHint = 'בית, עבודה...';
   static const searchHint = 'חיפוש...';

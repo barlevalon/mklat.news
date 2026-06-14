@@ -31,7 +31,7 @@ class _EditLocationScreenState extends State<EditLocationScreen> {
     super.dispose();
   }
 
-  void _saveLocation(BuildContext context) {
+  Future<void> _saveLocation(BuildContext context) async {
     final locationProvider = context.read<LocationProvider>();
 
     final updatedLocation = widget.location.copyWith(
@@ -39,14 +39,32 @@ class _EditLocationScreenState extends State<EditLocationScreen> {
       isPrimary: _isPrimary,
     );
 
-    locationProvider.updateLocation(updatedLocation);
-    Navigator.pop(context);
+    final result = await locationProvider.updateLocation(updatedLocation);
+    if (!context.mounted) return;
+
+    switch (result) {
+      case LocationCommandResult.success:
+        Navigator.pop(context);
+        break;
+      case LocationCommandResult.duplicate:
+      case LocationCommandResult.notFound:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.locationNotFound)),
+        );
+        break;
+      case LocationCommandResult.persistFailed:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text(AppStrings.saveLocationFailed)),
+        );
+        break;
+    }
   }
 
   void _showDeleteConfirmation(BuildContext context) {
+    final screenContext = context;
     showDialog(
       context: context,
-      builder: (context) => Directionality(
+      builder: (dialogContext) => Directionality(
         textDirection: TextDirection.rtl,
         child: AlertDialog(
           title: const Text(AppStrings.deleteLocation),
@@ -55,15 +73,41 @@ class _EditLocationScreenState extends State<EditLocationScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text(AppStrings.cancel),
             ),
             TextButton(
-              onPressed: () {
-                final locationProvider = context.read<LocationProvider>();
-                locationProvider.deleteLocation(widget.location.id);
-                Navigator.pop(context); // close dialog
-                Navigator.pop(context); // close edit screen
+              onPressed: () async {
+                final locationProvider = screenContext.read<LocationProvider>();
+                final result = await locationProvider.deleteLocation(
+                  widget.location.id,
+                );
+                if (!screenContext.mounted) return;
+
+                if (dialogContext.mounted) {
+                  Navigator.pop(dialogContext); // close dialog
+                }
+
+                switch (result) {
+                  case LocationCommandResult.success:
+                    Navigator.pop(screenContext); // close edit screen
+                    break;
+                  case LocationCommandResult.duplicate:
+                  case LocationCommandResult.notFound:
+                    ScaffoldMessenger.of(screenContext).showSnackBar(
+                      const SnackBar(
+                        content: Text(AppStrings.locationNotFound),
+                      ),
+                    );
+                    break;
+                  case LocationCommandResult.persistFailed:
+                    ScaffoldMessenger.of(screenContext).showSnackBar(
+                      const SnackBar(
+                        content: Text(AppStrings.saveLocationFailed),
+                      ),
+                    );
+                    break;
+                }
               },
               child: const Text(
                 AppStrings.delete,

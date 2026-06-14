@@ -120,6 +120,50 @@ void main() {
       expect(find.text('חיפה - מרכז'), findsNothing);
     });
 
+    testWidgets('selecting one matching location checks only that row', (
+      WidgetTester tester,
+    ) async {
+      final provider = LocationProvider();
+      await provider.loadLocations();
+
+      provider.loadAvailableLocationsForTest([
+        const OrefLocation(
+          name: 'אשדוד - א',
+          id: '1',
+          hashId: 'duplicate-hash',
+          areaId: 1,
+          areaName: 'אשדוד',
+          shelterTimeSec: 45,
+        ),
+        const OrefLocation(
+          name: 'אשדוד - ב',
+          id: '2',
+          hashId: 'duplicate-hash',
+          areaId: 1,
+          areaName: 'אשדוד',
+          shelterTimeSec: 45,
+        ),
+        const OrefLocation(
+          name: 'אשדוד - ג',
+          id: '3',
+          hashId: 'duplicate-hash',
+          areaId: 1,
+          areaName: 'אשדוד',
+          shelterTimeSec: 45,
+        ),
+      ]);
+
+      await tester.pumpWidget(buildTestWidget(provider));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).at(1), 'אשדוד');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('אשדוד - ב'));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.check), findsOneWidget);
+    });
+
     testWidgets('shows loading state while available locations load', (
       WidgetTester tester,
     ) async {

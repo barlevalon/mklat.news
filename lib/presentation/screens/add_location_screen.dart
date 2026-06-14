@@ -104,9 +104,12 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
       itemCount: filteredLocations.length,
       itemBuilder: (context, index) {
         final location = filteredLocations[index];
-        final isSelected = _selectedLocation?.hashId == location.hashId;
+        final isSelected = identical(_selectedLocation, location);
 
         return ListTile(
+          key: ValueKey(
+            '${location.id}:${location.hashId}:${location.name}:${location.areaId}',
+          ),
           title: Text(location.name),
           trailing: isSelected
               ? const Icon(Icons.check, color: Colors.green)

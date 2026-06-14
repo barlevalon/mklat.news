@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../core/app_theme.dart';
+import '../../core/url_opener.dart';
 import '../../data/models/news_item.dart';
 
 class NewsListItem extends StatelessWidget {
   final NewsItem newsItem;
+  final UrlOpener urlOpener;
 
-  const NewsListItem({super.key, required this.newsItem});
+  const NewsListItem({
+    super.key,
+    required this.newsItem,
+    this.urlOpener = const UrlLauncherOpener(),
+  });
 
   String _getSourceInitial(String sourceName) {
     if (sourceName.isEmpty) return '?';
@@ -25,12 +30,9 @@ class NewsListItem extends StatelessWidget {
     return '${pubDate.day}/${pubDate.month} ${pubDate.hour.toString().padLeft(2, '0')}:${pubDate.minute.toString().padLeft(2, '0')}';
   }
 
-  Future<void> _launchUrl(BuildContext context) async {
-    final uri = Uri.parse(newsItem.link);
+  Future<void> _openUrl() async {
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      }
+      await urlOpener.openExternal(Uri.parse(newsItem.link));
     } catch (e) {
       // URL launching failed, ignore
     }
@@ -43,7 +45,7 @@ class NewsListItem extends StatelessWidget {
     final sourceInitial = _getSourceInitial(sourceName);
 
     return InkWell(
-      onTap: () => _launchUrl(context),
+      onTap: _openUrl,
       child: Card(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         elevation: 1,

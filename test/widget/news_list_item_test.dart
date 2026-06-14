@@ -3,12 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mklat/presentation/widgets/news_list_item.dart';
 import 'package:mklat/data/models/news_item.dart';
 import 'package:mklat/core/app_theme.dart';
+import 'package:mklat/core/url_opener.dart';
 
 void main() {
   group('NewsListItem', () {
     Widget buildTestWidget(
       NewsItem newsItem, {
       ThemeMode themeMode = ThemeMode.light,
+      UrlOpener? urlOpener,
     }) {
       return MaterialApp(
         theme: AppTheme.lightTheme,
@@ -16,7 +18,12 @@ void main() {
         themeMode: themeMode,
         home: Directionality(
           textDirection: TextDirection.rtl,
-          child: Scaffold(body: NewsListItem(newsItem: newsItem)),
+          child: Scaffold(
+            body: NewsListItem(
+              newsItem: newsItem,
+              urlOpener: urlOpener ?? const UrlLauncherOpener(),
+            ),
+          ),
         ),
       );
     }
@@ -210,6 +217,23 @@ void main() {
       expect(find.textContaining('Ynet'), findsOneWidget);
     });
 
+    testWidgets('tap opens the item URL externally', (tester) async {
+      final newsItem = NewsItem(
+        id: '1',
+        title: 'כותרת החדשה',
+        link: 'https://ynet.co.il/article/1',
+        pubDate: DateTime.now(),
+        source: NewsSource.ynet,
+      );
+      final opener = FakeUrlOpener();
+
+      await tester.pumpWidget(buildTestWidget(newsItem, urlOpener: opener));
+      await tester.tap(find.byType(NewsListItem));
+      await tester.pump();
+
+      expect(opener.openedUris, [Uri.parse('https://ynet.co.il/article/1')]);
+    });
+
     testWidgets(
       'description text uses theme color in dark mode, not hardcoded black54',
       (WidgetTester tester) async {
@@ -313,4 +337,13 @@ void main() {
       },
     );
   });
+}
+
+class FakeUrlOpener implements UrlOpener {
+  final List<Uri> openedUris = [];
+
+  @override
+  Future<void> openExternal(Uri uri) async {
+    openedUris.add(uri);
+  }
 }

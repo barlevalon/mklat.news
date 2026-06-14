@@ -376,7 +376,7 @@ void main() {
       expect(find.text('רחובות'), findsNothing);
     });
 
-    testWidgets('tap news item opens url', (tester) async {
+    testWidgets('news item renders link metadata', (tester) async {
       // Pre-populate SharedPreferences empty (no locations needed for news)
       SharedPreferences.setMockInitialValues({});
 

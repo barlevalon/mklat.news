@@ -53,7 +53,7 @@ void main() {
 
       // Should show the all clear title (default state)
       expect(find.text('אין התרעות'), findsOneWidget);
-      expect(find.text('🟢'), findsOneWidget);
+      expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
     });
 
     testWidgets('renders with location selector button', (
@@ -97,8 +97,8 @@ void main() {
       // Should have a container with the card styling
       expect(find.byType(Container), findsWidgets);
 
-      // Should have the icon text
-      expect(find.text('🟢'), findsOneWidget);
+      // Should have the cohesive Material status icon
+      expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
 
       // Should have the title
       expect(find.text('אין התרעות'), findsOneWidget);
@@ -192,7 +192,7 @@ void main() {
 
         // Initially online - should show all clear
         expect(find.text('אין התרעות'), findsOneWidget);
-        expect(find.text('🟢'), findsOneWidget);
+        expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
 
         // Go offline
         controller.add(ConnectivityResult.none);
@@ -201,7 +201,7 @@ void main() {
 
         // Should show offline state
         expect(find.text('אין חיבור'), findsOneWidget);
-        expect(find.text('📡'), findsOneWidget);
+        expect(find.byIcon(Icons.cloud_off_outlined), findsOneWidget);
 
         // Should NOT show instruction text when offline
         expect(find.text('היכנסו למרחב המוגן'), findsNothing);
@@ -234,7 +234,7 @@ void main() {
 
         // Should show offline state
         expect(find.text('אין חיבור'), findsOneWidget);
-        expect(find.text('📡'), findsOneWidget);
+        expect(find.byIcon(Icons.cloud_off_outlined), findsOneWidget);
 
         // Wait a bit to ensure no timer appears
         await tester.pump(const Duration(seconds: 2));
@@ -279,7 +279,7 @@ void main() {
 
         // Should show all clear again
         expect(find.text('אין התרעות'), findsOneWidget);
-        expect(find.text('🟢'), findsOneWidget);
+        expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
 
         await controller.close();
       });
@@ -369,18 +369,16 @@ void main() {
       final containerFinder = find.byType(Container);
       expect(containerFinder, findsWidgets);
 
-      // Get the first Container widget (the card wrapper)
-      final container = tester.widget<Container>(containerFinder.first);
-      final decoration = container.decoration as BoxDecoration;
+      final decoratedContainers = containerFinder.evaluate().map((element) {
+        return (element.widget as Container).decoration;
+      }).whereType<BoxDecoration>();
 
-      // In dark mode, the ALL_CLEAR background should be a dark shade, not the light pastel
-      // Light mode ALL_CLEAR background is 0xFFE8F5E9 (light green)
-      // Dark mode should use a darker shade like 0xFF1B5E20 (dark green)
       expect(
-        decoration.color,
-        equals(const Color(0xFF1B5E20)),
-        reason:
-            'ALL_CLEAR background in dark mode should be a dark green shade',
+        decoratedContainers.any(
+          (decoration) => decoration.color == const Color(0xFF162029),
+        ),
+        isTrue,
+        reason: 'card shell should use a dark civic surface in dark mode',
       );
     });
   });

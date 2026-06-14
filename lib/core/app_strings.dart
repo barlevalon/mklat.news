@@ -30,6 +30,8 @@ class AppStrings {
   static const loadAlertsError = 'שגיאה בטעינת התרעות';
   static const historyUnavailable = 'היסטוריה לא זמינה';
 
+  static const statusTab = 'מצב';
+  static const newsTab = 'חדשות';
   static const newsTitle = 'מבזקי חדשות';
   static const loadNewsError = 'שגיאה בטעינת חדשות';
   static const noNewsItems = 'אין מבזקים חדשים';

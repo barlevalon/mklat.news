@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mklat/core/app_theme.dart';
 import 'package:mklat/presentation/screens/status_screen.dart';
 import 'package:mklat/presentation/providers/alerts_provider.dart';
 import 'package:mklat/presentation/providers/location_provider.dart';
@@ -272,17 +273,9 @@ void main() {
         final errorRow = find.byType(Row);
         expect(errorRow, findsWidgets);
 
-        // Verify the error text has correct styling (orange color)
+        // Verify the error text uses the semantic amber token.
         final errorText = tester.widget<Text>(find.text('שגיאה בטעינת התרעות'));
-        expect(errorText.style?.color, isNotNull);
-        // Should be orange-ish color
-        final color = errorText.style!.color!;
-        final red = (color.r * 255.0).round().clamp(0, 255);
-        final green = (color.g * 255.0).round().clamp(0, 255);
-        final blue = (color.b * 255.0).round().clamp(0, 255);
-        expect(red, greaterThan(200));
-        expect(green, greaterThan(100));
-        expect(blue, lessThan(100));
+        expect(errorText.style?.color, AppTheme.statusAmber);
       },
     );
 

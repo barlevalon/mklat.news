@@ -29,7 +29,7 @@ void main() {
         await tester.pump();
 
         // Find the location_on icon
-        final iconFinder = find.byIcon(Icons.location_on);
+        final iconFinder = find.byIcon(Icons.location_on_outlined);
         expect(iconFinder, findsOneWidget);
 
         final iconWidget = tester.widget<Icon>(iconFinder);
@@ -43,13 +43,10 @@ void main() {
               'Location icon in dark mode should not use hardcoded Colors.black54',
         );
 
-        // Should use a theme-appropriate color (onSurface with opacity)
-        final expectedColor = AppTheme.darkTheme.colorScheme.onSurface
-            .withValues(alpha: 0.54);
         expect(
           actualColor,
-          equals(expectedColor),
-          reason: 'Location icon should use theme-derived color in dark mode',
+          equals(Colors.white.withAlpha(220)),
+          reason: 'Location icon should use the dark-mode civic control color',
         );
       },
     );
@@ -61,7 +58,7 @@ void main() {
         await tester.pump();
 
         // Find the keyboard_arrow_down icon (trailing chevron)
-        final iconFinder = find.byIcon(Icons.keyboard_arrow_down);
+        final iconFinder = find.byIcon(Icons.expand_more);
         expect(iconFinder, findsOneWidget);
 
         final iconWidget = tester.widget<Icon>(iconFinder);
@@ -75,14 +72,11 @@ void main() {
               'Trailing chevron in dark mode should not use hardcoded Colors.black54',
         );
 
-        // Should use a theme-appropriate color (onSurface with opacity)
-        final expectedColor = AppTheme.darkTheme.colorScheme.onSurface
-            .withValues(alpha: 0.54);
         expect(
           actualColor,
-          equals(expectedColor),
+          equals(Colors.white.withAlpha(220)),
           reason:
-              'Trailing chevron should use theme-derived color in dark mode',
+              'Trailing chevron should use the dark-mode civic control color',
         );
       },
     );

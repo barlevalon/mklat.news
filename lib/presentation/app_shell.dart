@@ -34,7 +34,17 @@ class _AppShellState extends State<AppShell> {
                     children: const [StatusScreen(), NewsScreen()],
                   ),
                 ),
-                PageIndicator(currentIndex: _currentPage, pageCount: 2),
+                PageIndicator(
+                  currentIndex: _currentPage,
+                  pageCount: 2,
+                  onPageSelected: (index) {
+                    _pageController.animateToPage(
+                      index,
+                      duration: const Duration(milliseconds: 240),
+                      curve: Curves.easeOutCubic,
+                    );
+                  },
+                ),
               ],
             ),
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_strings.dart';
+import '../../core/app_theme.dart';
 import 'package:provider/provider.dart';
 import '../../data/models/oref_location.dart';
 import '../../data/models/saved_location.dart';
@@ -100,20 +101,20 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
       return const ContentStatePlaceholder(message: AppStrings.noResults);
     }
 
-    return ListView.builder(
+    return ListView.separated(
+      padding: const EdgeInsets.only(top: 4, bottom: 12),
       itemCount: filteredLocations.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final location = filteredLocations[index];
         final isSelected = identical(_selectedLocation, location);
 
-        return ListTile(
+        return _LocationResultRow(
           key: ValueKey(
             '${location.id}:${location.hashId}:${location.name}:${location.areaId}',
           ),
-          title: Text(location.name),
-          trailing: isSelected
-              ? const Icon(Icons.check, color: Colors.green)
-              : null,
+          location: location,
+          isSelected: isSelected,
           onTap: () {
             setState(() {
               _selectedLocation = isSelected ? null : location;
@@ -131,6 +132,10 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text(AppStrings.addLocation),
+          titleTextStyle: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           leading: IconButton(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.close),
@@ -141,31 +146,24 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
             final filteredLocations = _getFilteredLocations(
               locationProvider.availableLocations,
             );
+            final canSave =
+                _selectedLocation != null && !locationProvider.isSaving;
 
             return Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Custom label field
-                  const Text(
-                    AppStrings.customLabelOptional,
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
+                  _FieldLabel(label: AppStrings.customLabelOptional),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _labelController,
                     decoration: const InputDecoration(
                       hintText: AppStrings.customLabelHint,
-                      border: OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  // Search field
-                  const Text(
-                    AppStrings.chooseArea,
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
+                  const SizedBox(height: 20),
+                  _FieldLabel(label: AppStrings.chooseArea),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _searchController,
@@ -177,11 +175,9 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                     decoration: const InputDecoration(
                       hintText: AppStrings.searchHint,
                       prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  // Location list
+                  const SizedBox(height: 14),
                   Expanded(
                     child: _buildLocationList(
                       context,
@@ -189,32 +185,127 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                       filteredLocations,
                     ),
                   ),
-                  // Set as primary checkbox
-                  CheckboxListTile(
-                    title: const Text(AppStrings.setAsPrimary),
-                    value: _setAsPrimary,
-                    onChanged: (value) {
-                      setState(() {
-                        _setAsPrimary = value ?? false;
-                      });
-                    },
-                    controlAffinity: ListTileControlAffinity.leading,
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: AppTheme.statusCardSurface(context),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppTheme.dividerColor(context)),
+                    ),
+                    child: CheckboxListTile(
+                      title: const Text(AppStrings.setAsPrimary),
+                      value: _setAsPrimary,
+                      onChanged: (value) {
+                        setState(() {
+                          _setAsPrimary = value ?? false;
+                        });
+                      },
+                      activeColor: AppTheme.statusGreen,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  // Save button
+                  const SizedBox(height: 14),
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: locationProvider.isSaving
-                          ? null
-                          : () => _saveLocation(context),
-                      child: const Text(AppStrings.save),
+                    child: FilledButton(
+                      onPressed: canSave ? () => _saveLocation(context) : null,
+                      child: locationProvider.isSaving
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text(AppStrings.save),
                     ),
                   ),
                 ],
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _FieldLabel extends StatelessWidget {
+  final String label;
+
+  const _FieldLabel({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+        color: AppTheme.mutedTextColor(context),
+        fontWeight: FontWeight.w700,
+      ),
+    );
+  }
+}
+
+class _LocationResultRow extends StatelessWidget {
+  final OrefLocation location;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _LocationResultRow({
+    super.key,
+    required this.location,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final borderColor = isSelected
+        ? AppTheme.statusGreen
+        : AppTheme.dividerColor(context);
+    final backgroundColor = isSelected
+        ? AppTheme.statusGreenTint
+        : AppTheme.statusCardSurface(context);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: borderColor, width: isSelected ? 1.5 : 1),
+          ),
+          child: Row(
+            children: [
+              if (isSelected)
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: const BoxDecoration(
+                    color: AppTheme.statusGreen,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.check, color: Colors.white, size: 20),
+                )
+              else
+                const SizedBox(width: 30, height: 30),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  location.name,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

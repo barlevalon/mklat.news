@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:mklat/core/app_theme.dart';
 import 'package:mklat/presentation/widgets/offline_banner.dart';
 import 'package:mklat/presentation/providers/connectivity_provider.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -36,7 +37,7 @@ void main() {
       // Should show the offline text
       expect(find.text('אין חיבור לאינטרנט'), findsOneWidget);
       // Should show the wifi-off icon
-      expect(find.byIcon(Icons.wifi_off), findsOneWidget);
+      expect(find.byIcon(Icons.cloud_off_outlined), findsOneWidget);
     });
 
     testWidgets('banner hidden when online', (WidgetTester tester) async {
@@ -75,7 +76,9 @@ void main() {
       expect(hasHebrew, isTrue);
     });
 
-    testWidgets('banner has orange/amber styling', (WidgetTester tester) async {
+    testWidgets('banner uses neutral connectivity styling', (
+      WidgetTester tester,
+    ) async {
       final connectivityProvider = ConnectivityProvider(
         connectivity: MockConnectivity(ConnectivityResult.none),
       );
@@ -86,28 +89,17 @@ void main() {
       );
       await tester.pump();
 
-      // Find the container with the banner background
-      final container = tester.widget<Container>(
+      final decoratedBox = tester.widget<DecoratedBox>(
         find
             .ancestor(
               of: find.text('אין חיבור לאינטרנט'),
-              matching: find.byType(Container),
+              matching: find.byType(DecoratedBox),
             )
             .first,
       );
 
-      // Verify the container has an orange/amber color
-      expect(container.color, isNotNull);
-
-      // Color should be in the orange/amber family
-      final color = container.color!;
-      final red = (color.r * 255.0).round().clamp(0, 255);
-      final green = (color.g * 255.0).round().clamp(0, 255);
-      final blue = (color.b * 255.0).round().clamp(0, 255);
-      // Orange colors have high red, medium green, low blue
-      expect(red, greaterThan(200));
-      expect(green, greaterThan(100));
-      expect(blue, lessThan(100));
+      final decoration = decoratedBox.decoration as BoxDecoration;
+      expect(decoration.color, AppTheme.connectivityTint);
     });
 
     testWidgets('banner animates in and out', (WidgetTester tester) async {

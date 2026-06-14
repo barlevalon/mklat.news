@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_strings.dart';
+import '../../core/app_theme.dart';
 import 'package:provider/provider.dart';
 import '../providers/location_provider.dart';
 import '../screens/location_management_modal.dart';
@@ -16,39 +17,45 @@ class LocationSelectorButton extends StatelessWidget {
         final primaryLocation = locationProvider.primaryLocation;
         final displayText =
             primaryLocation?.displayLabel ?? AppStrings.chooseArea;
-        final iconColor = Theme.of(
-          context,
-        ).colorScheme.onSurface.withValues(alpha: 0.54);
-        final backgroundColor = Theme.of(
-          context,
-        ).colorScheme.onSurface.withValues(alpha: 0.08);
-        final borderColor = Theme.of(
-          context,
-        ).colorScheme.onSurface.withValues(alpha: 0.12);
+        final foreground = Theme.of(context).brightness == Brightness.dark
+            ? Colors.white.withAlpha(220)
+            : const Color(0xFF24313D);
+        final borderColor = Theme.of(context).brightness == Brightness.dark
+            ? Colors.white.withAlpha(35)
+            : AppTheme.hairline;
 
-        return GestureDetector(
-          onTap: onTap ?? () => showLocationManagementModal(context),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: borderColor, width: 1),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.location_on, size: 18, color: iconColor),
-                const SizedBox(width: 4),
-                Text(
-                  displayText,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(width: 4),
-                Icon(Icons.keyboard_arrow_down, size: 18, color: iconColor),
-              ],
+        return Material(
+          color: AppTheme.statusCardSurface(context),
+          borderRadius: BorderRadius.circular(20),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: onTap ?? () => showLocationManagementModal(context),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: borderColor),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.location_on_outlined, size: 20, color: foreground),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      displayText,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: foreground,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(Icons.expand_more, size: 22, color: foreground),
+                ],
+              ),
             ),
           ),
         );

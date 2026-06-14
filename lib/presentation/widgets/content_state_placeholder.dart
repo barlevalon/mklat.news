@@ -9,21 +9,30 @@ class LoadingStatePlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircularProgressIndicator(),
-          if (message != null) ...[
-            const SizedBox(height: 16),
-            Text(
-              message!,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: AppTheme.placeholderColor(context),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 28),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 30),
+        decoration: BoxDecoration(
+          color: AppTheme.statusCardSurface(context),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: AppTheme.dividerColor(context)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            if (message != null) ...[
+              const SizedBox(height: 16),
+              Text(
+                message!,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: AppTheme.placeholderColor(context),
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -48,26 +57,45 @@ class ContentStatePlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (icon != null) ...[
-            Icon(
-              icon,
-              size: 48,
-              color: iconColor ?? AppTheme.placeholderIconColor(context),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 28),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 30),
+        decoration: BoxDecoration(
+          color: AppTheme.statusCardSurface(context),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: AppTheme.dividerColor(context)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: (iconColor ?? AppTheme.placeholderIconColor(context))
+                      .withAlpha(24),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  size: 38,
+                  color: iconColor ?? AppTheme.placeholderIconColor(context),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+            Text(
+              message,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: textColor ?? AppTheme.placeholderColor(context),
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            ...children,
           ],
-          Text(
-            message,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: textColor ?? AppTheme.placeholderColor(context),
-            ),
-            textAlign: TextAlign.center,
-          ),
-          ...children,
-        ],
+        ),
       ),
     );
   }

@@ -19,21 +19,6 @@ on:
       - 'pubspec.yaml'
       - 'pubspec.lock'
       - '.github/workflows/mobile-apk.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'android/**'
-      - 'assets/**'
-      - 'integration_test/**'
-      - 'lib/**'
-      - 'test/**'
-      - 'tool/**'
-      - 'analysis_options.yaml'
-      - 'build.yaml'
-      - 'Makefile'
-      - 'pubspec.yaml'
-      - 'pubspec.lock'
-      - '.github/workflows/mobile-apk.yml'
   workflow_dispatch:
     inputs:
       publish_release:
@@ -49,6 +34,10 @@ on:
 
 permissions:
   contents: write
+
+concurrency:
+  group: mobile-apk-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-apk:

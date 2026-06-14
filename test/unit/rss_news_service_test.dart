@@ -73,10 +73,6 @@ void main() {
   <link></link>
 </item></channel></rss>''',
       );
-      when(mockHttpClient.get(ApiEndpoints.rssMako)).thenAnswer(
-        (_) async => '''<?xml version="1.0"?>
-<rss><channel></channel></rss>''',
-      );
       when(mockHttpClient.get(ApiEndpoints.rssHaaretz)).thenAnswer(
         (_) async => '''<?xml version="1.0"?>
 <rss><channel></channel></rss>''',
@@ -104,9 +100,6 @@ void main() {
         mockHttpClient.get(ApiEndpoints.rssMaariv),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
-        mockHttpClient.get(ApiEndpoints.rssMako),
-      ).thenAnswer((_) async => '<rss><channel></channel></rss>');
-      when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
 
@@ -128,9 +121,6 @@ void main() {
       );
       when(
         mockHttpClient.get(ApiEndpoints.rssMaariv),
-      ).thenAnswer((_) async => '<rss><channel></channel></rss>');
-      when(
-        mockHttpClient.get(ApiEndpoints.rssMako),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
@@ -184,9 +174,6 @@ void main() {
           mockHttpClient.get(ApiEndpoints.rssMaariv),
         ).thenAnswer((_) async => 'not valid xml'); // Parse error
         when(
-          mockHttpClient.get(ApiEndpoints.rssMako),
-        ).thenAnswer((_) async => 'also bad xml'); // Parse error
-        when(
           mockHttpClient.get(ApiEndpoints.rssHaaretz),
         ).thenAnswer((_) async => 'invalid'); // Parse error
 
@@ -205,9 +192,6 @@ void main() {
       when(
         mockHttpClient.get(ApiEndpoints.rssMaariv),
       ).thenAnswer((_) async => 'also bad xml');
-      when(
-        mockHttpClient.get(ApiEndpoints.rssMako),
-      ).thenAnswer((_) async => 'invalid');
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
       ).thenAnswer((_) async => 'bad');
@@ -259,9 +243,6 @@ void main() {
         mockHttpClient.get(ApiEndpoints.rssMaariv),
       ).thenAnswer((_) async => validMaarivRss);
       when(
-        mockHttpClient.get(ApiEndpoints.rssMako),
-      ).thenAnswer((_) async => '<rss><channel></channel></rss>');
-      when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
 
@@ -296,9 +277,6 @@ void main() {
         mockHttpClient.get(ApiEndpoints.rssMaariv),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
-        mockHttpClient.get(ApiEndpoints.rssMako),
-      ).thenAnswer((_) async => '<rss><channel></channel></rss>');
-      when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
 
@@ -320,9 +298,6 @@ void main() {
       );
       when(
         mockHttpClient.get(ApiEndpoints.rssMaariv),
-      ).thenAnswer((_) async => '<rss><channel></channel></rss>');
-      when(
-        mockHttpClient.get(ApiEndpoints.rssMako),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
@@ -347,9 +322,6 @@ void main() {
         mockHttpClient.get(ApiEndpoints.rssMaariv),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
-        mockHttpClient.get(ApiEndpoints.rssMako),
-      ).thenAnswer((_) async => '<rss><channel></channel></rss>');
-      when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
 
@@ -370,9 +342,6 @@ void main() {
       );
       when(
         mockHttpClient.get(ApiEndpoints.rssMaariv),
-      ).thenAnswer((_) async => '<rss><channel></channel></rss>');
-      when(
-        mockHttpClient.get(ApiEndpoints.rssMako),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),
@@ -408,9 +377,6 @@ void main() {
       );
       when(
         mockHttpClient.get(ApiEndpoints.rssMaariv),
-      ).thenAnswer((_) async => '<rss><channel></channel></rss>');
-      when(
-        mockHttpClient.get(ApiEndpoints.rssMako),
       ).thenAnswer((_) async => '<rss><channel></channel></rss>');
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),

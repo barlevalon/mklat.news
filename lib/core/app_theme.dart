@@ -90,8 +90,6 @@ class AppTheme {
         return const Color(0xFFE53935);
       case 'Maariv':
         return const Color(0xFF1565C0);
-      case 'Mako':
-        return const Color(0xFF00897B); // Mako teal
       case 'Haaretz':
         return const Color(0xFF2E7D32);
       default:

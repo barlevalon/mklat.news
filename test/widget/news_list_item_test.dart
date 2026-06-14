@@ -103,7 +103,6 @@ void main() {
       final sources = [
         (NewsSource.ynet, 'Y'),
         (NewsSource.maariv, 'M'),
-        (NewsSource.mako, 'M'),
         (NewsSource.haaretz, 'H'),
       ];
 

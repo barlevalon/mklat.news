@@ -31,12 +31,4 @@ class AppConstants {
     'User-Agent':
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
   };
-
-  // RSS Feed Sources
-  static const Map<String, String> rssSourceNames = {
-    'ynet.co.il': 'Ynet',
-    'maariv.co.il': 'Maariv',
-    'mako.co.il': 'Mako',
-    'haaretz.co.il': 'Haaretz',
-  };
 }

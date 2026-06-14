@@ -25,8 +25,6 @@ class ApiEndpoints {
       'https://www.ynet.co.il/Integration/StoryRss1854.xml';
   static const String rssMaariv =
       'https://www.maariv.co.il/Rss/RssFeedsMivzakiChadashot';
-  static const String rssMako =
-      'https://storage.googleapis.com/mako-sitemaps/rssHomepage.xml';
   static const String rssHaaretz = 'https://www.haaretz.co.il/srv/rss---feedly';
 
   // Tzeva Adom Fallback

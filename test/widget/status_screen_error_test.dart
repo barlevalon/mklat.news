@@ -416,7 +416,7 @@ void main() {
 
       // Loading should be gone, replaced with "no alerts" message
       expect(find.text('טוען...'), findsNothing);
-      expect(find.text('אין התרעות באזורים שלך'), findsOneWidget);
+      expect(find.text('לא נמצאו התרעות אחרונות באזורים שלך'), findsOneWidget);
     });
 
     testWidgets('offline state takes precedence over loading', (

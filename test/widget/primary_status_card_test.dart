@@ -53,7 +53,7 @@ void main() {
 
       // Should show the all clear title (default state)
       expect(find.text('אין התרעות'), findsOneWidget);
-      expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
+      expect(find.byIcon(Icons.check_rounded), findsOneWidget);
     });
 
     testWidgets('renders with location selector button', (
@@ -98,7 +98,7 @@ void main() {
       expect(find.byType(Container), findsWidgets);
 
       // Should have the cohesive Material status icon
-      expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
+      expect(find.byIcon(Icons.check_rounded), findsOneWidget);
 
       // Should have the title
       expect(find.text('אין התרעות'), findsOneWidget);
@@ -192,7 +192,7 @@ void main() {
 
         // Initially online - should show all clear
         expect(find.text('אין התרעות'), findsOneWidget);
-        expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
+        expect(find.byIcon(Icons.check_rounded), findsOneWidget);
 
         // Go offline
         controller.add(ConnectivityResult.none);
@@ -279,7 +279,7 @@ void main() {
 
         // Should show all clear again
         expect(find.text('אין התרעות'), findsOneWidget);
-        expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
+        expect(find.byIcon(Icons.check_rounded), findsOneWidget);
 
         await controller.close();
       });

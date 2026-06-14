@@ -79,8 +79,8 @@ class StatusHistoryModel {
     if (filteredAlerts.isEmpty) {
       return const StatusHistoryModel._(
         state: StatusHistoryState.empty,
-        message: AppStrings.noAlertsInYourAreas,
-        icon: Icons.check_circle,
+        message: AppStrings.noRecentAlertsInYourAreas,
+        icon: Icons.history_toggle_off,
       );
     }
 

@@ -26,7 +26,8 @@ class AppStrings {
   static const loading = 'טוען...';
   static const addLocationToSeeAlerts = 'הוסף מיקום כדי לראות התרעות';
   static const cannotShowAlertsNow = 'לא ניתן להציג התרעות כרגע';
-  static const noAlertsInYourAreas = 'אין התרעות באזורים שלך';
+  static const noRecentAlertsInYourAreas =
+      'לא נמצאו התרעות אחרונות באזורים שלך';
   static const loadAlertsError = 'שגיאה בטעינת התרעות';
   static const historyUnavailable = 'היסטוריה לא זמינה';
 

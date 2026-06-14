@@ -47,12 +47,6 @@ class PrimaryStatusCard extends StatelessWidget {
             child: Stack(
               children: [
                 Positioned.fill(child: ColoredBox(color: colors.background)),
-                PositionedDirectional(
-                  top: 0,
-                  bottom: 0,
-                  start: 0,
-                  child: Container(width: 6, color: colors.foreground),
-                ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 24, 24, 28),
                   child: Column(
@@ -150,7 +144,7 @@ class _StatusIcon extends StatelessWidget {
       case PrimaryStatusVisual.normal:
         switch (model.alertState) {
           case AlertState.allClear:
-            return Icons.check_circle_outline;
+            return Icons.check_rounded;
           case AlertState.alertImminent:
             return Icons.warning_amber_rounded;
           case AlertState.redAlert:
@@ -169,9 +163,8 @@ class _StatusIcon extends StatelessWidget {
       width: 116,
       height: 116,
       decoration: BoxDecoration(
-        color: AppTheme.statusCardSurface(context),
+        color: AppTheme.statusCardSurface(context).withAlpha(230),
         shape: BoxShape.circle,
-        border: Border.all(color: color, width: 2),
       ),
       child: Icon(_icon, size: 64, color: color),
     );

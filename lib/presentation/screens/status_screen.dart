@@ -150,7 +150,6 @@ class _StatusScreenState extends State<StatusScreen> {
         return ContentStatePlaceholder(
           icon: model.icon!,
           message: model.message!,
-          iconColor: Colors.green.shade300,
         );
       case StatusHistoryState.offline:
       case StatusHistoryState.noLocations:

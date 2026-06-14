@@ -78,7 +78,7 @@ jobs:
               --arg type "${type}" \
               --arg name "${name}" \
               --arg content "${content}" \
-              '{type:$type,name:$name,content:$content,ttl:1,proxied:false}' |
+              '{type:$type,name:$name,content:$content,ttl:1,proxied:true}' |
               curl -fsS -X POST "${auth[@]}" --data @- "${api}" >/dev/null
           }
 

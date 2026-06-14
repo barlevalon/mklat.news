@@ -135,18 +135,6 @@ class Alert {
     };
   }
 
-  /// Creates an Alert from an OREF AlertsHistory.json array entry.
-  factory Alert.fromOrefHistory(Map<String, dynamic> json) {
-    return Alert(
-      id: '${json['alertDate']}_${json['data']}',
-      location: json['data'] as String,
-      title: json['title'] as String,
-      desc: null,
-      time: DateTime.parse(json['alertDate'] as String),
-      category: json['category'] as int,
-    );
-  }
-
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

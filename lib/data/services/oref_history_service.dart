@@ -1,5 +1,6 @@
 import 'dart:convert';
 import '../../core/api_endpoints.dart';
+import '../mappers/oref_history_alert_mapper.dart';
 import '../models/alert.dart';
 import 'http_client.dart';
 
@@ -38,7 +39,7 @@ class OrefHistoryService {
       final alerts = <Alert>[];
       for (final entry in json.whereType<Map<String, dynamic>>()) {
         try {
-          alerts.add(Alert.fromOrefHistory(entry));
+          alerts.add(OrefHistoryAlertMapper.toAlert(entry));
         } catch (e) {
           // One malformed history row should not discard the whole history feed.
         }

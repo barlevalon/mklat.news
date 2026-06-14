@@ -86,6 +86,9 @@ jobs:
           for ip in 185.199.108.153 185.199.109.153 185.199.110.153 185.199.111.153; do
             create_record A "${CLOUDFLARE_DOMAIN}" "${ip}"
           done
+          for ip in 2606:50c0:8000::153 2606:50c0:8001::153 2606:50c0:8002::153 2606:50c0:8003::153; do
+            create_record AAAA "${CLOUDFLARE_DOMAIN}" "${ip}"
+          done
 
           delete_records_for_name "www.${CLOUDFLARE_DOMAIN}"
           create_record CNAME "www.${CLOUDFLARE_DOMAIN}" "${GITHUB_PAGES_HOST}"

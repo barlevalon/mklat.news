@@ -1,3 +1,4 @@
+import '../../core/app_strings.dart';
 import '../../domain/alert_state.dart';
 
 enum PrimaryStatusVisual { normal, offline, error }
@@ -30,7 +31,7 @@ class PrimaryStatusModel {
         visual: PrimaryStatusVisual.offline,
         alertState: AlertState.allClear,
         icon: '📡',
-        title: 'אין חיבור',
+        title: AppStrings.noConnection,
         instruction: null,
         elapsedStartTime: null,
       );
@@ -41,8 +42,8 @@ class PrimaryStatusModel {
         visual: PrimaryStatusVisual.error,
         alertState: AlertState.allClear,
         icon: '⚠️',
-        title: 'מצב לא ידוע',
-        instruction: 'לא ניתן לאמת התרעות כרגע',
+        title: AppStrings.unknownStatus,
+        instruction: AppStrings.cannotVerifyAlerts,
         elapsedStartTime: null,
       );
     }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/app_strings.dart';
 import '../../core/app_theme.dart';
 import '../providers/alerts_provider.dart';
 import '../providers/location_provider.dart';
@@ -45,7 +46,10 @@ class NationwideSummary extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                '$userLocationCount באזורים שלך • $nationwideCount ברחבי הארץ',
+                AppStrings.nationwideAlertSummary(
+                  userLocationCount,
+                  nationwideCount,
+                ),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppTheme.nationwideSummaryText(context),
                   fontWeight: FontWeight.w500,

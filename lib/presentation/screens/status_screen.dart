@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/app_strings.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
 import '../models/status_history_model.dart';
@@ -108,7 +109,7 @@ class _StatusScreenState extends State<StatusScreen> {
                         ),
                       ),
                       Text(
-                        'התרעות אחרונות',
+                        AppStrings.recentAlerts,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: AppTheme.mutedTextColor(context),
                         ),
@@ -126,7 +127,7 @@ class _StatusScreenState extends State<StatusScreen> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
-                      'מציג שעה אחרונה',
+                      AppStrings.showingLastHour,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: AppTheme.subtleTextColor(context),
                         fontSize: 11,
@@ -174,7 +175,7 @@ class _StatusScreenState extends State<StatusScreen> {
                 child: Center(
                   child: TextButton(
                     onPressed: _loadMore,
-                    child: const Text('טען עוד'),
+                    child: const Text(AppStrings.loadMore),
                   ),
                 ),
               );

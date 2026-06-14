@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/app_strings.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
 import '../../data/models/saved_location.dart';
@@ -45,7 +46,7 @@ class LocationManagementModal extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'המיקומים שלי',
+                          AppStrings.myLocations,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -78,7 +79,7 @@ class LocationManagementModal extends StatelessWidget {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () => _openAddLocation(context),
-                          child: const Text('הוסף מיקום'),
+                          child: const Text(AppStrings.addLocation),
                         ),
                       ),
                     ),
@@ -103,12 +104,12 @@ class LocationManagementModal extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(32),
       child: ContentStatePlaceholder(
-        message: 'אין מיקומים שמורים',
+        message: AppStrings.noSavedLocations,
         children: [
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () => _openAddLocation(context),
-            child: const Text('הוסף מיקום ראשון'),
+            child: const Text(AppStrings.addFirstLocation),
           ),
         ],
       ),

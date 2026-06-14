@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/app_strings.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
 import '../providers/news_provider.dart';
@@ -32,7 +33,7 @@ class NewsScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      'מבזקי חדשות',
+                      AppStrings.newsTitle,
                       style: Theme.of(context).textTheme.headlineSmall,
                       textAlign: TextAlign.center,
                     ),
@@ -71,7 +72,7 @@ class NewsScreen extends StatelessWidget {
     if (isOffline && newsProvider.newsItems.isEmpty) {
       return ContentStatePlaceholder(
         icon: Icons.wifi_off,
-        message: 'אין חיבור לאינטרנט',
+        message: AppStrings.noInternetConnection,
         iconColor: AppTheme.mutedTextColor(context),
         textColor: AppTheme.mutedTextColor(context),
       );
@@ -80,7 +81,7 @@ class NewsScreen extends StatelessWidget {
     if (newsProvider.newsItems.isEmpty) {
       return ContentStatePlaceholder(
         icon: Icons.article_outlined,
-        message: 'אין מבזקים חדשים',
+        message: AppStrings.noNewsItems,
         iconColor: AppTheme.mutedTextColor(context),
         textColor: AppTheme.mutedTextColor(context),
       );

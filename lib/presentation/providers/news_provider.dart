@@ -1,3 +1,4 @@
+import '../../core/app_strings.dart';
 import 'package:flutter/foundation.dart';
 import '../../data/models/news_item.dart';
 
@@ -23,7 +24,7 @@ class NewsProvider extends ChangeNotifier {
   void onError(Object error) {
     _isLoading = false;
     if (_newsItems.isEmpty) {
-      _errorMessage = 'שגיאה בטעינת חדשות';
+      _errorMessage = AppStrings.loadNewsError;
     }
     // If we have existing news, keep showing them (don't show error)
     notifyListeners();

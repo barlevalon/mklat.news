@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/app_strings.dart';
 import 'package:provider/provider.dart';
 import '../providers/location_provider.dart';
 import '../screens/location_management_modal.dart';
@@ -13,7 +14,8 @@ class LocationSelectorButton extends StatelessWidget {
     return Consumer<LocationProvider>(
       builder: (context, locationProvider, child) {
         final primaryLocation = locationProvider.primaryLocation;
-        final displayText = primaryLocation?.displayLabel ?? 'בחר אזור';
+        final displayText =
+            primaryLocation?.displayLabel ?? AppStrings.chooseArea;
         final iconColor = Theme.of(
           context,
         ).colorScheme.onSurface.withValues(alpha: 0.54);

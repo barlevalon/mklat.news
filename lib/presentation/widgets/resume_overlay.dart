@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../core/app_strings.dart';
 import 'package:provider/provider.dart';
 import '../providers/alerts_provider.dart';
 
 /// Semi-transparent overlay shown when the app resumes from background.
 ///
-/// Displays "מתעדכן..." text with a loading spinner until fresh data arrives.
+/// Displays refresh text with a loading spinner until fresh data arrives.
 /// Uses IgnorePointer when not showing to allow interaction with underlying content.
 class ResumeOverlay extends StatelessWidget {
   const ResumeOverlay({super.key});
@@ -32,7 +33,7 @@ class ResumeOverlay extends StatelessWidget {
                   const CircularProgressIndicator(color: Colors.white),
                   const SizedBox(height: 16),
                   Text(
-                    'מתעדכן...',
+                    AppStrings.refreshing,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,

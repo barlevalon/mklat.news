@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../core/app_strings.dart';
 import 'package:provider/provider.dart';
 import '../providers/connectivity_provider.dart';
 
 /// Persistent banner shown at the top of the screen when connectivity is lost.
 ///
-/// Shows an orange/amber banner with wifi-off icon and "אין חיבור לאינטרנט" text.
+/// Shows an orange/amber banner with wifi-off icon and offline text.
 /// Auto-hides when connectivity is restored with animated slide in/out.
 class OfflineBanner extends StatelessWidget {
   const OfflineBanner({super.key});
@@ -31,7 +32,7 @@ class OfflineBanner extends StatelessWidget {
                   Icon(Icons.wifi_off, color: Colors.white, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    'אין חיבור לאינטרנט',
+                    AppStrings.noInternetConnection,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 14,

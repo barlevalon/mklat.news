@@ -1,3 +1,4 @@
+import '../../core/app_strings.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/models/alert.dart';
@@ -39,7 +40,7 @@ class StatusHistoryModel {
     if (isOffline) {
       return const StatusHistoryModel._(
         state: StatusHistoryState.offline,
-        message: 'ממתין לחיבור לאינטרנט...',
+        message: AppStrings.waitingForInternet,
         icon: Icons.signal_wifi_off,
       );
     }
@@ -47,14 +48,14 @@ class StatusHistoryModel {
     if (isLoading && filteredAlerts.isEmpty) {
       return const StatusHistoryModel._(
         state: StatusHistoryState.loading,
-        message: 'טוען...',
+        message: AppStrings.loading,
       );
     }
 
     if (!hasLocations) {
       return const StatusHistoryModel._(
         state: StatusHistoryState.noLocations,
-        message: 'הוסף מיקום כדי לראות התרעות',
+        message: AppStrings.addLocationToSeeAlerts,
         icon: Icons.location_off,
       );
     }
@@ -62,7 +63,7 @@ class StatusHistoryModel {
     if (currentAlertError != null && filteredAlerts.isEmpty) {
       return const StatusHistoryModel._(
         state: StatusHistoryState.currentAlertError,
-        message: 'לא ניתן להציג התרעות כרגע',
+        message: AppStrings.cannotShowAlertsNow,
         icon: Icons.cloud_off,
       );
     }
@@ -78,7 +79,7 @@ class StatusHistoryModel {
     if (filteredAlerts.isEmpty) {
       return const StatusHistoryModel._(
         state: StatusHistoryState.empty,
-        message: 'אין התרעות באזורים שלך',
+        message: AppStrings.noAlertsInYourAreas,
         icon: Icons.check_circle,
       );
     }

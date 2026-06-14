@@ -1,3 +1,4 @@
+import '../../core/app_strings.dart';
 import 'package:flutter/foundation.dart';
 import '../../data/models/alert.dart';
 import '../../domain/alert_state.dart';
@@ -86,7 +87,7 @@ class AlertsProvider extends ChangeNotifier {
     _currentAlerts = [];
     _alertHistory = [];
     _isLoading = false;
-    _errorMessage = 'שגיאה בטעינת התרעות';
+    _errorMessage = AppStrings.loadAlertsError;
     _historyErrorMessage = null;
     _lastUpdated = null;
     notifyListeners();
@@ -94,7 +95,7 @@ class AlertsProvider extends ChangeNotifier {
 
   /// Called by polling manager when current alerts succeeded but history failed.
   void onHistoryError(Object error) {
-    _historyErrorMessage = 'היסטוריה לא זמינה';
+    _historyErrorMessage = AppStrings.historyUnavailable;
     notifyListeners();
   }
 

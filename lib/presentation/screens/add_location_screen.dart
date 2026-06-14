@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/app_strings.dart';
 import 'package:provider/provider.dart';
 import '../../data/models/oref_location.dart';
 import '../../data/models/saved_location.dart';
@@ -39,9 +40,9 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
 
   void _saveLocation(BuildContext context) {
     if (_selectedLocation == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('יש לבחור אזור')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(AppStrings.chooseAreaRequired)),
+      );
       return;
     }
 
@@ -51,9 +52,9 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
     if (locationProvider.locations.any(
       (l) => l.orefName == _selectedLocation!.name,
     )) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('מיקום זה כבר קיים ברשימה')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(AppStrings.duplicateLocation)),
+      );
       return;
     }
 
@@ -74,7 +75,9 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
     List<OrefLocation> filteredLocations,
   ) {
     if (locationProvider.isLoadingAvailableLocations) {
-      return const LoadingStatePlaceholder(message: 'טוען רשימת אזורים...');
+      return const LoadingStatePlaceholder(
+        message: AppStrings.loadingLocations,
+      );
     }
 
     final errorMessage = locationProvider.availableLocationsErrorMessage;
@@ -84,12 +87,12 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
         message: errorMessage,
         iconColor: Theme.of(context).colorScheme.error,
         textColor: Theme.of(context).colorScheme.error,
-        children: const [SizedBox(height: 8), Text('נסו שוב מאוחר יותר')],
+        children: const [SizedBox(height: 8), Text(AppStrings.tryAgainLater)],
       );
     }
 
     if (filteredLocations.isEmpty) {
-      return const ContentStatePlaceholder(message: 'לא נמצאו תוצאות');
+      return const ContentStatePlaceholder(message: AppStrings.noResults);
     }
 
     return ListView.builder(
@@ -119,7 +122,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('הוסף מיקום'),
+          title: const Text(AppStrings.addLocation),
           leading: IconButton(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.close),
@@ -138,21 +141,21 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                 children: [
                   // Custom label field
                   const Text(
-                    'שם מותאם (לא חובה)',
+                    AppStrings.customLabelOptional,
                     style: TextStyle(fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _labelController,
                     decoration: const InputDecoration(
-                      hintText: 'בית, עבודה...',
+                      hintText: AppStrings.customLabelHint,
                       border: OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 24),
                   // Search field
                   const Text(
-                    'בחר אזור',
+                    AppStrings.chooseArea,
                     style: TextStyle(fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 8),
@@ -164,7 +167,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                       });
                     },
                     decoration: const InputDecoration(
-                      hintText: 'חיפוש...',
+                      hintText: AppStrings.searchHint,
                       prefixIcon: Icon(Icons.search),
                       border: OutlineInputBorder(),
                     ),
@@ -180,7 +183,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                   ),
                   // Set as primary checkbox
                   CheckboxListTile(
-                    title: const Text('הגדר כמיקום ראשי'),
+                    title: const Text(AppStrings.setAsPrimary),
                     value: _setAsPrimary,
                     onChanged: (value) {
                       setState(() {
@@ -195,7 +198,7 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () => _saveLocation(context),
-                      child: const Text('שמור'),
+                      child: const Text(AppStrings.save),
                     ),
                   ),
                 ],

@@ -1,3 +1,4 @@
+import '../../core/app_strings.dart';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -130,11 +131,11 @@ class LocationProvider extends ChangeNotifier {
       locations.sort((a, b) => a.name.compareTo(b.name));
       _availableLocations = locations;
       _availableLocationsErrorMessage = locations.isEmpty
-          ? 'שגיאה בטעינת רשימת אזורים'
+          ? AppStrings.loadLocationsError
           : null;
     } catch (e) {
       _availableLocations = [];
-      _availableLocationsErrorMessage = 'שגיאה בטעינת רשימת אזורים';
+      _availableLocationsErrorMessage = AppStrings.loadLocationsError;
     }
 
     _isLoadingAvailableLocations = false;
@@ -155,7 +156,7 @@ class LocationProvider extends ChangeNotifier {
   void markAvailableLocationsFailedForTest() {
     _availableLocations = [];
     _isLoadingAvailableLocations = false;
-    _availableLocationsErrorMessage = 'שגיאה בטעינת רשימת אזורים';
+    _availableLocationsErrorMessage = AppStrings.loadLocationsError;
     notifyListeners();
   }
 }

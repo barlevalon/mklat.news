@@ -1,0 +1,54 @@
+class AppStrings {
+  const AppStrings._();
+
+  static const noConnection = 'אין חיבור';
+  static const noInternetConnection = 'אין חיבור לאינטרנט';
+  static const unknownStatus = 'מצב לא ידוע';
+  static const cannotVerifyAlerts = 'לא ניתן לאמת התרעות כרגע';
+
+  static const waitingForInternet = 'ממתין לחיבור לאינטרנט...';
+  static const loading = 'טוען...';
+  static const addLocationToSeeAlerts = 'הוסף מיקום כדי לראות התרעות';
+  static const cannotShowAlertsNow = 'לא ניתן להציג התרעות כרגע';
+  static const noAlertsInYourAreas = 'אין התרעות באזורים שלך';
+  static const loadAlertsError = 'שגיאה בטעינת התרעות';
+  static const historyUnavailable = 'היסטוריה לא זמינה';
+
+  static const newsTitle = 'מבזקי חדשות';
+  static const loadNewsError = 'שגיאה בטעינת חדשות';
+  static const noNewsItems = 'אין מבזקים חדשים';
+
+  static const loadLocationsError = 'שגיאה בטעינת רשימת אזורים';
+  static const loadingLocations = 'טוען רשימת אזורים...';
+  static const tryAgainLater = 'נסו שוב מאוחר יותר';
+  static const noResults = 'לא נמצאו תוצאות';
+  static const addLocation = 'הוסף מיקום';
+  static const addFirstLocation = 'הוסף מיקום ראשון';
+  static const chooseArea = 'בחר אזור';
+  static const chooseAreaRequired = 'יש לבחור אזור';
+  static const duplicateLocation = 'מיקום זה כבר קיים ברשימה';
+  static const customLabelOptional = 'שם מותאם (לא חובה)';
+  static const customLabelHint = 'בית, עבודה...';
+  static const searchHint = 'חיפוש...';
+  static const setAsPrimary = 'הגדר כמיקום ראשי';
+  static const save = 'שמור';
+  static const myLocations = 'המיקומים שלי';
+  static const noSavedLocations = 'אין מיקומים שמורים';
+
+  static const recentAlerts = 'התרעות אחרונות';
+  static const showingLastHour = 'מציג שעה אחרונה';
+  static const loadMore = 'טען עוד';
+  static const refreshing = 'מתעדכן...';
+
+  static const editLocation = 'ערוך מיקום';
+  static const deleteLocation = 'מחק מיקום';
+  static const cancel = 'ביטול';
+  static const delete = 'מחק';
+  static const customLabel = 'שם מותאם';
+  static const area = 'אזור';
+  static const primaryLocation = 'מיקום ראשי';
+
+  static String deleteLocationPrompt(String label) => "למחוק את '$label'?";
+  static String nationwideAlertSummary(int userCount, int nationwideCount) =>
+      '$userCount באזורים שלך • $nationwideCount ברחבי הארץ';
+}

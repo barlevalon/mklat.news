@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../core/app_strings.dart';
 import '../../core/app_theme.dart';
 import '../../data/models/saved_location.dart';
 import '../providers/location_provider.dart';
@@ -48,12 +49,14 @@ class _EditLocationScreenState extends State<EditLocationScreen> {
       builder: (context) => Directionality(
         textDirection: TextDirection.rtl,
         child: AlertDialog(
-          title: const Text('מחק מיקום'),
-          content: Text("למחוק את '${widget.location.displayLabel}'?"),
+          title: const Text(AppStrings.deleteLocation),
+          content: Text(
+            AppStrings.deleteLocationPrompt(widget.location.displayLabel),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('ביטול'),
+              child: const Text(AppStrings.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -62,7 +65,10 @@ class _EditLocationScreenState extends State<EditLocationScreen> {
                 Navigator.pop(context); // close dialog
                 Navigator.pop(context); // close edit screen
               },
-              child: const Text('מחק', style: TextStyle(color: Colors.red)),
+              child: const Text(
+                AppStrings.delete,
+                style: TextStyle(color: Colors.red),
+              ),
             ),
           ],
         ),
@@ -76,7 +82,7 @@ class _EditLocationScreenState extends State<EditLocationScreen> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('ערוך מיקום'),
+          title: const Text(AppStrings.editLocation),
           leading: IconButton(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.close),
@@ -89,7 +95,7 @@ class _EditLocationScreenState extends State<EditLocationScreen> {
             children: [
               // Custom label field
               const Text(
-                'שם מותאם',
+                AppStrings.customLabel,
                 style: TextStyle(fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 8),
@@ -99,7 +105,10 @@ class _EditLocationScreenState extends State<EditLocationScreen> {
               ),
               const SizedBox(height: 24),
               // OREF name (read-only)
-              const Text('אזור', style: TextStyle(fontWeight: FontWeight.w500)),
+              const Text(
+                AppStrings.area,
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
@@ -119,7 +128,7 @@ class _EditLocationScreenState extends State<EditLocationScreen> {
               const SizedBox(height: 16),
               // Primary checkbox
               CheckboxListTile(
-                title: const Text('מיקום ראשי'),
+                title: const Text(AppStrings.primaryLocation),
                 value: _isPrimary,
                 onChanged: (value) {
                   setState(() {
@@ -135,7 +144,7 @@ class _EditLocationScreenState extends State<EditLocationScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () => _saveLocation(context),
-                      child: const Text('שמור'),
+                      child: const Text(AppStrings.save),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -145,7 +154,7 @@ class _EditLocationScreenState extends State<EditLocationScreen> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.red,
                       ),
-                      child: const Text('מחק'),
+                      child: const Text(AppStrings.delete),
                     ),
                   ),
                 ],

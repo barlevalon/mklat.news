@@ -8,7 +8,7 @@ mklat.news is a Hebrew-first Flutter mobile app for Israeli emergency-alert stat
 
 User-facing download and install docs live in GitHub Pages:
 
-- [mklat.news user docs](https://barlevalon.github.io/mklat.news/)
+- [mklat.news user site](https://mklat.news/)
 - [GitHub Releases](https://github.com/barlevalon/mklat.news/releases)
 
 This repository contains the Flutter mobile app, user docs, and Android release automation.
@@ -134,9 +134,9 @@ The `Android APK` workflow validates, builds, uploads an Actions artifact, and a
 
 Manual publishing is also available from **Actions → Android APK → Run workflow** with `publish_release` enabled.
 
-CI uses the GitHub workflow run number as Android `versionCode`, so each release APK can update over the previous APK once signing is stable.
+CI uses the GitHub workflow run number as Android `versionCode`, so each release APK can update over the previous APK.
 
-Current caveat: Android release builds use the debug signing config. That is acceptable for internal sideloading, but stable public distribution should move to a real release keystore stored in GitHub Actions secrets.
+Tagged Android releases are signed with the stable release keystore stored in GitHub Actions secrets. Local release builds use debug signing unless `ANDROID_KEYSTORE_PATH`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD` are exported.
 
 ## CI workflows
 

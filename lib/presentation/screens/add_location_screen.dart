@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../data/models/oref_location.dart';
 import '../../data/models/saved_location.dart';
 import '../providers/location_provider.dart';
+import '../widgets/content_state_placeholder.dart';
 
 class AddLocationScreen extends StatefulWidget {
   const AddLocationScreen({super.key});
@@ -73,40 +74,22 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
     List<OrefLocation> filteredLocations,
   ) {
     if (locationProvider.isLoadingAvailableLocations) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('טוען רשימת אזורים...'),
-          ],
-        ),
-      );
+      return const LoadingStatePlaceholder(message: 'טוען רשימת אזורים...');
     }
 
     final errorMessage = locationProvider.availableLocationsErrorMessage;
     if (errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: Theme.of(context).colorScheme.error,
-            ),
-            const SizedBox(height: 16),
-            Text(errorMessage),
-            const SizedBox(height: 8),
-            const Text('נסו שוב מאוחר יותר'),
-          ],
-        ),
+      return ContentStatePlaceholder(
+        icon: Icons.error_outline,
+        message: errorMessage,
+        iconColor: Theme.of(context).colorScheme.error,
+        textColor: Theme.of(context).colorScheme.error,
+        children: const [SizedBox(height: 8), Text('נסו שוב מאוחר יותר')],
       );
     }
 
     if (filteredLocations.isEmpty) {
-      return const Center(child: Text('לא נמצאו תוצאות'));
+      return const ContentStatePlaceholder(message: 'לא נמצאו תוצאות');
     }
 
     return ListView.builder(

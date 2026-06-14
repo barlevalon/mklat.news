@@ -9,6 +9,7 @@ import '../widgets/primary_status_card.dart';
 import '../widgets/secondary_locations_row.dart';
 import '../widgets/nationwide_summary.dart';
 import '../widgets/alert_list_item.dart';
+import '../widgets/content_state_placeholder.dart';
 
 class StatusScreen extends StatefulWidget {
   const StatusScreen({super.key});
@@ -145,9 +146,9 @@ class _StatusScreenState extends State<StatusScreen> {
   Widget _buildAlertsList(StatusHistoryModel model) {
     switch (model.state) {
       case StatusHistoryState.loading:
-        return _buildLoadingMessage(model.message!);
+        return LoadingStatePlaceholder(message: model.message!);
       case StatusHistoryState.empty:
-        return _buildCenteredMessage(
+        return ContentStatePlaceholder(
           icon: model.icon!,
           message: model.message!,
           iconColor: Colors.green.shade300,
@@ -156,7 +157,7 @@ class _StatusScreenState extends State<StatusScreen> {
       case StatusHistoryState.noLocations:
       case StatusHistoryState.currentAlertError:
       case StatusHistoryState.historyError:
-        return _buildCenteredMessage(
+        return ContentStatePlaceholder(
           icon: model.icon!,
           message: model.message!,
         );
@@ -181,49 +182,5 @@ class _StatusScreenState extends State<StatusScreen> {
           },
         );
     }
-  }
-
-  Widget _buildLoadingMessage(String message) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircularProgressIndicator(),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppTheme.placeholderColor(context),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCenteredMessage({
-    required IconData icon,
-    required String message,
-    Color? iconColor,
-  }) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 48,
-            color: iconColor ?? AppTheme.placeholderIconColor(context),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppTheme.placeholderColor(context),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

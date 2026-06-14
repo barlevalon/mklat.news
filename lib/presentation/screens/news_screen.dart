@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
 import '../providers/news_provider.dart';
 import '../providers/connectivity_provider.dart';
+import '../widgets/content_state_placeholder.dart';
 import '../widgets/news_list_item.dart';
 
 class NewsScreen extends StatelessWidget {
@@ -54,67 +55,34 @@ class NewsScreen extends StatelessWidget {
     bool isOffline,
   ) {
     if (newsProvider.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const LoadingStatePlaceholder();
     }
 
     if (newsProvider.errorMessage != null && newsProvider.newsItems.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 48,
-              color: AppTheme.errorIndicatorColor(context),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              newsProvider.errorMessage!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-          ],
-        ),
+      return ContentStatePlaceholder(
+        icon: Icons.error_outline,
+        message: newsProvider.errorMessage!,
+        iconColor: AppTheme.errorIndicatorColor(context),
+        textColor: Theme.of(context).colorScheme.error,
       );
     }
 
     // Offline and empty: show offline-specific message
     if (isOffline && newsProvider.newsItems.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.wifi_off,
-              size: 48,
-              color: AppTheme.mutedTextColor(context),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'אין חיבור לאינטרנט',
-              style: TextStyle(color: AppTheme.mutedTextColor(context)),
-            ),
-          ],
-        ),
+      return ContentStatePlaceholder(
+        icon: Icons.wifi_off,
+        message: 'אין חיבור לאינטרנט',
+        iconColor: AppTheme.mutedTextColor(context),
+        textColor: AppTheme.mutedTextColor(context),
       );
     }
 
     if (newsProvider.newsItems.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.article_outlined,
-              size: 48,
-              color: AppTheme.mutedTextColor(context),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'אין מבזקים חדשים',
-              style: TextStyle(color: AppTheme.mutedTextColor(context)),
-            ),
-          ],
-        ),
+      return ContentStatePlaceholder(
+        icon: Icons.article_outlined,
+        message: 'אין מבזקים חדשים',
+        iconColor: AppTheme.mutedTextColor(context),
+        textColor: AppTheme.mutedTextColor(context),
       );
     }
 

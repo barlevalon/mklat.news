@@ -30,7 +30,7 @@ mklat-news-<version>-android-v<release>.apk
 
 Download the APK from the newest release and install it.
 
-Current internal builds are debug-signed release APKs. If Android refuses to update the app because the signature does not match, uninstall the old app and install the new APK.
+Each GitHub release APK has an increasing Android build number. Current internal builds are still debug-signed release APKs, so if Android refuses to update because the signature does not match, uninstall the old app and install the new APK.
 
 ## What mklat.news shows
 

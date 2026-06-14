@@ -71,6 +71,8 @@ jobs:
 
       - name: Validate, test, and build release APK
         run: make release-check-ci
+        env:
+          BUILD_NUMBER: ${{ github.run_number }}
 
       - name: Rename APK artifact
         shell: bash
@@ -78,8 +80,9 @@ jobs:
           set -euo pipefail
           mkdir -p release
           version=$(awk '/^version:/ { print $2; exit }' pubspec.yaml)
+          build_name=${version%%+*}
           safe_ref=$(printf '%s' "${GITHUB_REF_NAME:-manual}" | tr '/ ' '--')
-          apk="release/mklat-news-${version}-${safe_ref}.apk"
+          apk="release/mklat-news-${build_name}-${safe_ref}.apk"
           cp dist/*.apk "$apk"
           echo "APK_PATH=$apk" >> "$GITHUB_ENV"
           ls -lh "$apk"

@@ -44,6 +44,7 @@ check: format analyze test-all
 
 # Build a shareable universal release APK and copy it to dist/ with a human name.
 # Override with: make release-apk BUILD_NAME=1.2.3 BUILD_NUMBER=45
+# BUILD_NUMBER is embedded as Android versionCode; the filename keeps only BUILD_NAME.
 release-apk:
 	@set -e; \
 	version=$$(awk '/^version:/ { print $$2; exit }' pubspec.yaml); \
@@ -52,7 +53,7 @@ release-apk:
 	echo "Building release APK $$build_name+$$build_number..."; \
 	flutter build apk --release --build-name "$$build_name" --build-number "$$build_number"; \
 	mkdir -p dist; \
-	artifact="dist/mklat-news-$$build_name+$$build_number.apk"; \
+	artifact="dist/mklat-news-$$build_name-android.apk"; \
 	cp build/app/outputs/flutter-apk/app-release.apk "$$artifact"; \
 	ls -lh "$$artifact"
 
@@ -65,7 +66,7 @@ release-apk-ci:
 	echo "Building release APK $$build_name+$$build_number..."; \
 	flutter build apk --release --build-name "$$build_name" --build-number "$$build_number"; \
 	mkdir -p dist; \
-	artifact="dist/mklat-news-$$build_name+$$build_number.apk"; \
+	artifact="dist/mklat-news-$$build_name-android.apk"; \
 	cp build/app/outputs/flutter-apk/app-release.apk "$$artifact"; \
 	ls -lh "$$artifact"
 

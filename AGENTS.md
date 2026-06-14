@@ -71,18 +71,6 @@ tool/
 └── generate_test_fixtures.dart  # Script to regenerate test_fixtures.dart
 ```
 
-## Legacy Web App (Reference Only)
-
-The existing web app code in `src/`, `public/`, etc. is being superseded by the Flutter mobile app.
-It remains as reference for business logic patterns but should not be modified.
-
-Key reference files:
-- `src/utils/alert-state-machine.js` - Alert state machine logic
-- `src/utils/location-matcher.js` - Location matching algorithms
-- `src/services/oref.service.js` - OREF API integration patterns
-- `src/utils/html-parser.util.js` - Historical alerts HTML parsing
-- `src/config/constants.js` - API endpoints, fallback location list (~1,425 locations)
-
 ## Build & Run
 
 ```bash

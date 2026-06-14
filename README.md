@@ -11,7 +11,7 @@ User-facing download and install docs live in GitHub Pages:
 - [mklat.news user docs](https://barlevalon.github.io/mklat.news/)
 - [GitHub Releases](https://github.com/barlevalon/mklat.news/releases)
 
-The legacy web app remains in this repository for reference only. Active development is the Flutter mobile app under `lib/`, `test/`, `integration_test/`, `android/`, and `ios/`.
+This repository contains the Flutter mobile app, user docs, and Android release automation.
 
 ## Repo map
 
@@ -117,7 +117,7 @@ make release-apk BUILD_NAME=1.0.1 BUILD_NUMBER=2
 Outputs:
 
 ```text
-dist/mklat-news-<version>+<build>.apk
+dist/mklat-news-<version>-android.apk
 build/app/outputs/flutter-apk/app-release.apk
 ```
 
@@ -134,13 +134,14 @@ The `Android APK` workflow validates, builds, uploads an Actions artifact, and a
 
 Manual publishing is also available from **Actions → Android APK → Run workflow** with `publish_release` enabled.
 
+CI uses the GitHub workflow run number as Android `versionCode`, so each release APK can update over the previous APK once signing is stable.
+
 Current caveat: Android release builds use the debug signing config. That is acceptable for internal sideloading, but stable public distribution should move to a real release keystore stored in GitHub Actions secrets.
 
 ## CI workflows
 
 - `Android APK`: validates and builds APKs on relevant `main` pushes and release tags. Uses per-ref concurrency.
-- GitHub Pages publishes `docs/` as the user-facing site.
-- Legacy web deployment workflows still exist for historical web-app infrastructure.
+- GitHub Pages publishes `docs/` as the user-facing install and safety site.
 
 ## Architecture boundaries
 
@@ -170,18 +171,6 @@ OREF requests require browser-like headers. Check `HttpClient` and OREF service 
 3. Emulator-backed Flutter integration tests under `integration_test/`.
 
 Fixture bytes live under `test/fixtures/responses/`. Keep raw bytes when testing decoding, charset, BOM, or Hebrew mojibake behavior.
-
-## Legacy web app
-
-Legacy web code is in `src/`, `public/`, `landing/`, and related Node/Vite files. Treat it as reference-only for mobile development.
-
-Useful reference files:
-
-- `src/utils/alert-state-machine.js`
-- `src/utils/location-matcher.js`
-- `src/services/oref.service.js`
-- `src/utils/html-parser.util.js`
-- `src/config/constants.js`
 
 ## License
 

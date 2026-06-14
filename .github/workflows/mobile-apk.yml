@@ -1,0 +1,126 @@
+name: Mobile APK
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+      - 'mobile-v*'
+    paths:
+      - 'android/**'
+      - 'assets/**'
+      - 'integration_test/**'
+      - 'lib/**'
+      - 'test/**'
+      - 'tool/**'
+      - 'analysis_options.yaml'
+      - 'build.yaml'
+      - 'Makefile'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/mobile-apk.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'assets/**'
+      - 'integration_test/**'
+      - 'lib/**'
+      - 'test/**'
+      - 'tool/**'
+      - 'analysis_options.yaml'
+      - 'build.yaml'
+      - 'Makefile'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.github/workflows/mobile-apk.yml'
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: 'Create/update a GitHub Release with the APK'
+        required: true
+        default: false
+        type: boolean
+      release_tag:
+        description: 'Release tag for manual publishing, e.g. mobile-v0.1.0. Empty = mobile-<short-sha>.'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: Validate and build APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.7'
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Validate, test, and build release APK
+        run: make release-check
+
+      - name: Rename APK artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          version=$(awk '/^version:/ { print $2; exit }' pubspec.yaml)
+          safe_ref=$(printf '%s' "${GITHUB_REF_NAME:-manual}" | tr '/ ' '--')
+          apk="release/mklat-news-${version}-${safe_ref}.apk"
+          cp dist/*.apk "$apk"
+          echo "APK_PATH=$apk" >> "$GITHUB_ENV"
+          ls -lh "$apk"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mklat-news-apk-${{ github.run_number }}
+          path: ${{ env.APK_PATH }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Resolve release tag
+        id: release-tag
+        if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.publish_release)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            tag="${GITHUB_REF_NAME}"
+          elif [[ -n "${{ inputs.release_tag }}" ]]; then
+            tag="${{ inputs.release_tag }}"
+          else
+            tag="mobile-${GITHUB_SHA::7}"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.publish_release)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.release-tag.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: mklat.news ${{ steps.release-tag.outputs.tag }}
+          files: ${{ env.APK_PATH }}
+          fail_on_unmatched_files: true
+          generate_release_notes: true

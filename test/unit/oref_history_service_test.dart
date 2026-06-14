@@ -133,6 +133,48 @@ void main() {
       expect(result[4].type, AlertCategory.other);
     });
 
+    test('malformed row is skipped without discarding valid history', () async {
+      final responseJson = '''
+        [
+          {"alertDate": "2026-03-04 14:00:00", "title": "ירי רקטות", "data": "רחובות", "category": 1},
+          {"alertDate": "not a date", "title": "שורה פגומה", "data": "חיפה", "category": 1},
+          {"alertDate": "2026-03-04 14:02:00", "title": "האירוע הסתיים", "data": "רחובות", "category": 13}
+        ]
+      ''';
+
+      when(
+        mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),
+      ).thenAnswer((_) async => responseJson);
+
+      final result = await service.fetchAlertHistory();
+
+      expect(result.length, 2);
+      expect(result.map((alert) => alert.title), [
+        'ירי רקטות',
+        'האירוע הסתיים',
+      ]);
+    });
+
+    test('non-map rows are ignored without discarding valid history', () async {
+      final responseJson = '''
+        [
+          {"alertDate": "2026-03-04 14:00:00", "title": "ירי רקטות", "data": "רחובות", "category": 1},
+          "bad row",
+          42,
+          null
+        ]
+      ''';
+
+      when(
+        mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),
+      ).thenAnswer((_) async => responseJson);
+
+      final result = await service.fetchAlertHistory();
+
+      expect(result.length, 1);
+      expect(result.single.location, 'רחובות');
+    });
+
     test('non-array response returns empty list', () async {
       when(
         mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),

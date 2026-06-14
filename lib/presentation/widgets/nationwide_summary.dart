@@ -1,64 +1,52 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../../core/app_strings.dart';
 import '../../core/app_theme.dart';
-import '../providers/alerts_provider.dart';
-import '../providers/location_provider.dart';
+import '../models/status_presentation_model.dart';
 
 class NationwideSummary extends StatelessWidget {
-  const NationwideSummary({super.key});
+  final NationwideSummaryModel? summary;
+
+  const NationwideSummary({super.key, required this.summary});
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<AlertsProvider, LocationProvider>(
-      builder: (context, alertsProvider, locationProvider, child) {
-        final nationwideCount = alertsProvider.nationwideAlertCount;
+    final summary = this.summary;
+    if (summary == null) {
+      return const SizedBox.shrink();
+    }
 
-        if (nationwideCount == 0) {
-          return const SizedBox.shrink();
-        }
-
-        final savedLocationNames = locationProvider.locations
-            .map((l) => l.orefName)
-            .toList();
-        final userLocationCount = alertsProvider.userLocationAlertCount(
-          savedLocationNames,
-        );
-
-        return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: AppTheme.nationwideSummaryBackground(context),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: AppTheme.nationwideSummaryBorder(context),
-              width: 1,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.nationwideSummaryBackground(context),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: AppTheme.nationwideSummaryBorder(context),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.warning_amber,
+            size: 16,
+            color: AppTheme.nationwideSummaryIcon(context),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            AppStrings.nationwideAlertSummary(
+              summary.userLocationCount,
+              summary.nationwideCount,
+            ),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: AppTheme.nationwideSummaryText(context),
+              fontWeight: FontWeight.w500,
             ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.warning_amber,
-                size: 16,
-                color: AppTheme.nationwideSummaryIcon(context),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                AppStrings.nationwideAlertSummary(
-                  userLocationCount,
-                  nationwideCount,
-                ),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.nationwideSummaryText(context),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

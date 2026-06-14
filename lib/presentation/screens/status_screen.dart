@@ -3,6 +3,7 @@ import '../../core/app_strings.dart';
 import 'package:provider/provider.dart';
 import '../../core/app_theme.dart';
 import '../models/status_history_model.dart';
+import '../models/status_presentation_model.dart';
 import '../providers/alerts_provider.dart';
 import '../providers/location_provider.dart';
 import '../providers/connectivity_provider.dart';
@@ -39,16 +40,12 @@ class _StatusScreenState extends State<StatusScreen> {
             connectivityProvider,
             child,
           ) {
-            final hasLocations = locationProvider.locations.isNotEmpty;
-            final isOffline = connectivityProvider.isOffline;
-            final historyModel = StatusHistoryModel.build(
+            final model = StatusPresentationModel.build(
+              currentAlerts: alertsProvider.currentAlerts,
               alertHistory: alertsProvider.alertHistory,
-              savedLocationNames: locationProvider.locations
-                  .map((location) => location.orefName)
-                  .toSet(),
+              savedLocations: locationProvider.locations,
               displayedItemCount: _displayedItemCount,
-              hasLocations: hasLocations,
-              isOffline: isOffline,
+              isOffline: connectivityProvider.isOffline,
               isLoading: alertsProvider.isLoading,
               currentAlertError: alertsProvider.errorMessage,
               historyError: alertsProvider.historyErrorMessage,
@@ -60,7 +57,7 @@ class _StatusScreenState extends State<StatusScreen> {
                 const PrimaryStatusCard(),
 
                 // Error indicator (shown when there's an error)
-                if (alertsProvider.errorMessage != null)
+                if (model.errorBanner != null)
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -76,7 +73,7 @@ class _StatusScreenState extends State<StatusScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          alertsProvider.errorMessage!,
+                          model.errorBanner!.message,
                           style: TextStyle(
                             fontSize: 12,
                             color: AppTheme.errorIndicatorColor(context),
@@ -87,15 +84,16 @@ class _StatusScreenState extends State<StatusScreen> {
                   ),
 
                 // Secondary locations row (if >1 saved location)
-                if (alertsProvider.errorMessage == null &&
-                    locationProvider.secondaryLocations.isNotEmpty)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 8),
-                    child: SecondaryLocationsRow(),
+                if (model.secondaryLocationChips.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: SecondaryLocationsRow(
+                      items: model.secondaryLocationChips,
+                    ),
                   ),
 
                 // Nationwide summary (if active alerts)
-                const NationwideSummary(),
+                NationwideSummary(summary: model.nationwideSummary),
 
                 // Recent alerts list header
                 Padding(
@@ -123,7 +121,7 @@ class _StatusScreenState extends State<StatusScreen> {
                     ],
                   ),
                 ),
-                if (!isOffline && historyModel.alerts.isNotEmpty)
+                if (model.showLastHourLabel)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
@@ -137,7 +135,7 @@ class _StatusScreenState extends State<StatusScreen> {
                   ),
 
                 // Alerts list (scrollable) - handles loading, offline, and content states
-                Expanded(child: _buildAlertsList(historyModel)),
+                Expanded(child: _buildAlertsList(model.history)),
               ],
             );
           },

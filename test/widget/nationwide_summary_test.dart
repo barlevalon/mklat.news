@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mklat/core/app_theme.dart';
 import 'package:mklat/presentation/widgets/nationwide_summary.dart';
+import 'package:mklat/presentation/models/status_presentation_model.dart';
 import 'package:mklat/presentation/providers/alerts_provider.dart';
 import 'package:mklat/presentation/providers/location_provider.dart';
 import 'package:mklat/data/models/alert.dart';
@@ -27,7 +28,18 @@ void main() {
               ChangeNotifierProvider.value(value: alertsProvider),
               ChangeNotifierProvider.value(value: locationProvider),
             ],
-            child: const Scaffold(body: NationwideSummary()),
+            child: Scaffold(
+              body: NationwideSummary(
+                summary: NationwideSummaryModel(
+                  userLocationCount: alertsProvider.userLocationAlertCount(
+                    locationProvider.locations
+                        .map((location) => location.orefName)
+                        .toList(),
+                  ),
+                  nationwideCount: alertsProvider.nationwideAlertCount,
+                ),
+              ),
+            ),
           ),
         ),
       );

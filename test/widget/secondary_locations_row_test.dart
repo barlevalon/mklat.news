@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:mklat/presentation/widgets/secondary_locations_row.dart';
+import 'package:mklat/presentation/models/status_presentation_model.dart';
 import 'package:mklat/presentation/providers/alerts_provider.dart';
 import 'package:mklat/presentation/providers/location_provider.dart';
 import 'package:mklat/presentation/providers/connectivity_provider.dart';
@@ -29,7 +30,37 @@ void main() {
               ChangeNotifierProvider.value(value: alertsProvider),
               ChangeNotifierProvider.value(value: connectivityProvider),
             ],
-            child: const Scaffold(body: SecondaryLocationsRow()),
+            child: Scaffold(
+              body:
+                  Consumer3<
+                    LocationProvider,
+                    AlertsProvider,
+                    ConnectivityProvider
+                  >(
+                    builder:
+                        (
+                          context,
+                          locationProvider,
+                          alertsProvider,
+                          connectivityProvider,
+                          child,
+                        ) {
+                          final model = StatusPresentationModel.build(
+                            currentAlerts: alertsProvider.currentAlerts,
+                            alertHistory: alertsProvider.alertHistory,
+                            savedLocations: locationProvider.locations,
+                            displayedItemCount: 20,
+                            isOffline: connectivityProvider.isOffline,
+                            isLoading: alertsProvider.isLoading,
+                            currentAlertError: alertsProvider.errorMessage,
+                            historyError: alertsProvider.historyErrorMessage,
+                          );
+                          return SecondaryLocationsRow(
+                            items: model.secondaryLocationChips,
+                          );
+                        },
+                  ),
+            ),
           ),
         ),
       );
@@ -288,7 +319,17 @@ void main() {
                 ChangeNotifierProvider.value(value: alertsProvider),
                 ChangeNotifierProvider.value(value: connectivityProvider),
               ],
-              child: const Scaffold(body: SecondaryLocationsRow()),
+              child: const Scaffold(
+                body: SecondaryLocationsRow(
+                  items: [
+                    SecondaryLocationChipModel(
+                      label: 'תל אביב',
+                      orefName: 'תל אביב',
+                      dotState: SecondaryLocationDotState.inactive,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -363,7 +404,17 @@ void main() {
                 ChangeNotifierProvider.value(value: alertsProvider),
                 ChangeNotifierProvider.value(value: connectivityProvider),
               ],
-              child: const Scaffold(body: SecondaryLocationsRow()),
+              child: const Scaffold(
+                body: SecondaryLocationsRow(
+                  items: [
+                    SecondaryLocationChipModel(
+                      label: 'תל אביב',
+                      orefName: 'תל אביב',
+                      dotState: SecondaryLocationDotState.inactive,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

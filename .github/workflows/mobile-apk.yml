@@ -76,6 +76,9 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Generate test mocks
+        run: dart run build_runner build --delete-conflicting-outputs
+
       - name: Validate, test, and build release APK
         run: make release-check
 

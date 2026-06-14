@@ -8,14 +8,12 @@ import 'package:mklat/main.dart';
 import 'package:mklat/presentation/providers/connectivity_provider.dart';
 import 'package:mklat/presentation/widgets/news_list_item.dart';
 import 'package:mklat/presentation/widgets/page_indicator.dart';
-import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'app_test.mocks.dart';
+import '../test/mocks/mock_package_http_client.dart';
 import 'test_fixtures.dart';
 
-@GenerateMocks([http.Client])
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 

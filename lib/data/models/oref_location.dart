@@ -29,28 +29,6 @@ class OrefLocation {
     this.shelterTimeSec,
   });
 
-  factory OrefLocation.fromJson(Map<String, dynamic> json) {
-    return OrefLocation(
-      name: json['name'] as String,
-      id: json['id'] as String,
-      hashId: json['hashId'] as String,
-      areaId: json['areaId'] as int,
-      areaName: json['areaName'] as String,
-      shelterTimeSec: json['shelterTimeSec'] as int?,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'id': id,
-      'hashId': hashId,
-      'areaId': areaId,
-      'areaName': areaName,
-      'shelterTimeSec': shelterTimeSec,
-    };
-  }
-
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

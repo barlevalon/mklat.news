@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/api_endpoints.dart';
 import '../../core/app_constants.dart';
+import '../codecs/oref_location_cache_codec.dart';
 import '../mappers/oref_location_mapper.dart';
 import '../models/oref_location.dart';
 import 'http_client.dart';
@@ -103,7 +104,7 @@ class OrefDistrictsService {
       final list = jsonDecode(jsonStr) as List;
       return list
           .whereType<Map<String, dynamic>>()
-          .map((e) => OrefLocation.fromJson(e))
+          .map((e) => OrefLocationCacheCodec.fromJson(e))
           .toList();
     } catch (e) {
       return null;
@@ -114,7 +115,9 @@ class OrefDistrictsService {
   Future<void> _saveToCache(List<OrefLocation> locations) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonStr = jsonEncode(locations.map((l) => l.toJson()).toList());
+      final jsonStr = jsonEncode(
+        locations.map(OrefLocationCacheCodec.toJson).toList(),
+      );
       await prefs.setString(AppConstants.districtsCacheKey, jsonStr);
       await prefs.setString(
         AppConstants.districtsCacheTimestampKey,

@@ -33,31 +33,6 @@ void main() {
       expect(location.shelterTimeSec, null);
     });
 
-    test('serialization to/from JSON', () {
-      final location = OrefLocation(
-        name: 'תל אביב - מרכז',
-        id: '123',
-        hashId: 'abc123',
-        areaId: 5,
-        areaName: 'תל אביב',
-        shelterTimeSec: 90,
-      );
-
-      final json = location.toJson();
-      expect(json['name'], 'תל אביב - מרכז');
-      expect(json['id'], '123');
-      expect(json['hashId'], 'abc123');
-      expect(json['areaId'], 5);
-      expect(json['areaName'], 'תל אביב');
-      expect(json['shelterTimeSec'], 90);
-
-      final fromJson = OrefLocation.fromJson(json);
-      expect(fromJson.name, location.name);
-      expect(fromJson.id, location.id);
-      expect(fromJson.hashId, location.hashId);
-      expect(fromJson.shelterTimeSec, location.shelterTimeSec);
-    });
-
     test('equality based on hashId', () {
       final loc1 = OrefLocation(
         name: 'Name A',

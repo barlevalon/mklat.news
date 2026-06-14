@@ -14,10 +14,14 @@ class ActiveAlertFeedInvalidException implements Exception {
       'ActiveAlertFeedInvalidException: $cause; bodyPreview=$bodyPreview';
 }
 
+DateTime _defaultNow() => DateTime.now();
+
 class OrefAlertsService {
   final HttpClient _httpClient;
+  final DateTime Function() _now;
 
-  OrefAlertsService(this._httpClient);
+  OrefAlertsService(this._httpClient, {DateTime Function() now = _defaultNow})
+    : _now = now;
 
   /// Fetch current active alerts.
   /// Returns a list of Alert objects (one per location in the alert).
@@ -61,9 +65,12 @@ class OrefAlertsService {
         throw const FormatException('Alerts.json data entries must be strings');
       }
 
+      final fetchedAt = _now();
       return data
           .cast<String>()
-          .map((location) => Alert.fromOrefActive(json, location))
+          .map(
+            (location) => Alert.fromOrefActive(json, location, time: fetchedAt),
+          )
           .toList();
     } on ActiveAlertFeedInvalidException {
       rethrow;

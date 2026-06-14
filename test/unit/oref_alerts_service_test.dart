@@ -77,6 +77,27 @@ void main() {
       },
     );
 
+    test('active alert timestamps use injected service clock', () async {
+      final fixedTime = DateTime(2026, 3, 4, 14, 30);
+      service = OrefAlertsService(mockHttpClient, now: () => fixedTime);
+      final responseJson = '''
+        {
+          "id": "133721700000000000",
+          "cat": 1,
+          "title": "ירי רקטות וטילים",
+          "data": ["תל אביב - מרכז העיר", "חיפה - מערב"]
+        }
+      ''';
+
+      when(
+        mockHttpClient.get(any, useOrefHeaders: anyNamed('useOrefHeaders')),
+      ).thenAnswer((_) async => responseJson);
+
+      final result = await service.fetchCurrentAlerts();
+
+      expect(result.map((alert) => alert.time).toSet(), {fixedTime});
+    });
+
     test('multiple locations in data[] produce multiple Alerts', () async {
       final responseJson = '''
         {

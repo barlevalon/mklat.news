@@ -154,6 +154,8 @@ void main() {
   });
 
   group('Alert.fromOrefActive', () {
+    final activeTime = DateTime(2026, 3, 4, 14, 30);
+
     test('maps basic Alerts.json format correctly', () {
       final alertJson = {
         'id': '133721700000000000',
@@ -163,7 +165,11 @@ void main() {
         'data': ['תל אביב - מרכז העיר', 'חיפה - מערב'],
       };
 
-      final alert = Alert.fromOrefActive(alertJson, 'תל אביב - מרכז העיר');
+      final alert = Alert.fromOrefActive(
+        alertJson,
+        'תל אביב - מרכז העיר',
+        time: activeTime,
+      );
 
       expect(alert.location, 'תל אביב - מרכז העיר');
       expect(alert.title, 'ירי רקטות וטילים');
@@ -178,7 +184,11 @@ void main() {
         'data': ['Location'],
       };
 
-      final alert = Alert.fromOrefActive(alertJson, 'Location');
+      final alert = Alert.fromOrefActive(
+        alertJson,
+        'Location',
+        time: activeTime,
+      );
 
       expect(alert.category, 2);
       expect(alert.type, AlertCategory.uav);
@@ -193,7 +203,11 @@ void main() {
         'data': ['Location'],
       };
 
-      final alert = Alert.fromOrefActive(alertJson, 'Location');
+      final alert = Alert.fromOrefActive(
+        alertJson,
+        'Location',
+        time: activeTime,
+      );
 
       expect(alert.desc, 'היכנסו למרחב המוגן');
     });
@@ -206,12 +220,16 @@ void main() {
         'data': ['Location'],
       };
 
-      final alert = Alert.fromOrefActive(alertJson, 'Location');
+      final alert = Alert.fromOrefActive(
+        alertJson,
+        'Location',
+        time: activeTime,
+      );
 
       expect(alert.desc, null);
     });
 
-    test('time is set to DateTime.now()', () {
+    test('time is provided by caller', () {
       final alertJson = {
         'id': '123',
         'cat': 1,
@@ -219,18 +237,13 @@ void main() {
         'data': ['Location'],
       };
 
-      final before = DateTime.now();
-      final alert = Alert.fromOrefActive(alertJson, 'Location');
-      final after = DateTime.now();
+      final alert = Alert.fromOrefActive(
+        alertJson,
+        'Location',
+        time: activeTime,
+      );
 
-      expect(
-        alert.time.isAfter(before) || alert.time.isAtSameMomentAs(before),
-        true,
-      );
-      expect(
-        alert.time.isBefore(after) || alert.time.isAtSameMomentAs(after),
-        true,
-      );
+      expect(alert.time, activeTime);
     });
 
     test('ID synthesis is unique per location', () {
@@ -241,8 +254,16 @@ void main() {
         'data': ['תל אביב - מרכז העיר', 'חיפה - מערב'],
       };
 
-      final alert1 = Alert.fromOrefActive(alertJson, 'תל אביב - מרכז העיר');
-      final alert2 = Alert.fromOrefActive(alertJson, 'חיפה - מערב');
+      final alert1 = Alert.fromOrefActive(
+        alertJson,
+        'תל אביב - מרכז העיר',
+        time: activeTime,
+      );
+      final alert2 = Alert.fromOrefActive(
+        alertJson,
+        'חיפה - מערב',
+        time: activeTime,
+      );
 
       expect(alert1.id, isNot(equals(alert2.id)));
       expect(alert1.id, contains('133721700000000000'));

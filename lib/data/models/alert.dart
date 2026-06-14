@@ -139,14 +139,15 @@ class Alert {
   /// The caller iterates over the `data` array and calls this once per location.
   factory Alert.fromOrefActive(
     Map<String, dynamic> alertJson,
-    String locationName,
-  ) {
+    String locationName, {
+    required DateTime time,
+  }) {
     return Alert(
       id: '${alertJson['id']}_${locationName.hashCode}',
       location: locationName,
       title: alertJson['title'] as String,
       desc: alertJson['desc'] as String?,
-      time: DateTime.now(),
+      time: time,
       category: alertJson['cat'] as int,
     );
   }

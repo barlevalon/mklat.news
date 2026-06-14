@@ -1,5 +1,6 @@
 import 'dart:convert';
 import '../../core/api_endpoints.dart';
+import '../mappers/oref_active_alert_mapper.dart';
 import '../models/alert.dart';
 import 'http_client.dart';
 
@@ -69,7 +70,8 @@ class OrefAlertsService {
       return data
           .cast<String>()
           .map(
-            (location) => Alert.fromOrefActive(json, location, time: fetchedAt),
+            (location) =>
+                OrefActiveAlertMapper.toAlert(json, location, time: fetchedAt),
           )
           .toList();
     } on ActiveAlertFeedInvalidException {

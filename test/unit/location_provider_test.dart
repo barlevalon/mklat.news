@@ -45,6 +45,27 @@ void main() {
       expect(newProvider.primaryLocation?.orefName, 'תל אביב');
     });
 
+    test('loadLocations: normalizes persisted locations', () async {
+      final location1 = SavedLocation.create(
+        orefName: 'תל אביב',
+        isPrimary: false,
+      );
+      final location2 = SavedLocation.create(
+        orefName: 'ירושלים',
+        isPrimary: false,
+      );
+      final jsonStr = jsonEncode([location1.toJson(), location2.toJson()]);
+      SharedPreferences.setMockInitialValues({
+        'mklat_saved_locations': jsonStr,
+      });
+
+      final newProvider = LocationProvider();
+      await newProvider.loadLocations();
+
+      expect(newProvider.primaryLocation?.orefName, 'תל אביב');
+      expect(newProvider.locations.where((l) => l.isPrimary), hasLength(1));
+    });
+
     test('addLocation: adds and persists', () async {
       await provider.loadLocations();
       final location = SavedLocation.create(
@@ -106,7 +127,7 @@ void main() {
       expect(provider.primaryLocation?.orefName, 'ירושלים');
     });
 
-    test('updateLocation: updates and persists', () async {
+    test('updateLocation: updates and preserves one primary', () async {
       await provider.loadLocations();
       final location = SavedLocation.create(
         orefName: 'תל אביב',
@@ -118,6 +139,8 @@ void main() {
       await provider.updateLocation(updated);
 
       expect(provider.locations.first.customLabel, 'עבודה');
+      expect(provider.locations.where((l) => l.isPrimary), hasLength(1));
+      expect(provider.primaryLocation?.id, location.id);
     });
 
     test('deleteLocation: removes and persists', () async {
@@ -169,6 +192,25 @@ void main() {
 
       expect(provider.primaryLocation?.id, location2.id);
       expect(provider.locations.where((l) => l.isPrimary).length, 1);
+    });
+
+    test('setPrimary: missing id leaves existing primary unchanged', () async {
+      await provider.loadLocations();
+      final location1 = SavedLocation.create(
+        orefName: 'תל אביב',
+        isPrimary: true,
+      );
+      final location2 = SavedLocation.create(
+        orefName: 'ירושלים',
+        isPrimary: false,
+      );
+
+      await provider.addLocation(location1);
+      await provider.addLocation(location2);
+      await provider.setPrimary('missing');
+
+      expect(provider.primaryLocation?.id, location1.id);
+      expect(provider.locations.where((l) => l.isPrimary), hasLength(1));
     });
 
     test(

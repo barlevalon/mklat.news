@@ -5,6 +5,7 @@ import '../../core/app_constants.dart';
 import '../../data/models/saved_location.dart';
 import '../../data/models/oref_location.dart';
 import '../../data/services/oref_districts_service.dart';
+import '../../domain/saved_locations.dart';
 
 class LocationProvider extends ChangeNotifier {
   List<SavedLocation> _locations = [];
@@ -38,10 +39,13 @@ class LocationProvider extends ChangeNotifier {
       final jsonStr = prefs.getString(AppConstants.savedLocationsKey);
       if (jsonStr != null) {
         final list = jsonDecode(jsonStr) as List;
-        _locations = list
-            .whereType<Map<String, dynamic>>()
-            .map((e) => SavedLocation.fromJson(e))
-            .toList();
+        _locations = normalizeSavedLocations(
+          list
+              .whereType<Map<String, dynamic>>()
+              .map((e) => SavedLocation.fromJson(e))
+              .toList(),
+        );
+        await _persistLocations(_locations);
       }
     } catch (e) {
       _locations = [];
@@ -55,21 +59,10 @@ class LocationProvider extends ChangeNotifier {
     // Prevent duplicates by orefName
     if (_locations.any((l) => l.orefName == location.orefName)) return;
 
-    // If setting as primary, clear other primaries
-    if (location.isPrimary) {
-      _locations = _locations
-          .map((l) => l.isPrimary ? l.copyWith(isPrimary: false) : l)
-          .toList();
-    }
-
-    // If first location, make it primary
-    if (_locations.isEmpty) {
-      location = location.copyWith(isPrimary: true);
-    }
-
-    _locations.add(location);
-    await _persist();
-    notifyListeners();
+    final existing = location.isPrimary
+        ? _locations.map((l) => l.copyWith(isPrimary: false)).toList()
+        : _locations;
+    await _saveAndPublish([...existing, location]);
   }
 
   /// Update an existing location.
@@ -77,48 +70,47 @@ class LocationProvider extends ChangeNotifier {
     final index = _locations.indexWhere((l) => l.id == updated.id);
     if (index == -1) return;
 
-    // If setting as primary, clear other primaries
-    if (updated.isPrimary) {
-      _locations = _locations
-          .map((l) => l.isPrimary ? l.copyWith(isPrimary: false) : l)
-          .toList();
-    }
-
-    _locations[index] = updated;
-    await _persist();
-    notifyListeners();
+    final next = updated.isPrimary
+        ? _locations.map((l) => l.copyWith(isPrimary: false)).toList()
+        : [..._locations];
+    next[index] = updated;
+    await _saveAndPublish(next);
   }
 
   /// Delete a location by ID.
   Future<void> deleteLocation(String id) async {
-    final wasPrimary = _locations.any((l) => l.id == id && l.isPrimary);
-    _locations.removeWhere((l) => l.id == id);
+    final next = _locations.where((l) => l.id != id).toList();
+    if (next.length == _locations.length) return;
 
-    // If deleted location was primary, promote the first remaining
-    if (wasPrimary && _locations.isNotEmpty) {
-      _locations[0] = _locations[0].copyWith(isPrimary: true);
-    }
-
-    await _persist();
-    notifyListeners();
+    await _saveAndPublish(next);
   }
 
   /// Set a location as primary by ID.
   Future<void> setPrimary(String id) async {
-    _locations = _locations
+    if (!_locations.any((l) => l.id == id)) return;
+
+    final next = _locations
         .map((l) => l.copyWith(isPrimary: l.id == id))
         .toList();
-    await _persist();
+    await _saveAndPublish(next);
+  }
+
+  Future<void> _saveAndPublish(List<SavedLocation> next) async {
+    final normalized = normalizeSavedLocations(next);
+    final didPersist = await _persistLocations(normalized);
+    if (!didPersist) return;
+
+    _locations = normalized;
     notifyListeners();
   }
 
-  Future<void> _persist() async {
+  Future<bool> _persistLocations(List<SavedLocation> locations) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final jsonStr = jsonEncode(_locations.map((l) => l.toJson()).toList());
-      await prefs.setString(AppConstants.savedLocationsKey, jsonStr);
+      final jsonStr = jsonEncode(locations.map((l) => l.toJson()).toList());
+      return prefs.setString(AppConstants.savedLocationsKey, jsonStr);
     } catch (e) {
-      // Persistence failure is non-fatal
+      return false;
     }
   }
 

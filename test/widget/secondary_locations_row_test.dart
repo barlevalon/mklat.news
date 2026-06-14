@@ -8,9 +8,13 @@ import 'package:mklat/presentation/providers/location_provider.dart';
 import 'package:mklat/presentation/providers/connectivity_provider.dart';
 import 'package:mklat/data/models/saved_location.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('SecondaryLocationsRow', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+    });
     Widget buildTestWidget({
       required LocationProvider locationProvider,
       required AlertsProvider alertsProvider,
@@ -40,7 +44,7 @@ void main() {
       );
 
       // Add a primary location first (required for secondary to work)
-      locationProvider.addLocation(
+      await locationProvider.addLocation(
         SavedLocation(
           id: 'primary',
           orefName: 'ראשון לציון',
@@ -51,7 +55,7 @@ void main() {
       );
 
       // Add secondary locations
-      locationProvider.addLocation(
+      await locationProvider.addLocation(
         SavedLocation(
           id: 'loc-1',
           orefName: 'תל אביב',
@@ -60,7 +64,7 @@ void main() {
           shelterTimeSec: 90,
         ),
       );
-      locationProvider.addLocation(
+      await locationProvider.addLocation(
         SavedLocation(
           id: 'loc-2',
           orefName: 'ירושלים',
@@ -101,7 +105,7 @@ void main() {
       );
 
       // Add a primary location first
-      locationProvider.addLocation(
+      await locationProvider.addLocation(
         SavedLocation(
           id: 'primary',
           orefName: 'ראשון לציון',
@@ -112,7 +116,7 @@ void main() {
       );
 
       // Add secondary location
-      locationProvider.addLocation(
+      await locationProvider.addLocation(
         SavedLocation(
           id: 'loc-1',
           orefName: 'תל אביב',
@@ -182,7 +186,7 @@ void main() {
       );
 
       // Add a primary location first
-      locationProvider.addLocation(
+      await locationProvider.addLocation(
         SavedLocation(
           id: 'primary',
           orefName: 'ראשון לציון',
@@ -193,7 +197,7 @@ void main() {
       );
 
       // Add secondary location
-      locationProvider.addLocation(
+      await locationProvider.addLocation(
         SavedLocation(
           id: 'loc-1',
           orefName: 'תל אביב',
@@ -247,7 +251,7 @@ void main() {
       );
 
       // Add a primary location first
-      locationProvider.addLocation(
+      await locationProvider.addLocation(
         SavedLocation(
           id: 'primary',
           orefName: 'ראשון לציון',
@@ -258,7 +262,7 @@ void main() {
       );
 
       // Add secondary location
-      locationProvider.addLocation(
+      await locationProvider.addLocation(
         SavedLocation(
           id: 'loc-1',
           orefName: 'תל אביב',
@@ -322,7 +326,7 @@ void main() {
       );
 
       // Add a primary location first
-      locationProvider.addLocation(
+      await locationProvider.addLocation(
         SavedLocation(
           id: 'primary',
           orefName: 'ראשון לציון',
@@ -333,7 +337,7 @@ void main() {
       );
 
       // Add secondary location
-      locationProvider.addLocation(
+      await locationProvider.addLocation(
         SavedLocation(
           id: 'loc-1',
           orefName: 'תל אביב',

@@ -68,7 +68,7 @@ class AlertListItem extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Padding(
-              padding: const EdgeInsets.only(right: 24),
+              padding: const EdgeInsetsDirectional.only(start: 24),
               child: Text(
                 alert.location,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -78,7 +78,7 @@ class AlertListItem extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Padding(
-              padding: const EdgeInsets.only(right: 24),
+              padding: const EdgeInsetsDirectional.only(start: 24),
               child: Text(
                 timeFormatter.format(alert.time),
                 style: Theme.of(

@@ -90,7 +90,7 @@ class NewsListItem extends StatelessWidget {
                   newsItem.description!.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Padding(
-                  padding: const EdgeInsets.only(right: 44),
+                  padding: const EdgeInsetsDirectional.only(start: 44),
                   child: Text(
                     newsItem.description!,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -105,7 +105,7 @@ class NewsListItem extends StatelessWidget {
               ],
               const SizedBox(height: 8),
               Padding(
-                padding: const EdgeInsets.only(right: 44),
+                padding: const EdgeInsetsDirectional.only(start: 44),
                 child: Builder(
                   builder: (context) {
                     final timeStr = timeFormatter.formatPastOrNull(

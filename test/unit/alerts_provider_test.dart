@@ -80,6 +80,42 @@ void main() {
       expect(notified, isTrue);
     });
 
+    test('setPrimaryLocation: evaluates cached active alerts immediately', () {
+      provider.onAlertData([
+        Alert(
+          id: '1',
+          location: 'תל אביב',
+          title: 'ירי רקטות וטילים',
+          time: DateTime.now(),
+          category: 1,
+        ),
+      ], []);
+
+      provider.setPrimaryLocation('תל אביב');
+
+      expect(provider.alertState, AlertState.redAlert);
+      expect(provider.alertStartTime, isNotNull);
+    });
+
+    test('setPrimaryLocation: switching to active location updates state', () {
+      provider.setPrimaryLocation('חיפה');
+      provider.onAlertData([
+        Alert(
+          id: '1',
+          location: 'תל אביב',
+          title: 'ירי רקטות וטילים',
+          time: DateTime.now(),
+          category: 1,
+        ),
+      ], []);
+
+      expect(provider.alertState, AlertState.allClear);
+
+      provider.setPrimaryLocation('תל אביב');
+
+      expect(provider.alertState, AlertState.redAlert);
+    });
+
     test('nationwideAlertCount: correct count', () {
       final currentAlerts = [
         Alert(

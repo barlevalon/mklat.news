@@ -58,6 +58,7 @@ class AlertsProvider extends ChangeNotifier {
   /// Called by the UI when the user changes primary location.
   void setPrimaryLocation(String? locationName) {
     _stateMachine.setPrimaryLocation(locationName);
+    _evaluateState();
     notifyListeners();
   }
 

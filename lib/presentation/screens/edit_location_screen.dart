@@ -43,16 +43,15 @@ class _EditLocationScreenState extends State<EditLocationScreen> {
     if (!context.mounted) return;
 
     switch (result) {
-      case LocationCommandResult.success:
+      case UpdateLocationResult.success:
         Navigator.pop(context);
         break;
-      case LocationCommandResult.duplicate:
-      case LocationCommandResult.notFound:
+      case UpdateLocationResult.notFound:
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppStrings.locationNotFound)),
         );
         break;
-      case LocationCommandResult.persistFailed:
+      case UpdateLocationResult.persistFailed:
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppStrings.saveLocationFailed)),
         );
@@ -64,64 +63,79 @@ class _EditLocationScreenState extends State<EditLocationScreen> {
     final screenContext = context;
     showDialog(
       context: context,
-      builder: (dialogContext) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          title: const Text(AppStrings.deleteLocation),
-          content: Text(
-            AppStrings.deleteLocationPrompt(widget.location.displayLabel),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text(AppStrings.cancel),
-            ),
-            TextButton(
-              onPressed: () async {
-                final locationProvider = screenContext.read<LocationProvider>();
-                final result = await locationProvider.deleteLocation(
-                  widget.location.id,
-                );
-                if (!screenContext.mounted) return;
+      builder: (dialogContext) {
+        var isDeleting = false;
 
-                if (dialogContext.mounted) {
-                  Navigator.pop(dialogContext); // close dialog
-                }
-
-                switch (result) {
-                  case LocationCommandResult.success:
-                    Navigator.pop(screenContext); // close edit screen
-                    break;
-                  case LocationCommandResult.duplicate:
-                  case LocationCommandResult.notFound:
-                    ScaffoldMessenger.of(screenContext).showSnackBar(
-                      const SnackBar(
-                        content: Text(AppStrings.locationNotFound),
-                      ),
-                    );
-                    break;
-                  case LocationCommandResult.persistFailed:
-                    ScaffoldMessenger.of(screenContext).showSnackBar(
-                      const SnackBar(
-                        content: Text(AppStrings.saveLocationFailed),
-                      ),
-                    );
-                    break;
-                }
-              },
-              child: const Text(
-                AppStrings.delete,
-                style: TextStyle(color: Colors.red),
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) => Directionality(
+            textDirection: TextDirection.rtl,
+            child: AlertDialog(
+              title: const Text(AppStrings.deleteLocation),
+              content: Text(
+                AppStrings.deleteLocationPrompt(widget.location.displayLabel),
               ),
+              actions: [
+                TextButton(
+                  onPressed: isDeleting
+                      ? null
+                      : () => Navigator.pop(dialogContext),
+                  child: const Text(AppStrings.cancel),
+                ),
+                TextButton(
+                  onPressed: isDeleting
+                      ? null
+                      : () async {
+                          if (isDeleting) return;
+
+                          setDialogState(() => isDeleting = true);
+                          final locationProvider = screenContext
+                              .read<LocationProvider>();
+                          final result = await locationProvider.deleteLocation(
+                            widget.location.id,
+                          );
+                          if (!screenContext.mounted) return;
+
+                          if (dialogContext.mounted) {
+                            Navigator.pop(dialogContext); // close dialog
+                          }
+
+                          switch (result) {
+                            case DeleteLocationResult.success:
+                              Navigator.pop(screenContext); // close edit screen
+                              break;
+                            case DeleteLocationResult.notFound:
+                              ScaffoldMessenger.of(screenContext).showSnackBar(
+                                const SnackBar(
+                                  content: Text(AppStrings.locationNotFound),
+                                ),
+                              );
+                              break;
+                            case DeleteLocationResult.persistFailed:
+                              ScaffoldMessenger.of(screenContext).showSnackBar(
+                                const SnackBar(
+                                  content: Text(AppStrings.saveLocationFailed),
+                                ),
+                              );
+                              break;
+                          }
+                        },
+                  child: const Text(
+                    AppStrings.delete,
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isSaving = context.watch<LocationProvider>().isSaving;
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -174,11 +188,13 @@ class _EditLocationScreenState extends State<EditLocationScreen> {
               CheckboxListTile(
                 title: const Text(AppStrings.primaryLocation),
                 value: _isPrimary,
-                onChanged: (value) {
-                  setState(() {
-                    _isPrimary = value ?? false;
-                  });
-                },
+                onChanged: isSaving
+                    ? null
+                    : (value) {
+                        setState(() {
+                          _isPrimary = value ?? false;
+                        });
+                      },
                 controlAffinity: ListTileControlAffinity.leading,
               ),
               const Spacer(),
@@ -187,14 +203,16 @@ class _EditLocationScreenState extends State<EditLocationScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () => _saveLocation(context),
+                      onPressed: isSaving ? null : () => _saveLocation(context),
                       child: const Text(AppStrings.save),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => _showDeleteConfirmation(context),
+                      onPressed: isSaving
+                          ? null
+                          : () => _showDeleteConfirmation(context),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.red,
                       ),

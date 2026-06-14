@@ -52,8 +52,11 @@ class LocationManagementModal extends StatelessWidget {
                           ),
                         ),
                         IconButton(
-                          onPressed: () =>
-                              LocationManagementRoutes.openAddLocation(context),
+                          onPressed: locationProvider.isSaving
+                              ? null
+                              : () => LocationManagementRoutes.openAddLocation(
+                                  context,
+                                ),
                           icon: const Icon(Icons.add),
                         ),
                       ],
@@ -63,7 +66,7 @@ class LocationManagementModal extends StatelessWidget {
                   // Content
                   Flexible(
                     child: locations.isEmpty
-                        ? _buildEmptyState(context)
+                        ? _buildEmptyState(context, locationProvider)
                         : _buildLocationsList(
                             context,
                             locations,
@@ -78,8 +81,11 @@ class LocationManagementModal extends StatelessWidget {
                       child: SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () =>
-                              LocationManagementRoutes.openAddLocation(context),
+                          onPressed: locationProvider.isSaving
+                              ? null
+                              : () => LocationManagementRoutes.openAddLocation(
+                                  context,
+                                ),
                           child: const Text(AppStrings.addLocation),
                         ),
                       ),
@@ -93,7 +99,10 @@ class LocationManagementModal extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(
+    BuildContext context,
+    LocationProvider locationProvider,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(32),
       child: ContentStatePlaceholder(
@@ -101,7 +110,9 @@ class LocationManagementModal extends StatelessWidget {
         children: [
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () => LocationManagementRoutes.openAddLocation(context),
+            onPressed: locationProvider.isSaving
+                ? null
+                : () => LocationManagementRoutes.openAddLocation(context),
             child: const Text(AppStrings.addFirstLocation),
           ),
         ],
@@ -137,29 +148,38 @@ class LocationManagementModal extends StatelessWidget {
             ),
           ),
           subtitle: Text(location.orefName),
-          onTap: () async {
-            final result = await locationProvider.setPrimary(location.id);
-            if (!context.mounted) return;
+          onTap: locationProvider.isSaving
+              ? null
+              : () async {
+                  final result = await locationProvider.setPrimary(location.id);
+                  if (!context.mounted) return;
 
-            switch (result) {
-              case LocationCommandResult.success:
-                Navigator.pop(context);
-                break;
-              case LocationCommandResult.duplicate:
-              case LocationCommandResult.notFound:
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text(AppStrings.locationNotFound)),
-                );
-                break;
-              case LocationCommandResult.persistFailed:
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text(AppStrings.saveLocationFailed)),
-                );
-                break;
-            }
-          },
-          onLongPress: () =>
-              LocationManagementRoutes.openEditLocation(context, location),
+                  switch (result) {
+                    case SetPrimaryLocationResult.success:
+                      Navigator.pop(context);
+                      break;
+                    case SetPrimaryLocationResult.notFound:
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(AppStrings.locationNotFound),
+                        ),
+                      );
+                      break;
+                    case SetPrimaryLocationResult.persistFailed:
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(AppStrings.saveLocationFailed),
+                        ),
+                      );
+                      break;
+                  }
+                },
+          onLongPress: locationProvider.isSaving
+              ? null
+              : () => LocationManagementRoutes.openEditLocation(
+                  context,
+                  location,
+                ),
         );
       },
     );

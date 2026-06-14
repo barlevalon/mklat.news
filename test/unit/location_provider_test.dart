@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -83,7 +84,7 @@ void main() {
 
       final result = await provider.addLocation(location);
 
-      expect(result, LocationCommandResult.success);
+      expect(result, AddLocationResult.success);
       expect(provider.locations.length, 1);
       expect(provider.locations.first.orefName, 'תל אביב');
 
@@ -102,10 +103,72 @@ void main() {
       final result1 = await provider.addLocation(location1);
       final result2 = await provider.addLocation(location2);
 
-      expect(result1, LocationCommandResult.success);
-      expect(result2, LocationCommandResult.duplicate);
+      expect(result1, AddLocationResult.success);
+      expect(result2, AddLocationResult.duplicate);
       expect(provider.locations.length, 1);
     });
+
+    test('addLocation: persist failure does not publish state', () async {
+      provider.dispose();
+      provider = LocationProvider(persistLocations: (_) async => false);
+      await provider.loadLocations();
+
+      final result = await provider.addLocation(
+        SavedLocation.create(orefName: 'תל אביב'),
+      );
+
+      expect(result, AddLocationResult.persistFailed);
+      expect(provider.locations, isEmpty);
+      expect(provider.isSaving, isFalse);
+    });
+
+    test(
+      'location mutations serialize against latest published state',
+      () async {
+        provider.dispose();
+        final persistCompleters = <Completer<bool>>[];
+        final persistedSnapshots = <List<String>>[];
+        provider = LocationProvider(
+          persistLocations: (locations) {
+            persistedSnapshots.add(
+              locations.map((location) => location.orefName).toList(),
+            );
+            final completer = Completer<bool>();
+            persistCompleters.add(completer);
+            return completer.future;
+          },
+        );
+        await provider.loadLocations();
+
+        final first = provider.addLocation(
+          SavedLocation.create(orefName: 'חיפה'),
+        );
+        final second = provider.addLocation(
+          SavedLocation.create(orefName: 'ירושלים'),
+        );
+        await pumpEventQueue();
+
+        expect(provider.isSaving, isTrue);
+        expect(persistCompleters, hasLength(1));
+        expect(persistedSnapshots.single, ['חיפה']);
+
+        persistCompleters.first.complete(true);
+        expect(await first, AddLocationResult.success);
+        await pumpEventQueue();
+
+        expect(persistCompleters, hasLength(2));
+        expect(persistedSnapshots.last, ['חיפה', 'ירושלים']);
+
+        persistCompleters.last.complete(true);
+        expect(await second, AddLocationResult.success);
+
+        expect(provider.locations.map((location) => location.orefName), [
+          'חיפה',
+          'ירושלים',
+        ]);
+        expect(provider.isSaving, isFalse);
+      },
+    );
 
     test('addLocation: first location auto-promoted to primary', () async {
       await provider.loadLocations();
@@ -149,7 +212,7 @@ void main() {
       final updated = location.copyWith(customLabel: 'עבודה');
       final result = await provider.updateLocation(updated);
 
-      expect(result, LocationCommandResult.success);
+      expect(result, UpdateLocationResult.success);
       expect(provider.locations.first.customLabel, 'עבודה');
       expect(provider.locations.where((l) => l.isPrimary), hasLength(1));
       expect(provider.primaryLocation?.id, location.id);
@@ -161,7 +224,7 @@ void main() {
 
       final result = await provider.updateLocation(missing);
 
-      expect(result, LocationCommandResult.notFound);
+      expect(result, UpdateLocationResult.notFound);
       expect(provider.locations, isEmpty);
     });
 
@@ -172,7 +235,7 @@ void main() {
 
       final result = await provider.deleteLocation(location.id);
 
-      expect(result, LocationCommandResult.success);
+      expect(result, DeleteLocationResult.success);
       expect(provider.locations, isEmpty);
     });
 
@@ -181,7 +244,7 @@ void main() {
 
       final result = await provider.deleteLocation('missing');
 
-      expect(result, LocationCommandResult.notFound);
+      expect(result, DeleteLocationResult.notFound);
       expect(provider.locations, isEmpty);
     });
 
@@ -222,7 +285,7 @@ void main() {
       await provider.addLocation(location2);
       final result = await provider.setPrimary(location2.id);
 
-      expect(result, LocationCommandResult.success);
+      expect(result, SetPrimaryLocationResult.success);
       expect(provider.primaryLocation?.id, location2.id);
       expect(provider.locations.where((l) => l.isPrimary).length, 1);
     });
@@ -242,7 +305,7 @@ void main() {
       await provider.addLocation(location2);
       final result = await provider.setPrimary('missing');
 
-      expect(result, LocationCommandResult.notFound);
+      expect(result, SetPrimaryLocationResult.notFound);
       expect(provider.primaryLocation?.id, location1.id);
       expect(provider.locations.where((l) => l.isPrimary), hasLength(1));
     });

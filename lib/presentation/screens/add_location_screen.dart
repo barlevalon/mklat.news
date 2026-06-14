@@ -58,16 +58,15 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
     if (!context.mounted) return;
 
     switch (result) {
-      case LocationCommandResult.success:
+      case AddLocationResult.success:
         Navigator.pop(context);
         break;
-      case LocationCommandResult.duplicate:
+      case AddLocationResult.duplicate:
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppStrings.duplicateLocation)),
         );
         break;
-      case LocationCommandResult.notFound:
-      case LocationCommandResult.persistFailed:
+      case AddLocationResult.persistFailed:
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text(AppStrings.saveLocationFailed)),
         );
@@ -203,7 +202,9 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => _saveLocation(context),
+                      onPressed: locationProvider.isSaving
+                          ? null
+                          : () => _saveLocation(context),
                       child: const Text(AppStrings.save),
                     ),
                   ),

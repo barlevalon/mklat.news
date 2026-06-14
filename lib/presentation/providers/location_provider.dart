@@ -1,6 +1,8 @@
-import '../../core/app_strings.dart';
+import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import '../../core/app_strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/app_constants.dart';
 import '../../data/models/saved_location.dart';
@@ -8,9 +10,25 @@ import '../../data/models/oref_location.dart';
 import '../../data/services/oref_districts_service.dart';
 import '../../domain/saved_locations.dart';
 
-enum LocationCommandResult { success, duplicate, notFound, persistFailed }
+enum AddLocationResult { success, duplicate, persistFailed }
+
+enum UpdateLocationResult { success, notFound, persistFailed }
+
+enum DeleteLocationResult { success, notFound, persistFailed }
+
+enum SetPrimaryLocationResult { success, notFound, persistFailed }
+
+typedef PersistSavedLocations =
+    Future<bool> Function(List<SavedLocation> locations);
 
 class LocationProvider extends ChangeNotifier {
+  LocationProvider({@visibleForTesting PersistSavedLocations? persistLocations})
+    : _persistLocationsForTest = persistLocations;
+
+  final PersistSavedLocations? _persistLocationsForTest;
+  Future<void> _locationMutationQueue = Future.value();
+  int _pendingLocationMutations = 0;
+
   List<SavedLocation> _locations = [];
   bool _isLoaded = false;
   List<OrefLocation> _availableLocations = [];
@@ -22,6 +40,7 @@ class LocationProvider extends ChangeNotifier {
   List<OrefLocation> get availableLocations =>
       List.unmodifiable(_availableLocations);
   bool get isLoadingAvailableLocations => _isLoadingAvailableLocations;
+  bool get isSaving => _pendingLocationMutations > 0;
   String? get availableLocationsErrorMessage => _availableLocationsErrorMessage;
 
   SavedLocation? get primaryLocation {
@@ -62,63 +81,101 @@ class LocationProvider extends ChangeNotifier {
   }
 
   /// Add a new location.
-  Future<LocationCommandResult> addLocation(SavedLocation location) async {
-    // Prevent duplicates by orefName
-    if (_locations.any((l) => l.orefName == location.orefName)) {
-      return LocationCommandResult.duplicate;
-    }
+  Future<AddLocationResult> addLocation(SavedLocation location) {
+    return _mutateLocations(() async {
+      // Prevent duplicates by orefName
+      if (_locations.any((l) => l.orefName == location.orefName)) {
+        return AddLocationResult.duplicate;
+      }
 
-    final existing = location.isPrimary
-        ? _locations.map((l) => l.copyWith(isPrimary: false)).toList()
-        : _locations;
-    return _saveAndPublish([...existing, location]);
+      final existing = location.isPrimary
+          ? _locations.map((l) => l.copyWith(isPrimary: false)).toList()
+          : _locations;
+      final didSave = await _saveAndPublish([...existing, location]);
+      return didSave
+          ? AddLocationResult.success
+          : AddLocationResult.persistFailed;
+    });
   }
 
   /// Update an existing location.
-  Future<LocationCommandResult> updateLocation(SavedLocation updated) async {
-    final index = _locations.indexWhere((l) => l.id == updated.id);
-    if (index == -1) return LocationCommandResult.notFound;
+  Future<UpdateLocationResult> updateLocation(SavedLocation updated) {
+    return _mutateLocations(() async {
+      final index = _locations.indexWhere((l) => l.id == updated.id);
+      if (index == -1) return UpdateLocationResult.notFound;
 
-    final next = updated.isPrimary
-        ? _locations.map((l) => l.copyWith(isPrimary: false)).toList()
-        : [..._locations];
-    next[index] = updated;
-    return _saveAndPublish(next);
+      final next = updated.isPrimary
+          ? _locations.map((l) => l.copyWith(isPrimary: false)).toList()
+          : [..._locations];
+      next[index] = updated;
+      final didSave = await _saveAndPublish(next);
+      return didSave
+          ? UpdateLocationResult.success
+          : UpdateLocationResult.persistFailed;
+    });
   }
 
   /// Delete a location by ID.
-  Future<LocationCommandResult> deleteLocation(String id) async {
-    final next = _locations.where((l) => l.id != id).toList();
-    if (next.length == _locations.length) return LocationCommandResult.notFound;
+  Future<DeleteLocationResult> deleteLocation(String id) {
+    return _mutateLocations(() async {
+      final next = _locations.where((l) => l.id != id).toList();
+      if (next.length == _locations.length) {
+        return DeleteLocationResult.notFound;
+      }
 
-    return _saveAndPublish(next);
+      final didSave = await _saveAndPublish(next);
+      return didSave
+          ? DeleteLocationResult.success
+          : DeleteLocationResult.persistFailed;
+    });
   }
 
   /// Set a location as primary by ID.
-  Future<LocationCommandResult> setPrimary(String id) async {
-    if (!_locations.any((l) => l.id == id)) {
-      return LocationCommandResult.notFound;
-    }
+  Future<SetPrimaryLocationResult> setPrimary(String id) {
+    return _mutateLocations(() async {
+      if (!_locations.any((l) => l.id == id)) {
+        return SetPrimaryLocationResult.notFound;
+      }
 
-    final next = _locations
-        .map((l) => l.copyWith(isPrimary: l.id == id))
-        .toList();
-    return _saveAndPublish(next);
+      final next = _locations
+          .map((l) => l.copyWith(isPrimary: l.id == id))
+          .toList();
+      final didSave = await _saveAndPublish(next);
+      return didSave
+          ? SetPrimaryLocationResult.success
+          : SetPrimaryLocationResult.persistFailed;
+    });
   }
 
-  Future<LocationCommandResult> _saveAndPublish(
-    List<SavedLocation> next,
-  ) async {
+  Future<T> _mutateLocations<T>(Future<T> Function() mutation) {
+    _pendingLocationMutations += 1;
+    notifyListeners();
+
+    final result = _locationMutationQueue.then((_) => mutation());
+    _locationMutationQueue = result.then<void>((_) {}, onError: (_) {});
+
+    return result.whenComplete(() {
+      _pendingLocationMutations -= 1;
+      notifyListeners();
+    });
+  }
+
+  Future<bool> _saveAndPublish(List<SavedLocation> next) async {
     final normalized = normalizeSavedLocations(next);
     final didPersist = await _persistLocations(normalized);
-    if (!didPersist) return LocationCommandResult.persistFailed;
+    if (!didPersist) return false;
 
     _locations = normalized;
     notifyListeners();
-    return LocationCommandResult.success;
+    return true;
   }
 
   Future<bool> _persistLocations(List<SavedLocation> locations) async {
+    final persistForTest = _persistLocationsForTest;
+    if (persistForTest != null) {
+      return persistForTest(locations);
+    }
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final jsonStr = jsonEncode(locations.map((l) => l.toJson()).toList());

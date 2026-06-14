@@ -217,15 +217,32 @@ void main() {
       expect(result, isEmpty);
     });
 
-    test('SocketException (network error) rethrows to caller', () async {
+    test('single feed network error still returns successful feeds', () async {
       when(
         mockHttpClient.get(ApiEndpoints.rssYnet),
       ).thenThrow(SocketException('No Internet'));
       when(
         mockHttpClient.get(ApiEndpoints.rssMaariv),
+      ).thenAnswer((_) async => validMaarivRss);
+      when(
+        mockHttpClient.get(ApiEndpoints.rssHaaretz),
+      ).thenAnswer((_) async => validHaaretzRss);
+
+      final result = await service.fetchAllNews();
+
+      expect(result.length, 2);
+      expect(result.map((item) => item.source), [
+        NewsSource.maariv,
+        NewsSource.haaretz,
+      ]);
+    });
+
+    test('all feed network errors rethrows to caller', () async {
+      when(
+        mockHttpClient.get(ApiEndpoints.rssYnet),
       ).thenThrow(SocketException('No Internet'));
       when(
-        mockHttpClient.get(ApiEndpoints.rssMako),
+        mockHttpClient.get(ApiEndpoints.rssMaariv),
       ).thenThrow(SocketException('No Internet'));
       when(
         mockHttpClient.get(ApiEndpoints.rssHaaretz),

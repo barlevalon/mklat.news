@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/api_endpoints.dart';
 import '../../core/app_constants.dart';
+import '../mappers/oref_location_mapper.dart';
 import '../models/oref_location.dart';
 import 'http_client.dart';
 
@@ -61,7 +62,7 @@ class OrefDistrictsService {
       if (json is! List) return [];
       return json
           .whereType<Map<String, dynamic>>()
-          .map((entry) => OrefLocation.fromDistricts(entry))
+          .map((entry) => OrefLocationMapper.fromDistricts(entry))
           .toList();
     } catch (e) {
       return [];
@@ -76,7 +77,7 @@ class OrefDistrictsService {
       if (json is! List) return [];
       return json
           .whereType<Map<String, dynamic>>()
-          .map((entry) => OrefLocation.fromCitiesFallback(entry))
+          .map((entry) => OrefLocationMapper.fromCitiesFallback(entry))
           .toList();
     } catch (e) {
       return [];

@@ -300,13 +300,49 @@
 
     @media (max-width: 860px) {
       header { align-items: flex-start; }
-      .hero { grid-template-columns: 1fr; padding-top: 34px; }
-      .phone-stack { min-height: 520px; }
-      .phone { width: min(270px, 68vw); }
-      .phone.clear { inset-inline-start: 0; }
-      .phone.alert { inset-inline-end: 0; top: 82px; }
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        padding: 34px 0 48px;
+        text-align: center;
+      }
+      .lead { margin-inline: auto; }
+      .cta-row { justify-content: center; }
+      .notice { text-align: start; }
+      .phone-stack {
+        min-height: auto;
+        display: flex;
+        justify-content: center;
+      }
+      .phone {
+        width: min(300px, 82vw);
+        border-radius: 30px;
+      }
+      .phone.clear { display: none; }
+      .phone.alert {
+        position: static;
+        inset: auto;
+        top: auto;
+        transform: none;
+      }
       .cards, .shots, .steps { grid-template-columns: 1fr; }
       .shots { max-width: 360px; margin: 0 auto; }
+    }
+
+    @media (max-width: 430px) {
+      .wrap { width: min(100% - 28px, 1120px); }
+      header { padding-top: 22px; }
+      .brand { font-size: 1.12rem; }
+      .brand-mark {
+        width: 42px;
+        height: 42px;
+      }
+      .hero { padding-top: 26px; }
+      h1 { font-size: clamp(2.05rem, 11vw, 2.75rem); }
+      .lead { font-size: 1.06rem; }
+      .cta-row { display: grid; grid-template-columns: 1fr; }
+      .button { width: 100%; }
+      section { padding: 44px 0; }
     }
   </style>
 </head>

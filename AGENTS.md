@@ -90,10 +90,15 @@ flutter build ios      # iOS
 
 ## Validation
 
-A `Makefile` is available for all validation tasks. **All new work must pass `make check` before committing.**
+Use the `Makefile` and checks appropriate to the change:
+
+- During iteration, run focused tests for the changed behavior.
+- Before committing Dart changes, run formatting, `flutter analyze`, and relevant host tests (unit, widget, or fixture-based integration).
+- Run emulator integration tests for new or changed screens/user flows and app lifecycle behavior.
+- Run `make check` for full app validation before releases or broad cross-layer changes. Documentation-only changes do not require Flutter or emulator checks.
 
 ```bash
-# Full pre-push check: format + analyze + unit + integration tests
+# Full app check: format + analyze + host + emulator integration tests
 make check
 
 # All tests (unit + integration)
@@ -152,7 +157,7 @@ Alert state machine runs on PRIMARY location only. Changing primary location res
 
 ## Testing Strategy
 
-Three tiers of testing, all mandatory for new work:
+Choose coverage at the affected seam; not every change needs all three tiers:
 
 ### 1. Unit/widget tests (`test/unit/`, `test/widget/`)
 - Mock at service level, test business logic and widget rendering
